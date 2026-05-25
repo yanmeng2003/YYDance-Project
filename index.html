@@ -322,10 +322,28 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.15);
+    }
+
+    .form-group select,
+    .form-group textarea {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+    }
+
+    .form-group textarea {
+      min-height: 72px;
+      resize: vertical;
     }
 
     .form-actions {
@@ -645,6 +663,11 @@
           <h2>课程管理</h2>
           <p>创建课程、查看上课时间</p>
         </div>
+        <div class="entry-card" id="card-teachers" role="button" tabindex="0">
+          <div class="card-icon">🎓</div>
+          <h2>老师管理</h2>
+          <p>管理老师信息（需密码）</p>
+        </div>
       </div>
     </section>
 
@@ -687,10 +710,31 @@
         <ul class="student-list" id="course-list"></ul>
       </div>
     </section>
+
+    <!-- 老师管理页 -->
+    <section id="page-teachers" class="page">
+      <div class="page-header">
+        <button type="button" class="btn btn-outline" id="btn-back-home-teachers">← 返回首页</button>
+        <h2>老师管理</h2>
+      </div>
+
+      <div class="list-card">
+        <h3>
+          老师列表
+          <span class="student-count" id="teacher-count">共 0 人</span>
+        </h3>
+        <div id="teacher-empty-state" class="empty-state">
+          <div class="icon">🎓</div>
+          <p>暂无老师，点击右下角添加</p>
+        </div>
+        <ul class="student-list" id="teacher-list"></ul>
+      </div>
+    </section>
   </main>
 
   <button type="button" class="fab" id="fab-add-student" aria-label="添加学员">+ 添加学员</button>
-  <button type="button" class="fab fab-icon" id="fab-add-course" aria-label="添加课程">+</button>
+  <button type="button" class="fab" id="fab-add-course" aria-label="添加课程">+ 添加课程</button>
+  <button type="button" class="fab" id="fab-add-teacher" aria-label="添加老师">+ 添加老师</button>
 
   <!-- 添加学员弹窗 -->
   <div class="modal-overlay" id="modal-add" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
@@ -762,6 +806,12 @@
               <label for="course-end-time">结束时间 *</label>
               <input type="time" id="course-end-time" required>
             </div>
+            <div class="form-group">
+              <label for="course-teacher">负责老师</label>
+              <select id="course-teacher">
+                <option value="">请选择（可选）</option>
+              </select>
+            </div>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">添加课程</button>
@@ -807,10 +857,116 @@
               <label for="edit-course-end-time">结束时间 *</label>
               <input type="time" id="edit-course-end-time" required>
             </div>
+            <div class="form-group">
+              <label for="edit-course-teacher">负责老师</label>
+              <select id="edit-course-teacher">
+                <option value="">请选择（可选）</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions-edit">
+            <div class="form-actions-row">
+              <button type="submit" class="btn btn-primary">保存</button>
+              <button type="button" class="btn btn-outline" data-close="modal-edit-course">取消</button>
+            </div>
+            <div class="form-actions-delete">
+              <button type="button" class="btn btn-danger" id="btn-delete-course">删除课程</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 老师入口密码验证 -->
+  <div class="modal-overlay" id="modal-teacher-password" role="dialog" aria-modal="true" aria-labelledby="modal-teacher-password-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-teacher-password-title">验证密码</h3>
+        <button type="button" class="modal-close" data-close="modal-teacher-password" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-teacher-password">
+          <div class="form-group">
+            <label for="teacher-password">请输入管理密码 *</label>
+            <input type="password" id="teacher-password" required placeholder="请输入密码" autocomplete="off">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">确认进入</button>
+            <button type="button" class="btn btn-outline" data-close="modal-teacher-password">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加老师弹窗 -->
+  <div class="modal-overlay" id="modal-add-teacher" role="dialog" aria-modal="true" aria-labelledby="modal-add-teacher-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-add-teacher-title">添加老师</h3>
+        <button type="button" class="modal-close" data-close="modal-add-teacher" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-teacher">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="teacher-name">老师姓名 *</label>
+              <input type="text" id="teacher-name" required placeholder="请输入姓名">
+            </div>
+            <div class="form-group">
+              <label for="teacher-phone">联系电话 *</label>
+              <input type="tel" id="teacher-phone" required placeholder="请输入手机号">
+            </div>
+            <div class="form-group">
+              <label for="teacher-wechat">微信号</label>
+              <input type="text" id="teacher-wechat" placeholder="选填">
+            </div>
+            <div class="form-group">
+              <label for="teacher-notes">备注</label>
+              <textarea id="teacher-notes" placeholder="选填"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">添加老师</button>
+            <button type="button" class="btn btn-outline" data-close="modal-add-teacher">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑老师弹窗 -->
+  <div class="modal-overlay" id="modal-edit-teacher" role="dialog" aria-modal="true" aria-labelledby="modal-edit-teacher-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-edit-teacher-title">编辑老师</h3>
+        <button type="button" class="modal-close" data-close="modal-edit-teacher" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-teacher">
+          <input type="hidden" id="edit-teacher-id">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="edit-teacher-name">老师姓名 *</label>
+              <input type="text" id="edit-teacher-name" required placeholder="请输入姓名">
+            </div>
+            <div class="form-group">
+              <label for="edit-teacher-phone">联系电话 *</label>
+              <input type="tel" id="edit-teacher-phone" required placeholder="请输入手机号">
+            </div>
+            <div class="form-group">
+              <label for="edit-teacher-wechat">微信号</label>
+              <input type="text" id="edit-teacher-wechat" placeholder="选填">
+            </div>
+            <div class="form-group">
+              <label for="edit-teacher-notes">备注</label>
+              <textarea id="edit-teacher-notes" placeholder="选填"></textarea>
+            </div>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">保存</button>
-            <button type="button" class="btn btn-outline" data-close="modal-edit-course">取消</button>
+            <button type="button" class="btn btn-outline" data-close="modal-edit-teacher">取消</button>
           </div>
         </form>
       </div>
@@ -867,10 +1023,12 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjanFsbHFwemloYmpqb3l0cnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzE0ODAsImV4cCI6MjA5NTMwNzQ4MH0.EACmM5pQlZ2K-EaM-S5lmM91Uq5aL5Q_tIMRJmcaf30';
 
     const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const TEACHER_PASSWORD = '0417';
 
     let supabaseClient = null;
     let studentsCache = [];
     let coursesCache = [];
+    let teachersCache = [];
 
     function initSupabaseClient() {
       const lib = window.supabase || globalThis.supabase;
@@ -930,13 +1088,39 @@
       return data && data.length > 0;
     }
 
+    function mapTeacher(row) {
+      return {
+        id: row.id,
+        name: row.name,
+        phone: row.phone,
+        wechat: row.wechat || '',
+        notes: row.notes || ''
+      };
+    }
+
+    async function fetchTeachers() {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载，请检查网络后刷新页面');
+
+      const { data, error } = await db
+        .from('teachers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(mapTeacher);
+    }
+
     function mapCourse(row) {
+      const teacher = row.teachers;
       return {
         id: row.id,
         name: row.name,
         weekdays: row.weekdays || [],
         startTime: row.start_time,
-        endTime: row.end_time
+        endTime: row.end_time,
+        teacherId: row.teacher_id || null,
+        teacherName: teacher ? teacher.name : null
       };
     }
 
@@ -946,11 +1130,26 @@
 
       const { data, error } = await db
         .from('courses')
-        .select('*')
+        .select('*, teachers(id, name)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       return (data || []).map(mapCourse);
+    }
+
+    function populateTeacherSelect(selectId, selectedId) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+
+      const current = selectedId || '';
+      select.innerHTML = '<option value="">请选择（可选）</option>' +
+        teachersCache.map(t => `
+          <option value="${escapeHtml(t.id)}"${t.id === current ? ' selected' : ''}>${escapeHtml(t.name)}</option>
+        `).join('');
+    }
+
+    async function refreshTeachersCache() {
+      teachersCache = await fetchTeachers();
     }
 
     function formatTime(timeStr) {
@@ -1010,6 +1209,7 @@
     function updateFabVisibility(page) {
       document.getElementById('fab-add-student').classList.toggle('visible', page === 'students');
       document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
+      document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers');
     }
 
     function navigateTo(page) {
@@ -1019,7 +1219,7 @@
         link.classList.toggle('active', link.dataset.page === page);
       });
       updateFabVisibility(page);
-      if (page !== 'students' && page !== 'courses') {
+      if (page !== 'students' && page !== 'courses' && page !== 'teachers') {
         closeAllModals();
       }
       if (page === 'students') {
@@ -1028,6 +1228,15 @@
       if (page === 'courses') {
         loadAndRenderCourses();
       }
+      if (page === 'teachers') {
+        loadAndRenderTeachers();
+      }
+    }
+
+    function openTeacherPasswordModal() {
+      document.getElementById('teacher-password').value = '';
+      openModal('modal-teacher-password');
+      setTimeout(() => document.getElementById('teacher-password').focus(), 100);
     }
 
     function renderStudentListUI(students) {
@@ -1093,25 +1302,20 @@
             <span class="student-name">${escapeHtml(c.name)}</span>
             <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
             <span class="sub">上课日期：${escapeHtml(formatWeekdays(c.weekdays))}</span>
+            ${c.teacherName ? `<span class="sub">负责老师：${escapeHtml(c.teacherName)}</span>` : ''}
           </div>
-          <div class="course-actions">
-            <button type="button" class="btn btn-outline btn-sm btn-edit-course" data-id="${escapeHtml(c.id)}">编辑</button>
-            <button type="button" class="btn btn-outline btn-sm btn-delete-course" data-id="${escapeHtml(c.id)}">删除</button>
-          </div>
+          <button type="button" class="btn btn-outline btn-sm btn-edit-course" data-id="${escapeHtml(c.id)}">编辑</button>
         </li>
       `).join('');
 
       listEl.querySelectorAll('.btn-edit-course').forEach(btn => {
         btn.addEventListener('click', () => openEditCourseModal(btn.dataset.id));
       });
-
-      listEl.querySelectorAll('.btn-delete-course').forEach(btn => {
-        btn.addEventListener('click', () => deleteCourse(btn.dataset.id));
-      });
     }
 
     async function loadAndRenderCourses() {
       try {
+        await refreshTeachersCache();
         coursesCache = await fetchCourses();
         renderCourseListUI(coursesCache);
       } catch (err) {
@@ -1120,15 +1324,71 @@
       }
     }
 
-    function openEditCourseModal(id) {
+    function renderTeacherListUI(teachers) {
+      const countEl = document.getElementById('teacher-count');
+      const emptyEl = document.getElementById('teacher-empty-state');
+      const listEl = document.getElementById('teacher-list');
+
+      countEl.textContent = '共 ' + teachers.length + ' 人';
+
+      if (teachers.length === 0) {
+        emptyEl.style.display = 'block';
+        listEl.style.display = 'none';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      listEl.style.display = 'block';
+
+      listEl.innerHTML = teachers.map(t => `
+        <li class="student-list-item">
+          <div class="course-meta">
+            <span class="student-name">${escapeHtml(t.name)}</span>
+            <span class="sub">${escapeHtml(t.phone)}</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm btn-edit-teacher" data-id="${escapeHtml(t.id)}">编辑</button>
+        </li>
+      `).join('');
+
+      listEl.querySelectorAll('.btn-edit-teacher').forEach(btn => {
+        btn.addEventListener('click', () => openEditTeacherModal(btn.dataset.id));
+      });
+    }
+
+    async function loadAndRenderTeachers() {
+      try {
+        teachersCache = await fetchTeachers();
+        renderTeacherListUI(teachersCache);
+      } catch (err) {
+        console.error(err);
+        showToast('加载老师失败，请检查网络或数据库配置');
+      }
+    }
+
+    function openEditTeacherModal(id) {
+      const teacher = teachersCache.find(t => t.id === id);
+      if (!teacher) return;
+
+      document.getElementById('edit-teacher-id').value = teacher.id;
+      document.getElementById('edit-teacher-name').value = teacher.name;
+      document.getElementById('edit-teacher-phone').value = teacher.phone;
+      document.getElementById('edit-teacher-wechat').value = teacher.wechat || '';
+      document.getElementById('edit-teacher-notes').value = teacher.notes || '';
+
+      openModal('modal-edit-teacher');
+    }
+
+    async function openEditCourseModal(id) {
       const course = coursesCache.find(c => c.id === id);
       if (!course) return;
 
+      await refreshTeachersCache();
       document.getElementById('edit-course-id').value = course.id;
       document.getElementById('edit-course-name').value = course.name;
       setWeekdayCheckboxes('#edit-course-weekdays', course.weekdays);
       document.getElementById('edit-course-start-time').value = formatTime(course.startTime);
       document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
+      populateTeacherSelect('edit-course-teacher', course.teacherId || '');
 
       openModal('modal-edit-course');
     }
@@ -1169,8 +1429,17 @@
         }
       });
 
+      document.getElementById('card-teachers').addEventListener('click', openTeacherPasswordModal);
+      document.getElementById('card-teachers').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openTeacherPasswordModal();
+        }
+      });
+
       document.getElementById('btn-back-home').addEventListener('click', () => navigateTo('home'));
       document.getElementById('btn-back-home-courses').addEventListener('click', () => navigateTo('home'));
+      document.getElementById('btn-back-home-teachers').addEventListener('click', () => navigateTo('home'));
 
       document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', () => {
@@ -1186,9 +1455,31 @@
         openModal('modal-add');
       });
 
-      document.getElementById('fab-add-course').addEventListener('click', () => {
+      document.getElementById('fab-add-course').addEventListener('click', async () => {
         document.getElementById('form-add-course').reset();
+        try {
+          await refreshTeachersCache();
+          populateTeacherSelect('course-teacher', '');
+        } catch (err) {
+          console.error(err);
+        }
         openModal('modal-add-course');
+      });
+
+      document.getElementById('fab-add-teacher').addEventListener('click', () => {
+        document.getElementById('form-add-teacher').reset();
+        openModal('modal-add-teacher');
+      });
+
+      document.getElementById('form-teacher-password').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const pwd = document.getElementById('teacher-password').value;
+        if (pwd === TEACHER_PASSWORD) {
+          closeModal('modal-teacher-password');
+          navigateTo('teachers');
+        } else {
+          showToast('密码错误');
+        }
       });
 
       document.querySelectorAll('[data-close]').forEach(el => {
@@ -1206,6 +1497,14 @@
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
       document.getElementById('form-add-course').addEventListener('submit', onAddCourse);
       document.getElementById('form-edit-course').addEventListener('submit', onEditCourse);
+      document.getElementById('btn-delete-course').addEventListener('click', onDeleteCourseFromEdit);
+      document.getElementById('form-add-teacher').addEventListener('submit', onAddTeacher);
+      document.getElementById('form-edit-teacher').addEventListener('submit', onEditTeacher);
+    }
+
+    function getTeacherIdFromSelect(selectId) {
+      const val = document.getElementById(selectId).value;
+      return val || null;
     }
 
     async function onAddCourse(e) {
@@ -1238,11 +1537,14 @@
           return;
         }
 
+        const teacherId = getTeacherIdFromSelect('course-teacher');
+
         const { error } = await db.from('courses').insert({
           name,
           weekdays,
           start_time: startTime,
-          end_time: endTime
+          end_time: endTime,
+          teacher_id: teacherId
         });
 
         if (error) throw error;
@@ -1288,11 +1590,14 @@
           return;
         }
 
+        const teacherId = getTeacherIdFromSelect('edit-course-teacher');
+
         const { error } = await db.from('courses').update({
           name,
           weekdays,
           start_time: startTime,
-          end_time: endTime
+          end_time: endTime,
+          teacher_id: teacherId
         }).eq('id', id);
 
         if (error) throw error;
@@ -1306,9 +1611,11 @@
       }
     }
 
-    async function deleteCourse(id) {
-      const course = coursesCache.find(c => c.id === id);
-      const name = course ? course.name : '该课程';
+    async function onDeleteCourseFromEdit() {
+      const id = document.getElementById('edit-course-id').value;
+      const name = document.getElementById('edit-course-name').value.trim() || '该课程';
+
+      if (!id) return;
 
       if (!confirm('确定要删除「' + name + '」吗？此操作不可恢复。')) {
         return;
@@ -1324,11 +1631,90 @@
         const { error } = await db.from('courses').delete().eq('id', id);
         if (error) throw error;
 
+        closeModal('modal-edit-course');
         await loadAndRenderCourses();
         showToast('课程已删除');
       } catch (err) {
         console.error(err);
         showToast(err.message || '删除失败');
+      }
+    }
+
+    async function onAddTeacher(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('teacher-name').value.trim();
+      const phone = document.getElementById('teacher-phone').value.trim();
+      const wechat = document.getElementById('teacher-wechat').value.trim();
+      const notes = document.getElementById('teacher-notes').value.trim();
+
+      if (!name || !phone) {
+        showToast('请填写老师姓名和联系电话');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error } = await db.from('teachers').insert({
+          name,
+          phone,
+          wechat: wechat || null,
+          notes: notes || null
+        });
+
+        if (error) throw error;
+
+        e.target.reset();
+        closeModal('modal-add-teacher');
+        await loadAndRenderTeachers();
+        showToast('老师添加成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '添加失败');
+      }
+    }
+
+    async function onEditTeacher(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('edit-teacher-id').value;
+      const name = document.getElementById('edit-teacher-name').value.trim();
+      const phone = document.getElementById('edit-teacher-phone').value.trim();
+      const wechat = document.getElementById('edit-teacher-wechat').value.trim();
+      const notes = document.getElementById('edit-teacher-notes').value.trim();
+
+      if (!name || !phone) {
+        showToast('请填写老师姓名和联系电话');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error } = await db.from('teachers').update({
+          name,
+          phone,
+          wechat: wechat || null,
+          notes: notes || null
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        closeModal('modal-edit-teacher');
+        await loadAndRenderTeachers();
+        showToast('保存成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '保存失败');
       }
     }
 
@@ -1465,6 +1851,7 @@
       updateFabVisibility('home');
       if (getSupabase()) {
         loadAndRenderStudents();
+        refreshTeachersCache().catch(() => {});
       } else {
         console.warn('Supabase JS 未就绪，页面导航仍可用，数据功能需刷新后重试');
       }
