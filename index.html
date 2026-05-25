@@ -701,20 +701,49 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script>
-    const STORAGE_KEY = 'yy_dance_students';
+    const SUPABASE_URL = 'https://dcjqllqpzihbjjoytrzt.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjanFsbHFwemloYmpqb3l0cnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzE0ODAsImV4cCI6MjA5NTMwNzQ4MH0.EACmM5pQlZ2K-EaM-S5lmM91Uq5aL5Q_tIMRJmcaf30';
 
-    function getStudents() {
-      try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
-      } catch {
-        return [];
-      }
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let studentsCache = [];
+
+    function mapStudent(row) {
+      return {
+        id: row.id,
+        name: row.name,
+        phone: row.phone,
+        wechat: row.wechat || '',
+        remainingHours: row.remaining_lessons,
+        totalLessons: row.total_lessons
+      };
     }
 
-    function saveStudents(students) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    async function fetchStudents() {
+      const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(mapStudent);
+    }
+
+    async function isPhoneTaken(phone, excludeId) {
+      let query = supabase
+        .from('students')
+        .select('id')
+        .eq('phone', phone);
+
+      if (excludeId) {
+        query = query.neq('id', excludeId);
+      }
+
+      const { data, error } = await query.limit(1);
+      if (error) throw error;
+      return data && data.length > 0;
     }
 
     function showToast(message) {
@@ -756,12 +785,11 @@
         closeAllModals();
       }
       if (page === 'students') {
-        renderStudentList();
+        loadAndRenderStudents();
       }
     }
 
-    function renderStudentList() {
-      const students = getStudents();
+    function renderStudentListUI(students) {
       const countEl = document.getElementById('student-count');
       const emptyEl = document.getElementById('empty-state');
       const listEl = document.getElementById('student-list');
@@ -792,8 +820,18 @@
       });
     }
 
+    async function loadAndRenderStudents() {
+      try {
+        studentsCache = await fetchStudents();
+        renderStudentListUI(studentsCache);
+      } catch (err) {
+        console.error(err);
+        showToast('加载学员失败，请检查网络或数据库配置');
+      }
+    }
+
     function openEditModal(id) {
-      const student = getStudents().find(s => s.id === id);
+      const student = studentsCache.find(s => s.id === id);
       if (!student) return;
 
       document.getElementById('edit-id').value = student.id;
@@ -849,7 +887,7 @@
     });
 
     // Add student form
-    document.getElementById('form-add-student').addEventListener('submit', (e) => {
+    document.getElementById('form-add-student').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const name = document.getElementById('add-name').value.trim();
@@ -867,32 +905,34 @@
         return;
       }
 
-      const students = getStudents();
-      const exists = students.some(s => s.phone === phone);
-      if (exists) {
-        showToast('该联系电话已存在');
-        return;
+      try {
+        if (await isPhoneTaken(phone)) {
+          showToast('该联系电话已存在');
+          return;
+        }
+
+        const { error } = await supabase.from('students').insert({
+          name,
+          phone,
+          wechat: wechat || null,
+          total_lessons: hours,
+          remaining_lessons: hours
+        });
+
+        if (error) throw error;
+
+        e.target.reset();
+        closeModal('modal-add');
+        await loadAndRenderStudents();
+        showToast('学员添加成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '添加失败');
       }
-
-      students.push({
-        id: Date.now().toString(),
-        name,
-        phone,
-        wechat,
-        remainingHours: hours,
-        purchasedHours: hours,
-        createdAt: new Date().toISOString()
-      });
-
-      saveStudents(students);
-      e.target.reset();
-      closeModal('modal-add');
-      renderStudentList();
-      showToast('学员添加成功');
     });
 
     // Edit student form
-    document.getElementById('form-edit-student').addEventListener('submit', (e) => {
+    document.getElementById('form-edit-student').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const id = document.getElementById('edit-id').value;
@@ -911,35 +951,32 @@
         return;
       }
 
-      const students = getStudents();
-      const index = students.findIndex(s => s.id === id);
-      if (index === -1) {
-        showToast('学员不存在');
-        return;
+      try {
+        if (await isPhoneTaken(phone, id)) {
+          showToast('该联系电话已被其他学员使用');
+          return;
+        }
+
+        const { error } = await supabase.from('students').update({
+          name,
+          phone,
+          wechat: wechat || null,
+          remaining_lessons: hours
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        closeModal('modal-edit');
+        await loadAndRenderStudents();
+        showToast('保存成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '保存失败');
       }
-
-      const phoneTaken = students.some(s => s.phone === phone && s.id !== id);
-      if (phoneTaken) {
-        showToast('该联系电话已被其他学员使用');
-        return;
-      }
-
-      students[index] = {
-        ...students[index],
-        name,
-        phone,
-        wechat,
-        remainingHours: hours
-      };
-
-      saveStudents(students);
-      closeModal('modal-edit');
-      renderStudentList();
-      showToast('保存成功');
     });
 
     // Delete student
-    document.getElementById('btn-delete-student').addEventListener('click', () => {
+    document.getElementById('btn-delete-student').addEventListener('click', async () => {
       const id = document.getElementById('edit-id').value;
       const name = document.getElementById('edit-name').value.trim() || '该学员';
 
@@ -949,16 +986,22 @@
         return;
       }
 
-      const students = getStudents().filter(s => s.id !== id);
-      saveStudents(students);
-      closeModal('modal-edit');
-      renderStudentList();
-      showToast('学员已删除');
+      try {
+        const { error } = await supabase.from('students').delete().eq('id', id);
+        if (error) throw error;
+
+        closeModal('modal-edit');
+        await loadAndRenderStudents();
+        showToast('学员已删除');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '删除失败');
+      }
     });
 
     // Initial render
     updateFabVisibility('home');
-    renderStudentList();
+    loadAndRenderStudents();
   </script>
 </body>
 </html>
