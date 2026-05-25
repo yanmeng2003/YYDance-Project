@@ -502,6 +502,12 @@
       color: var(--text-muted);
     }
 
+    .course-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
     /* Modal */
     .modal-overlay {
       display: none;
@@ -749,17 +755,62 @@
               </div>
             </div>
             <div class="form-group">
-              <label for="course-time">上课时间 *</label>
-              <input type="time" id="course-time" required>
+              <label for="course-start-time">开始时间 *</label>
+              <input type="time" id="course-start-time" required>
             </div>
             <div class="form-group">
-              <label for="course-duration">课程时长（分钟） *</label>
-              <input type="number" id="course-duration" required min="1" step="1" placeholder="例如：60">
+              <label for="course-end-time">结束时间 *</label>
+              <input type="time" id="course-end-time" required>
             </div>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">添加课程</button>
             <button type="button" class="btn btn-outline" data-close="modal-add-course">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑课程弹窗 -->
+  <div class="modal-overlay" id="modal-edit-course" role="dialog" aria-modal="true" aria-labelledby="modal-edit-course-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-edit-course-title">编辑课程</h3>
+        <button type="button" class="modal-close" data-close="modal-edit-course" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-course">
+          <input type="hidden" id="edit-course-id">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="edit-course-name">课程名称 *</label>
+              <input type="text" id="edit-course-name" required placeholder="例如：爵士舞基础班">
+            </div>
+            <div class="form-group">
+              <label>星期几 *</label>
+              <div class="weekday-options" id="edit-course-weekdays">
+                <label><input type="checkbox" name="weekday" value="周一">周一</label>
+                <label><input type="checkbox" name="weekday" value="周二">周二</label>
+                <label><input type="checkbox" name="weekday" value="周三">周三</label>
+                <label><input type="checkbox" name="weekday" value="周四">周四</label>
+                <label><input type="checkbox" name="weekday" value="周五">周五</label>
+                <label><input type="checkbox" name="weekday" value="周六">周六</label>
+                <label><input type="checkbox" name="weekday" value="周日">周日</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-course-start-time">开始时间 *</label>
+              <input type="time" id="edit-course-start-time" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-course-end-time">结束时间 *</label>
+              <input type="time" id="edit-course-end-time" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="button" class="btn btn-outline" data-close="modal-edit-course">取消</button>
           </div>
         </form>
       </div>
@@ -885,7 +936,7 @@
         name: row.name,
         weekdays: row.weekdays || [],
         startTime: row.start_time,
-        durationMinutes: row.duration_minutes
+        endTime: row.end_time
       };
     }
 
@@ -904,8 +955,11 @@
 
     function formatTime(timeStr) {
       if (!timeStr) return '';
-      const part = String(timeStr).slice(0, 5);
-      return part;
+      return String(timeStr).slice(0, 5);
+    }
+
+    function formatTimeRange(start, end) {
+      return formatTime(start) + ' - ' + formatTime(end);
     }
 
     function formatWeekdays(days) {
@@ -913,9 +967,20 @@
       return [...days].sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b)).join('、');
     }
 
-    function getSelectedWeekdays() {
-      return Array.from(document.querySelectorAll('#course-weekdays input[name="weekday"]:checked'))
+    function getSelectedWeekdays(containerId) {
+      return Array.from(document.querySelectorAll(containerId + ' input[name="weekday"]:checked'))
         .map(el => el.value);
+    }
+
+    function setWeekdayCheckboxes(containerId, days) {
+      document.querySelectorAll(containerId + ' input[name="weekday"]').forEach(cb => {
+        cb.checked = days.includes(cb.value);
+      });
+    }
+
+    function validateCourseTimes(startTime, endTime) {
+      if (!startTime || !endTime) return false;
+      return startTime < endTime;
     }
 
     function showToast(message) {
@@ -1026,11 +1091,23 @@
         <li class="student-list-item">
           <div class="course-meta">
             <span class="student-name">${escapeHtml(c.name)}</span>
-            <span class="sub">上课时间：${escapeHtml(formatTime(c.startTime))}</span>
-            <span class="sub">星期几：${escapeHtml(formatWeekdays(c.weekdays))}</span>
+            <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
+            <span class="sub">上课日期：${escapeHtml(formatWeekdays(c.weekdays))}</span>
+          </div>
+          <div class="course-actions">
+            <button type="button" class="btn btn-outline btn-sm btn-edit-course" data-id="${escapeHtml(c.id)}">编辑</button>
+            <button type="button" class="btn btn-outline btn-sm btn-delete-course" data-id="${escapeHtml(c.id)}">删除</button>
           </div>
         </li>
       `).join('');
+
+      listEl.querySelectorAll('.btn-edit-course').forEach(btn => {
+        btn.addEventListener('click', () => openEditCourseModal(btn.dataset.id));
+      });
+
+      listEl.querySelectorAll('.btn-delete-course').forEach(btn => {
+        btn.addEventListener('click', () => deleteCourse(btn.dataset.id));
+      });
     }
 
     async function loadAndRenderCourses() {
@@ -1041,6 +1118,19 @@
         console.error(err);
         showToast('加载课程失败，请检查网络或数据库配置');
       }
+    }
+
+    function openEditCourseModal(id) {
+      const course = coursesCache.find(c => c.id === id);
+      if (!course) return;
+
+      document.getElementById('edit-course-id').value = course.id;
+      document.getElementById('edit-course-name').value = course.name;
+      setWeekdayCheckboxes('#edit-course-weekdays', course.weekdays);
+      document.getElementById('edit-course-start-time').value = formatTime(course.startTime);
+      document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
+
+      openModal('modal-edit-course');
     }
 
     function openEditModal(id) {
@@ -1115,15 +1205,16 @@
       document.getElementById('form-edit-student').addEventListener('submit', onEditStudent);
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
       document.getElementById('form-add-course').addEventListener('submit', onAddCourse);
+      document.getElementById('form-edit-course').addEventListener('submit', onEditCourse);
     }
 
     async function onAddCourse(e) {
       e.preventDefault();
 
       const name = document.getElementById('course-name').value.trim();
-      const weekdays = getSelectedWeekdays();
-      const startTime = document.getElementById('course-time').value;
-      const duration = parseInt(document.getElementById('course-duration').value, 10);
+      const weekdays = getSelectedWeekdays('#course-weekdays');
+      const startTime = document.getElementById('course-start-time').value;
+      const endTime = document.getElementById('course-end-time').value;
 
       if (!name) {
         showToast('请填写课程名称');
@@ -1135,13 +1226,8 @@
         return;
       }
 
-      if (!startTime) {
-        showToast('请选择上课时间');
-        return;
-      }
-
-      if (!duration || duration < 1) {
-        showToast('课程时长须为正整数');
+      if (!validateCourseTimes(startTime, endTime)) {
+        showToast('请填写有效的开始与结束时间，且结束时间须晚于开始时间');
         return;
       }
 
@@ -1156,7 +1242,7 @@
           name,
           weekdays,
           start_time: startTime,
-          duration_minutes: duration
+          end_time: endTime
         });
 
         if (error) throw error;
@@ -1168,6 +1254,81 @@
       } catch (err) {
         console.error(err);
         showToast(err.message || '添加失败');
+      }
+    }
+
+    async function onEditCourse(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('edit-course-id').value;
+      const name = document.getElementById('edit-course-name').value.trim();
+      const weekdays = getSelectedWeekdays('#edit-course-weekdays');
+      const startTime = document.getElementById('edit-course-start-time').value;
+      const endTime = document.getElementById('edit-course-end-time').value;
+
+      if (!name) {
+        showToast('请填写课程名称');
+        return;
+      }
+
+      if (weekdays.length === 0) {
+        showToast('请至少选择一个星期');
+        return;
+      }
+
+      if (!validateCourseTimes(startTime, endTime)) {
+        showToast('请填写有效的开始与结束时间，且结束时间须晚于开始时间');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error } = await db.from('courses').update({
+          name,
+          weekdays,
+          start_time: startTime,
+          end_time: endTime
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        closeModal('modal-edit-course');
+        await loadAndRenderCourses();
+        showToast('保存成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '保存失败');
+      }
+    }
+
+    async function deleteCourse(id) {
+      const course = coursesCache.find(c => c.id === id);
+      const name = course ? course.name : '该课程';
+
+      if (!confirm('确定要删除「' + name + '」吗？此操作不可恢复。')) {
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error } = await db.from('courses').delete().eq('id', id);
+        if (error) throw error;
+
+        await loadAndRenderCourses();
+        showToast('课程已删除');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '删除失败');
       }
     }
 
