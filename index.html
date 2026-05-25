@@ -458,6 +458,50 @@
       transform: scale(0.98);
     }
 
+    .fab.fab-icon {
+      width: 56px;
+      height: 56px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 1.75rem;
+      line-height: 1;
+      justify-content: center;
+    }
+
+    .weekday-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .weekday-options label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text);
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .weekday-options input {
+      width: auto;
+      accent-color: var(--primary);
+    }
+
+    .course-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .course-meta .sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
     /* Modal */
     .modal-overlay {
       display: none;
@@ -573,6 +617,7 @@
     <div class="navbar-nav">
       <button type="button" class="nav-link active" data-page="home">首页</button>
       <button type="button" class="nav-link" data-page="students">学员管理</button>
+      <button type="button" class="nav-link" data-page="courses">课程管理</button>
     </div>
   </nav>
 
@@ -589,11 +634,10 @@
           <h2>学员管理</h2>
           <p>添加学员、查看剩余课时</p>
         </div>
-        <div class="entry-card disabled" aria-disabled="true">
+        <div class="entry-card" id="card-courses" role="button" tabindex="0">
           <div class="card-icon">📅</div>
           <h2>课程管理</h2>
-          <p>排课、签到与课时扣减</p>
-          <span class="badge-soon">即将上线</span>
+          <p>创建课程、查看上课时间</p>
         </div>
       </div>
     </section>
@@ -617,9 +661,30 @@
         <ul class="student-list" id="student-list"></ul>
       </div>
     </section>
+
+    <!-- 课程管理页 -->
+    <section id="page-courses" class="page">
+      <div class="page-header">
+        <button type="button" class="btn btn-outline" id="btn-back-home-courses">← 返回首页</button>
+        <h2>课程管理</h2>
+      </div>
+
+      <div class="list-card">
+        <h3>
+          课程列表
+          <span class="student-count" id="course-count">共 0 门</span>
+        </h3>
+        <div id="course-empty-state" class="empty-state">
+          <div class="icon">📅</div>
+          <p>暂无课程，点击右下角添加</p>
+        </div>
+        <ul class="student-list" id="course-list"></ul>
+      </div>
+    </section>
   </main>
 
   <button type="button" class="fab" id="fab-add-student" aria-label="添加学员">+ 添加学员</button>
+  <button type="button" class="fab fab-icon" id="fab-add-course" aria-label="添加课程">+</button>
 
   <!-- 添加学员弹窗 -->
   <div class="modal-overlay" id="modal-add" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
@@ -651,6 +716,50 @@
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">添加学员</button>
             <button type="button" class="btn btn-outline" data-close="modal-add">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加课程弹窗 -->
+  <div class="modal-overlay" id="modal-add-course" role="dialog" aria-modal="true" aria-labelledby="modal-add-course-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-add-course-title">添加课程</h3>
+        <button type="button" class="modal-close" data-close="modal-add-course" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-course">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="course-name">课程名称 *</label>
+              <input type="text" id="course-name" required placeholder="例如：爵士舞基础班">
+            </div>
+            <div class="form-group">
+              <label>星期几 *</label>
+              <div class="weekday-options" id="course-weekdays">
+                <label><input type="checkbox" name="weekday" value="周一">周一</label>
+                <label><input type="checkbox" name="weekday" value="周二">周二</label>
+                <label><input type="checkbox" name="weekday" value="周三">周三</label>
+                <label><input type="checkbox" name="weekday" value="周四">周四</label>
+                <label><input type="checkbox" name="weekday" value="周五">周五</label>
+                <label><input type="checkbox" name="weekday" value="周六">周六</label>
+                <label><input type="checkbox" name="weekday" value="周日">周日</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="course-time">上课时间 *</label>
+              <input type="time" id="course-time" required>
+            </div>
+            <div class="form-group">
+              <label for="course-duration">课程时长（分钟） *</label>
+              <input type="number" id="course-duration" required min="1" step="1" placeholder="例如：60">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">添加课程</button>
+            <button type="button" class="btn btn-outline" data-close="modal-add-course">取消</button>
           </div>
         </form>
       </div>
@@ -706,8 +815,11 @@
     const SUPABASE_URL = 'https://dcjqllqpzihbjjoytrzt.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjanFsbHFwemloYmpqb3l0cnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzE0ODAsImV4cCI6MjA5NTMwNzQ4MH0.EACmM5pQlZ2K-EaM-S5lmM91Uq5aL5Q_tIMRJmcaf30';
 
+    const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
     let supabaseClient = null;
     let studentsCache = [];
+    let coursesCache = [];
 
     function initSupabaseClient() {
       const lib = window.supabase || globalThis.supabase;
@@ -767,6 +879,45 @@
       return data && data.length > 0;
     }
 
+    function mapCourse(row) {
+      return {
+        id: row.id,
+        name: row.name,
+        weekdays: row.weekdays || [],
+        startTime: row.start_time,
+        durationMinutes: row.duration_minutes
+      };
+    }
+
+    async function fetchCourses() {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载，请检查网络后刷新页面');
+
+      const { data, error } = await db
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(mapCourse);
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      const part = String(timeStr).slice(0, 5);
+      return part;
+    }
+
+    function formatWeekdays(days) {
+      if (!days || !days.length) return '—';
+      return [...days].sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b)).join('、');
+    }
+
+    function getSelectedWeekdays() {
+      return Array.from(document.querySelectorAll('#course-weekdays input[name="weekday"]:checked'))
+        .map(el => el.value);
+    }
+
     function showToast(message) {
       const toast = document.getElementById('toast');
       toast.textContent = message;
@@ -793,6 +944,7 @@
 
     function updateFabVisibility(page) {
       document.getElementById('fab-add-student').classList.toggle('visible', page === 'students');
+      document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
     }
 
     function navigateTo(page) {
@@ -802,11 +954,14 @@
         link.classList.toggle('active', link.dataset.page === page);
       });
       updateFabVisibility(page);
-      if (page !== 'students') {
+      if (page !== 'students' && page !== 'courses') {
         closeAllModals();
       }
       if (page === 'students') {
         loadAndRenderStudents();
+      }
+      if (page === 'courses') {
+        loadAndRenderCourses();
       }
     }
 
@@ -851,6 +1006,43 @@
       }
     }
 
+    function renderCourseListUI(courses) {
+      const countEl = document.getElementById('course-count');
+      const emptyEl = document.getElementById('course-empty-state');
+      const listEl = document.getElementById('course-list');
+
+      countEl.textContent = '共 ' + courses.length + ' 门';
+
+      if (courses.length === 0) {
+        emptyEl.style.display = 'block';
+        listEl.style.display = 'none';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      listEl.style.display = 'block';
+
+      listEl.innerHTML = courses.map(c => `
+        <li class="student-list-item">
+          <div class="course-meta">
+            <span class="student-name">${escapeHtml(c.name)}</span>
+            <span class="sub">上课时间：${escapeHtml(formatTime(c.startTime))}</span>
+            <span class="sub">星期几：${escapeHtml(formatWeekdays(c.weekdays))}</span>
+          </div>
+        </li>
+      `).join('');
+    }
+
+    async function loadAndRenderCourses() {
+      try {
+        coursesCache = await fetchCourses();
+        renderCourseListUI(coursesCache);
+      } catch (err) {
+        console.error(err);
+        showToast('加载课程失败，请检查网络或数据库配置');
+      }
+    }
+
     function openEditModal(id) {
       const student = studentsCache.find(s => s.id === id);
       if (!student) return;
@@ -879,12 +1071,21 @@
         }
       });
 
+      document.getElementById('card-courses').addEventListener('click', () => navigateTo('courses'));
+      document.getElementById('card-courses').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigateTo('courses');
+        }
+      });
+
       document.getElementById('btn-back-home').addEventListener('click', () => navigateTo('home'));
+      document.getElementById('btn-back-home-courses').addEventListener('click', () => navigateTo('home'));
 
       document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', () => {
           const page = link.dataset.page;
-          if (page === 'students' || page === 'home') {
+          if (page === 'students' || page === 'home' || page === 'courses') {
             navigateTo(page);
           }
         });
@@ -893,6 +1094,11 @@
       document.getElementById('fab-add-student').addEventListener('click', () => {
         document.getElementById('form-add-student').reset();
         openModal('modal-add');
+      });
+
+      document.getElementById('fab-add-course').addEventListener('click', () => {
+        document.getElementById('form-add-course').reset();
+        openModal('modal-add-course');
       });
 
       document.querySelectorAll('[data-close]').forEach(el => {
@@ -908,6 +1114,61 @@
       document.getElementById('form-add-student').addEventListener('submit', onAddStudent);
       document.getElementById('form-edit-student').addEventListener('submit', onEditStudent);
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
+      document.getElementById('form-add-course').addEventListener('submit', onAddCourse);
+    }
+
+    async function onAddCourse(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('course-name').value.trim();
+      const weekdays = getSelectedWeekdays();
+      const startTime = document.getElementById('course-time').value;
+      const duration = parseInt(document.getElementById('course-duration').value, 10);
+
+      if (!name) {
+        showToast('请填写课程名称');
+        return;
+      }
+
+      if (weekdays.length === 0) {
+        showToast('请至少选择一个星期');
+        return;
+      }
+
+      if (!startTime) {
+        showToast('请选择上课时间');
+        return;
+      }
+
+      if (!duration || duration < 1) {
+        showToast('课程时长须为正整数');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error } = await db.from('courses').insert({
+          name,
+          weekdays,
+          start_time: startTime,
+          duration_minutes: duration
+        });
+
+        if (error) throw error;
+
+        e.target.reset();
+        closeModal('modal-add-course');
+        await loadAndRenderCourses();
+        showToast('课程添加成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '添加失败');
+      }
     }
 
     async function onAddStudent(e) {
