@@ -1240,9 +1240,14 @@
               <textarea id="edit-teacher-notes" placeholder="选填"></textarea>
             </div>
           </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">保存</button>
-            <button type="button" class="btn btn-outline" data-close="modal-edit-teacher">取消</button>
+          <div class="form-actions-edit">
+            <div class="form-actions-row">
+              <button type="submit" class="btn btn-primary">保存</button>
+              <button type="button" class="btn btn-outline" data-close="modal-edit-teacher">取消</button>
+            </div>
+            <div class="form-actions-delete">
+              <button type="button" class="btn btn-danger" id="btn-delete-teacher" style="width:100%">删除老师</button>
+            </div>
           </div>
         </form>
       </div>
@@ -1264,10 +1269,6 @@
             <div class="form-group">
               <label for="consume-date">日期 *</label>
               <input type="date" id="consume-date" required>
-            </div>
-            <div class="form-group">
-              <label for="consume-time">时间 *</label>
-              <input type="time" id="consume-time" required>
             </div>
           </div>
           <div class="form-actions">
@@ -1814,7 +1815,6 @@
       document.getElementById('consume-student-hint').textContent =
         student.name + ' · 剩余 ' + student.remainingHours + ' 课时';
       document.getElementById('consume-date').value = getTodayDateString();
-      document.getElementById('consume-time').value = getNowTimeString();
       openModal('modal-consume');
     }
 
@@ -2104,6 +2104,7 @@
       document.getElementById('btn-delete-course').addEventListener('click', onDeleteCourseFromEdit);
       document.getElementById('form-add-teacher').addEventListener('submit', onAddTeacher);
       document.getElementById('form-edit-teacher').addEventListener('submit', onEditTeacher);
+      document.getElementById('btn-delete-teacher').addEventListener('click', onDeleteTeacher);
     }
 
     function getTeacherIdFromSelect(selectId) {
@@ -2322,12 +2323,30 @@
       }
     }
 
+    async function onDeleteTeacher() {
+      const id = document.getElementById('edit-teacher-id').value;
+      const name = document.getElementById('edit-teacher-name').value.trim() || '该老师';
+      if (!id) return;
+      if (!confirm('确定要删除「' + name + '」吗？此操作不可恢复。')) return;
+      try {
+        const db = getSupabase();
+        if (!db) { showToast('Supabase 库未加载，请刷新页面'); return; }
+        const { error } = await db.from('teachers').delete().eq('id', id);
+        if (error) throw error;
+        closeModal('modal-edit-teacher');
+        await loadAndRenderTeachers();
+        showToast('老师已删除');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '删除失败');
+      }
+    }
+
     async function onConsumeLesson(e) {
       e.preventDefault();
 
       const studentId = document.getElementById('consume-student-id').value;
       const dateStr = document.getElementById('consume-date').value;
-      const timeStr = document.getElementById('consume-time').value;
       const student = studentsCache.find(s => s.id === studentId);
 
       if (!student) {
@@ -2340,9 +2359,8 @@
         return;
       }
 
-      const consumedAt = buildConsumedAtIso(dateStr, timeStr);
-      if (!consumedAt) {
-        showToast('请选择有效的日期和时间');
+      if (!dateStr) {
+        showToast('请选择日期');
         return;
       }
 
@@ -2355,7 +2373,7 @@
 
         const { error: recordError } = await db.from('lesson_records').insert({
           student_id: studentId,
-          consumed_at: consumedAt
+          consumed_at: dateStr
         });
 
         if (recordError) throw recordError;
