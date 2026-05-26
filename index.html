@@ -441,6 +441,85 @@
       text-overflow: ellipsis;
     }
 
+    .student-name-link {
+      cursor: pointer;
+      border: none;
+      background: none;
+      font: inherit;
+      text-align: left;
+      padding: 0;
+      transition: color 0.2s;
+    }
+
+    .student-name-link:hover {
+      color: var(--accent);
+    }
+
+    .student-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .student-detail-info {
+      display: grid;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .student-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+
+    .student-detail-row .label {
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .student-detail-row .value {
+      color: var(--text);
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .lesson-records-section h4 {
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      margin: 16px 0 12px;
+    }
+
+    .lesson-records-list {
+      list-style: none;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .lesson-record-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .lesson-record-item:last-child {
+      border-bottom: none;
+    }
+
+    .lesson-records-empty {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
     /* FAB */
     .fab {
       display: none;
@@ -1170,6 +1249,47 @@
     </div>
   </div>
 
+  <!-- 消课弹窗 -->
+  <div class="modal-overlay" id="modal-consume" role="dialog" aria-modal="true" aria-labelledby="modal-consume-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-consume-title">消课</h3>
+        <button type="button" class="modal-close" data-close="modal-consume" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-consume-lesson">
+          <input type="hidden" id="consume-student-id">
+          <p id="consume-student-hint" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;"></p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="consume-date">日期 *</label>
+              <input type="date" id="consume-date" required>
+            </div>
+            <div class="form-group">
+              <label for="consume-time">时间 *</label>
+              <input type="time" id="consume-time" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">确认消课</button>
+            <button type="button" class="btn btn-outline" data-close="modal-consume">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 学员详情弹窗 -->
+  <div class="modal-overlay" id="modal-student-detail" role="dialog" aria-modal="true" aria-labelledby="modal-student-detail-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-student-detail-title">学员详情</h3>
+        <button type="button" class="modal-close" data-close="modal-student-detail" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body" id="student-detail-body"></div>
+    </div>
+  </div>
+
   <!-- 编辑学员弹窗 -->
   <div class="modal-overlay" id="modal-edit" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
     <div class="modal">
@@ -1305,6 +1425,58 @@
       const { data, error } = await query.limit(1);
       if (error) throw error;
       return data && data.length > 0;
+    }
+
+    function mapLessonRecord(row) {
+      return {
+        id: row.id,
+        studentId: row.student_id,
+        consumedAt: row.consumed_at
+      };
+    }
+
+    async function fetchLessonRecords(studentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('lesson_records')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('consumed_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(mapLessonRecord);
+    }
+
+    function getTodayDateString() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    function getNowTimeString() {
+      const d = new Date();
+      return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
+    function buildConsumedAtIso(dateStr, timeStr) {
+      const d = new Date(dateStr + 'T' + timeStr + ':00');
+      if (isNaN(d.getTime())) return null;
+      return d.toISOString();
+    }
+
+    function formatConsumedAt(isoStr) {
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return '—';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const h = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return y + '-' + m + '-' + day + ' ' + h + ':' + min;
     }
 
     function mapTeacher(row) {
@@ -1611,15 +1783,88 @@
       listEl.innerHTML = students.map(s => `
         <li class="student-list-item">
           <div class="student-info">
-            <span class="student-name">${escapeHtml(s.name)}</span>
+            <button type="button" class="student-name student-name-link" data-id="${escapeHtml(s.id)}">${escapeHtml(s.name)}</button>
             <span class="hours-badge">${s.remainingHours} 课时</span>
           </div>
-          <button type="button" class="btn btn-outline btn-sm btn-edit" data-id="${escapeHtml(s.id)}">编辑</button>
+          <div class="student-actions">
+            <button type="button" class="btn btn-outline btn-sm btn-consume" data-id="${escapeHtml(s.id)}">消课</button>
+            <button type="button" class="btn btn-outline btn-sm btn-edit" data-id="${escapeHtml(s.id)}">编辑</button>
+          </div>
         </li>
       `).join('');
 
+      listEl.querySelectorAll('.student-name-link').forEach(btn => {
+        btn.addEventListener('click', () => openStudentDetailModal(btn.dataset.id));
+      });
+
+      listEl.querySelectorAll('.btn-consume').forEach(btn => {
+        btn.addEventListener('click', () => openConsumeModal(btn.dataset.id));
+      });
+
       listEl.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+      });
+    }
+
+    function openConsumeModal(id) {
+      const student = studentsCache.find(s => s.id === id);
+      if (!student) return;
+
+      document.getElementById('consume-student-id').value = student.id;
+      document.getElementById('consume-student-hint').textContent =
+        student.name + ' · 剩余 ' + student.remainingHours + ' 课时';
+      document.getElementById('consume-date').value = getTodayDateString();
+      document.getElementById('consume-time').value = getNowTimeString();
+      openModal('modal-consume');
+    }
+
+    async function openStudentDetailModal(id) {
+      const student = studentsCache.find(s => s.id === id);
+      if (!student) return;
+
+      const body = document.getElementById('student-detail-body');
+      body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
+      document.getElementById('modal-student-detail-title').textContent = '学员详情';
+      openModal('modal-student-detail');
+
+      try {
+        const records = await fetchLessonRecords(id);
+        renderStudentDetailUI(student, records);
+      } catch (err) {
+        console.error(err);
+        body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
+        showToast('加载消课记录失败');
+      }
+    }
+
+    function renderStudentDetailUI(student, records) {
+      const body = document.getElementById('student-detail-body');
+
+      const recordsHtml = records.length === 0
+        ? '<div class="lesson-records-empty">暂无消课记录</div>'
+        : '<ul class="lesson-records-list">' + records.map(r => `
+            <li class="lesson-record-item">
+              <span>${escapeHtml(formatConsumedAt(r.consumedAt))}</span>
+              <button type="button" class="btn btn-outline btn-sm btn-delete-record" data-id="${escapeHtml(r.id)}" data-student-id="${escapeHtml(student.id)}">删除</button>
+            </li>
+          `).join('') + '</ul>';
+
+      body.innerHTML = `
+        <div class="student-detail-info">
+          <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
+          <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone)}</span></div>
+          <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(student.wechat || '—')}</span></div>
+          <div class="student-detail-row"><span class="label">总课时</span><span class="value">${student.totalLessons} 课时</span></div>
+          <div class="student-detail-row"><span class="label">剩余课时</span><span class="value">${student.remainingHours} 课时</span></div>
+        </div>
+        <div class="lesson-records-section">
+          <h4>消课记录</h4>
+          ${recordsHtml}
+        </div>
+      `;
+
+      body.querySelectorAll('.btn-delete-record').forEach(btn => {
+        btn.addEventListener('click', () => deleteLessonRecord(btn.dataset.id, btn.dataset.studentId));
       });
     }
 
@@ -1853,6 +2098,7 @@
       document.getElementById('form-add-student').addEventListener('submit', onAddStudent);
       document.getElementById('form-edit-student').addEventListener('submit', onEditStudent);
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
+      document.getElementById('form-consume-lesson').addEventListener('submit', onConsumeLesson);
       document.getElementById('form-add-course').addEventListener('submit', onAddCourse);
       document.getElementById('form-edit-course').addEventListener('submit', onEditCourse);
       document.getElementById('btn-delete-course').addEventListener('click', onDeleteCourseFromEdit);
@@ -2073,6 +2319,94 @@
       } catch (err) {
         console.error(err);
         showToast(err.message || '保存失败');
+      }
+    }
+
+    async function onConsumeLesson(e) {
+      e.preventDefault();
+
+      const studentId = document.getElementById('consume-student-id').value;
+      const dateStr = document.getElementById('consume-date').value;
+      const timeStr = document.getElementById('consume-time').value;
+      const student = studentsCache.find(s => s.id === studentId);
+
+      if (!student) {
+        showToast('学员不存在');
+        return;
+      }
+
+      if (student.remainingHours < 1) {
+        showToast('剩余课时不足，无法消课');
+        return;
+      }
+
+      const consumedAt = buildConsumedAtIso(dateStr, timeStr);
+      if (!consumedAt) {
+        showToast('请选择有效的日期和时间');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error: recordError } = await db.from('lesson_records').insert({
+          student_id: studentId,
+          consumed_at: consumedAt
+        });
+
+        if (recordError) throw recordError;
+
+        const { error: updateError } = await db.from('students').update({
+          remaining_lessons: student.remainingHours - 1
+        }).eq('id', studentId);
+
+        if (updateError) throw updateError;
+
+        closeModal('modal-consume');
+        await loadAndRenderStudents();
+        showToast('消课成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '消课失败');
+      }
+    }
+
+    async function deleteLessonRecord(recordId, studentId) {
+      const student = studentsCache.find(s => s.id === studentId);
+      if (!confirm('确定删除这条消课记录吗？删除后剩余课时将加回 1 节。')) {
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { error: delError } = await db.from('lesson_records').delete().eq('id', recordId);
+        if (delError) throw delError;
+
+        if (student) {
+          const newRemaining = Math.min(student.totalLessons, student.remainingHours + 1);
+          const { error: updateError } = await db.from('students').update({
+            remaining_lessons: newRemaining
+          }).eq('id', studentId);
+          if (updateError) throw updateError;
+        }
+
+        await loadAndRenderStudents();
+        if (document.getElementById('modal-student-detail').classList.contains('open')) {
+          await openStudentDetailModal(studentId);
+        }
+        showToast('记录已删除');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '删除失败');
       }
     }
 
