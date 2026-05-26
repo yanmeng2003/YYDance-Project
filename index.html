@@ -432,6 +432,10 @@
       min-width: 0;
     }
 
+    .student-info-clickable {
+      cursor: pointer;
+    }
+
     .student-name {
       font-weight: 600;
       color: var(--primary-dark);
@@ -439,20 +443,6 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .student-name-link {
-      cursor: pointer;
-      border: none;
-      background: none;
-      font: inherit;
-      text-align: left;
-      padding: 0;
-      transition: color 0.2s;
-    }
-
-    .student-name-link:hover {
-      color: var(--accent);
     }
 
     .student-actions {
@@ -693,23 +683,19 @@
     }
 
     .week-time-labels {
+      position: relative;
       border-right: 1px solid var(--border);
+      min-height: 672px;
     }
 
-    .week-time-label {
-      height: 28px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-end;
-      padding: 2px 6px 0 0;
+    .week-hour-label {
+      position: absolute;
+      right: 6px;
+      transform: translateY(-50%);
       font-size: 0.7rem;
       color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-      box-sizing: border-box;
-    }
-
-    .week-time-label:last-child {
-      border-bottom: none;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .week-day-column {
@@ -724,12 +710,19 @@
 
     .week-slot-bg {
       height: 28px;
-      border-bottom: 1px solid var(--border);
       box-sizing: border-box;
     }
 
-    .week-slot-bg:last-child {
-      border-bottom: none;
+    .week-slot-first {
+      border-top: 1px solid var(--border);
+    }
+
+    .week-slot-half {
+      border-bottom: 1px dashed rgba(155, 89, 182, 0.22);
+    }
+
+    .week-slot-hour {
+      border-bottom: 1px solid var(--border);
     }
 
     .week-events-layer {
@@ -774,6 +767,15 @@
       display: block;
       font-size: 0.65rem;
       opacity: 0.92;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-event-time {
+      display: block;
+      font-size: 0.62rem;
+      opacity: 0.88;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1623,16 +1625,20 @@
       }
 
       const colorMap = buildTeacherColorMap();
-      const timeLabels = [];
-      for (let i = 0; i < WEEK_SLOT_COUNT; i++) {
-        const mins = WEEK_GRID_START_MIN + i * WEEK_SLOT_MINUTES;
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
-        timeLabels.push(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
+
+      const hourLabelsHtml = [];
+      for (let h = WEEK_GRID_START_MIN / 60; h <= WEEK_GRID_END_MIN / 60; h++) {
+        const top = (h - WEEK_GRID_START_MIN / 60) * 2 * WEEK_SLOT_HEIGHT;
+        hourLabelsHtml.push(
+          `<div class="week-hour-label" style="top:${top}px">${String(h).padStart(2, '0')}:00</div>`
+        );
       }
 
-      const timeLabelsHtml = timeLabels.map(t => `<div class="week-time-label">${t}</div>`).join('');
-      const slotBgHtml = timeLabels.map(() => '<div class="week-slot-bg"></div>').join('');
+      const slotBgHtml = Array.from({ length: WEEK_SLOT_COUNT }, (_, i) => {
+        const slotClass = i % 2 === 0 ? 'week-slot-half' : 'week-slot-hour';
+        const firstClass = i === 0 ? ' week-slot-first' : '';
+        return `<div class="week-slot-bg ${slotClass}${firstClass}"></div>`;
+      }).join('');
 
       const dayColumnsHtml = WEEKDAY_ORDER.map(day => {
         const events = [];
@@ -1653,13 +1659,15 @@
           );
           const colors = getCourseColor(course, colorMap);
           const teacherLabel = course.teacherName || '未分配';
+          const timeLabel = formatTimeRange(course.startTime, course.endTime);
 
           events.push(`
             <div class="week-event" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
               style="top:${top}px;height:${height}px;background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
-              title="${escapeHtml(course.name)} · ${escapeHtml(teacherLabel)}">
+              title="${escapeHtml(course.name)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
               <span class="week-event-name">${escapeHtml(course.name)}</span>
               <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
+              <span class="week-event-time">${escapeHtml(timeLabel)}</span>
             </div>
           `);
         });
@@ -1684,7 +1692,7 @@
               ${dayHeadsHtml}
             </div>
             <div class="week-body">
-              <div class="week-time-labels">${timeLabelsHtml}</div>
+              <div class="week-time-labels">${hourLabelsHtml.join('')}</div>
               ${dayColumnsHtml}
             </div>
           </div>
@@ -1779,8 +1787,8 @@
 
       listEl.innerHTML = students.map(s => `
         <li class="student-list-item">
-          <div class="student-info">
-            <button type="button" class="student-name student-name-link" data-id="${escapeHtml(s.id)}">${escapeHtml(s.name)}</button>
+          <div class="student-info student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
+            <span class="student-name">${escapeHtml(s.name)}</span>
             <span class="hours-badge">${s.remainingHours} 课时</span>
           </div>
           <div class="student-actions">
@@ -1790,8 +1798,14 @@
         </li>
       `).join('');
 
-      listEl.querySelectorAll('.student-name-link').forEach(btn => {
-        btn.addEventListener('click', () => openStudentDetailModal(btn.dataset.id));
+      listEl.querySelectorAll('.student-info-clickable').forEach(el => {
+        el.addEventListener('click', () => openStudentDetailModal(el.dataset.id));
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openStudentDetailModal(el.dataset.id);
+          }
+        });
       });
 
       listEl.querySelectorAll('.btn-consume').forEach(btn => {
@@ -1850,7 +1864,6 @@
           <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
           <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone)}</span></div>
           <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(student.wechat || '—')}</span></div>
-          <div class="student-detail-row"><span class="label">总课时</span><span class="value">${student.totalLessons} 课时</span></div>
           <div class="student-detail-row"><span class="label">剩余课时</span><span class="value">${student.remainingHours} 课时</span></div>
         </div>
         <div class="lesson-records-section">
