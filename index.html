@@ -642,6 +642,7 @@
     /* 周视图 */
     .week-view-scroll {
       overflow-x: auto;
+      overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
       border-radius: var(--radius);
       border: 1px solid var(--border);
@@ -650,12 +651,15 @@
     }
 
     .week-schedule {
-      min-width: 640px;
+      --week-pad-y: 10px;
+      --week-grid-height: 672px;
+      --week-day-col-min: 80px;
+      min-width: calc(52px + 7 * var(--week-day-col-min));
     }
 
     .week-header-row {
       display: grid;
-      grid-template-columns: 52px repeat(7, minmax(72px, 1fr));
+      grid-template-columns: 52px repeat(7, minmax(var(--week-day-col-min), 1fr));
       border-bottom: 1px solid var(--border);
       background: var(--primary-light);
     }
@@ -679,13 +683,16 @@
 
     .week-body {
       display: grid;
-      grid-template-columns: 52px repeat(7, minmax(72px, 1fr));
+      grid-template-columns: 52px repeat(7, minmax(var(--week-day-col-min), 1fr));
     }
 
     .week-time-labels {
       position: relative;
       border-right: 1px solid var(--border);
-      min-height: 672px;
+      padding-top: var(--week-pad-y);
+      padding-bottom: var(--week-pad-y);
+      min-height: calc(var(--week-grid-height) + 2 * var(--week-pad-y));
+      box-sizing: border-box;
     }
 
     .week-hour-label {
@@ -701,7 +708,10 @@
     .week-day-column {
       position: relative;
       border-right: 1px solid var(--border);
-      min-height: 672px;
+      padding-top: var(--week-pad-y);
+      padding-bottom: var(--week-pad-y);
+      min-height: calc(var(--week-grid-height) + 2 * var(--week-pad-y));
+      box-sizing: border-box;
     }
 
     .week-day-column:last-child {
@@ -727,10 +737,10 @@
 
     .week-events-layer {
       position: absolute;
-      top: 0;
+      top: var(--week-pad-y);
       left: 0;
       right: 0;
-      bottom: 0;
+      height: var(--week-grid-height);
       pointer-events: none;
     }
 
@@ -875,6 +885,20 @@
       .fab {
         right: 16px;
         bottom: 20px;
+      }
+
+      .week-view-scroll {
+        margin: 0 -4px;
+        border-radius: 10px;
+      }
+
+      .week-schedule {
+        min-width: calc(52px + 7 * 80px);
+      }
+
+      .week-event {
+        font-size: 0.68rem;
+        padding: 3px 5px;
       }
     }
 
@@ -1349,6 +1373,8 @@
     const WEEK_SLOT_MINUTES = 30;
     const WEEK_SLOT_HEIGHT = 28;
     const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES;
+    const WEEK_VIEW_PAD_Y = 10;
+    const WEEK_GRID_HEIGHT = WEEK_SLOT_COUNT * WEEK_SLOT_HEIGHT;
 
     const TEACHER_COLOR_PALETTE = [
       { bg: '#e8daef', border: '#9b59b6', text: '#5b2c6f' },
@@ -1628,7 +1654,7 @@
 
       const hourLabelsHtml = [];
       for (let h = WEEK_GRID_START_MIN / 60; h <= WEEK_GRID_END_MIN / 60; h++) {
-        const top = (h - WEEK_GRID_START_MIN / 60) * 2 * WEEK_SLOT_HEIGHT;
+        const top = WEEK_VIEW_PAD_Y + (h - WEEK_GRID_START_MIN / 60) * 2 * WEEK_SLOT_HEIGHT;
         hourLabelsHtml.push(
           `<div class="week-hour-label" style="top:${top}px">${String(h).padStart(2, '0')}:00</div>`
         );
