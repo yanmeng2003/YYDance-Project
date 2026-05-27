@@ -573,6 +573,12 @@
       margin: 0;
     }
 
+    .detail-section-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
     .detail-section-list li:last-child {
       border-bottom: none;
     }
@@ -583,16 +589,28 @@
       padding: 8px 0;
     }
 
-    .course-students-names {
-      font-size: 0.9rem;
-      line-height: 1.6;
-      min-height: 24px;
-      word-break: break-all;
+    .course-students-list {
+      list-style: none;
     }
 
-    .course-student-inline {
-      display: inline;
-      white-space: nowrap;
+    .course-student-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .course-student-row:last-child {
+      border-bottom: none;
+    }
+
+    .course-student-name {
+      flex: 1;
+      min-width: 0;
+      word-break: break-all;
     }
 
     .course-student-remove {
@@ -608,23 +626,6 @@
 
     .course-student-remove:hover {
       color: var(--accent);
-    }
-
-    .course-students-add {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-
-    .course-students-add select {
-      flex: 1;
-      min-width: 140px;
-    }
-
-    .course-students-add input[type="number"] {
-      width: 88px;
-      flex-shrink: 0;
     }
 
     /* FAB */
@@ -960,6 +961,7 @@
     }
 
     #modal-add-student-course,
+    #modal-add-course-student,
     #modal-consume,
     #modal-bulk-consume {
       z-index: 400;
@@ -1594,6 +1596,37 @@
     </div>
   </div>
 
+  <!-- 为课程添加学员弹窗 -->
+  <div class="modal-overlay" id="modal-add-course-student" role="dialog" aria-modal="true" aria-labelledby="modal-add-course-student-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-add-course-student-title">添加学员</h3>
+        <button type="button" class="modal-close" data-close="modal-add-course-student" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-course-student">
+          <input type="hidden" id="add-course-student-course-id">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="add-course-student-select">选择学员 *</label>
+              <select id="add-course-student-select" required>
+                <option value="">请选择学员</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="add-course-student-hours">课时数 *</label>
+              <input type="number" id="add-course-student-hours" required min="0" step="1" placeholder="例如：10">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">添加</button>
+            <button type="button" class="btn btn-outline" data-close="modal-add-course-student">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- 老师详情弹窗 -->
   <div class="modal-overlay" id="modal-teacher-detail" role="dialog" aria-modal="true" aria-labelledby="modal-teacher-detail-title">
     <div class="modal">
@@ -1934,6 +1967,27 @@
         await refreshTeachersCache();
         coursesCache = await fetchCourses();
       }
+    }
+
+    function populateCourseStudentSelect(selectId, enrolledStudentIds) {
+      const select = document.getElementById(selectId);
+      if (!select) return false;
+
+      const enrolled = new Set(enrolledStudentIds || []);
+      const available = studentsCache.filter(s => !enrolled.has(s.id));
+
+      if (!available.length) {
+        select.innerHTML = '<option value="">暂无可添加学员</option>';
+        select.disabled = true;
+        return false;
+      }
+
+      select.disabled = false;
+      select.innerHTML = '<option value="">选择学员</option>' +
+        available.map(s => `
+          <option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>
+        `).join('');
+      return true;
     }
 
     function populateStudentCourseSelect(selectId, enrolledCourseIds) {
@@ -2411,47 +2465,42 @@
     }
 
     function renderCourseStudentsSection(courseId, enrollments) {
-      const enrolledIds = new Set(enrollments.map(e => e.studentId));
-      const available = studentsCache.filter(s => !enrolledIds.has(s.id));
-
-      const namesHtml = enrollments.length === 0
-        ? '<span class="detail-section-empty" style="padding:0;">暂无学员</span>'
-        : enrollments.map((e, i) => `
-            ${i > 0 ? ' ' : ''}<span class="course-student-inline">${escapeHtml(e.studentName)}<button type="button" class="course-student-remove" data-enrollment-id="${escapeHtml(e.id)}" aria-label="移除${escapeHtml(e.studentName)}">&times;</button></span>
-          `).join('');
-
-      const addSelectHtml = available.length === 0
-        ? '<option value="">暂无可添加学员</option>'
-        : '<option value="">选择学员</option>' + available.map(s => `
-            <option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>
-          `).join('');
+      const listHtml = !enrollments || enrollments.length === 0
+        ? '<div class="detail-section-empty">暂无学员</div>'
+        : '<ul class="course-students-list">' + enrollments.map(e => `
+            <li class="course-student-row">
+              <span class="course-student-name">${escapeHtml(e.studentName)}</span>
+              <button type="button" class="course-student-remove" data-enrollment-id="${escapeHtml(e.id)}" aria-label="移除${escapeHtml(e.studentName)}">&times;</button>
+            </li>
+          `).join('') + '</ul>';
 
       return `
         <div class="detail-section">
-          <h4>学员名单</h4>
-          <div class="course-students-names" id="course-students-names">${namesHtml}</div>
-          <div class="course-students-add">
-            <select id="course-add-student-select" ${available.length === 0 ? 'disabled' : ''}>${addSelectHtml}</select>
-            <input type="number" id="course-add-student-hours" min="0" step="1" placeholder="课时数" ${available.length === 0 ? 'disabled' : ''}>
-            <button type="button" class="btn btn-outline btn-sm" id="btn-course-add-student" data-course-id="${escapeHtml(courseId)}" ${available.length === 0 ? 'disabled' : ''}>添加</button>
+          <div class="detail-section-header">
+            <h4>学员名单</h4>
+            <div class="detail-section-actions">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(courseId)}">批量消课</button>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-add-course-student" data-course-id="${escapeHtml(courseId)}">添加学员</button>
+            </div>
           </div>
+          ${listHtml}
         </div>
       `;
     }
 
-    function bindCourseStudentsEvents(courseId) {
+    function bindCourseStudentsEvents(courseId, enrollments) {
       document.querySelectorAll('.course-student-remove').forEach(btn => {
         btn.addEventListener('click', () => removeStudentFromCourseDetail(btn.dataset.enrollmentId, courseId));
       });
 
-      const addBtn = document.getElementById('btn-course-add-student');
-      if (addBtn) {
-        addBtn.addEventListener('click', () => addStudentToCourseDetail(courseId));
-      }
-
       const bulkBtn = document.getElementById('btn-bulk-consume-course');
       if (bulkBtn) {
         bulkBtn.addEventListener('click', () => openBulkConsumeModal(courseId));
+      }
+
+      const addBtn = document.getElementById('btn-add-course-student');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => openAddCourseStudentModal(courseId, enrollments));
       }
     }
 
@@ -2461,11 +2510,33 @@
       openModal('modal-bulk-consume');
     }
 
-    async function addStudentToCourseDetail(courseId) {
-      const select = document.getElementById('course-add-student-select');
-      const hoursInput = document.getElementById('course-add-student-hours');
-      const studentId = select ? select.value : '';
-      const hoursRaw = hoursInput ? hoursInput.value.trim() : '';
+    async function openAddCourseStudentModal(courseId, enrollments) {
+      try {
+        if (!studentsCache.length) {
+          studentsCache = await fetchStudents();
+        }
+        const enrolledIds = (enrollments || []).map(e => e.studentId);
+        const hasAvailable = populateCourseStudentSelect('add-course-student-select', enrolledIds);
+        document.getElementById('add-course-student-course-id').value = courseId;
+        document.getElementById('add-course-student-hours').value = '';
+        document.getElementById('add-course-student-hours').disabled = !hasAvailable;
+        const submitBtn = document.querySelector('#form-add-course-student button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = !hasAvailable;
+        openModal('modal-add-course-student');
+      } catch (err) {
+        console.error(err);
+        showToast('加载学员列表失败');
+      }
+    }
+
+    async function onAddCourseStudentToCourse(e) {
+      e.preventDefault();
+
+      const courseId = document.getElementById('add-course-student-course-id').value;
+      const studentId = document.getElementById('add-course-student-select').value;
+      const hoursRaw = document.getElementById('add-course-student-hours').value.trim();
+
+      if (!courseId) return;
 
       if (!studentId) {
         showToast('请选择要添加的学员');
@@ -2485,6 +2556,7 @@
 
       try {
         await addCourseStudent(courseId, studentId, hours);
+        closeModal('modal-add-course-student');
         await openCourseDetailModal(courseId);
         showToast('学员已加入课程');
       } catch (err) {
@@ -2529,12 +2601,9 @@
             <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
             <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
           </div>
-          <div style="margin: 16px 0 4px;">
-            <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(id)}">批量消课</button>
-          </div>
           ${renderCourseStudentsSection(id, enrollments)}
         `;
-        bindCourseStudentsEvents(id);
+        bindCourseStudentsEvents(id, enrollments);
       } catch (err) {
         console.error(err);
         body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
@@ -2820,6 +2889,7 @@
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
       document.getElementById('form-consume-lesson').addEventListener('submit', onConsumeLesson);
       document.getElementById('form-bulk-consume').addEventListener('submit', onBulkConsumeCourse);
+      document.getElementById('form-add-course-student').addEventListener('submit', onAddCourseStudentToCourse);
       document.getElementById('form-edit-student-course').addEventListener('submit', onEditStudentCourse);
       document.getElementById('btn-remove-student-course').addEventListener('click', onRemoveStudentCourseFromEdit);
       document.getElementById('form-add-student-course').addEventListener('submit', onAddStudentCourse);
