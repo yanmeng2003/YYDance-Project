@@ -540,6 +540,39 @@
       min-width: 0;
     }
 
+    .student-course-info-clickable {
+      cursor: pointer;
+    }
+
+    .student-course-info-clickable:hover .student-course-name {
+      color: #2d2438;
+    }
+
+    .student-course-name {
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #2d2438;
+    }
+
+    .student-course-hours {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .detail-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 16px 0 12px;
+    }
+
+    .detail-section-header h4 {
+      margin: 0;
+    }
+
     .detail-section-list li:last-child {
       border-bottom: none;
     }
@@ -924,6 +957,10 @@
 
     .modal-overlay.open {
       display: flex;
+    }
+
+    #modal-add-student-course {
+      z-index: 400;
     }
 
     .modal {
@@ -1444,6 +1481,69 @@
     </div>
   </div>
 
+  <!-- 编辑学员课程弹窗 -->
+  <div class="modal-overlay" id="modal-edit-student-course" role="dialog" aria-modal="true" aria-labelledby="modal-edit-student-course-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-edit-student-course-title">编辑课程</h3>
+        <button type="button" class="modal-close" data-close="modal-edit-student-course" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-edit-student-course">
+          <input type="hidden" id="edit-student-course-enrollment-id">
+          <input type="hidden" id="edit-student-course-student-id">
+          <p id="edit-student-course-label" style="font-size:0.95rem;font-weight:700;color:var(--primary-dark);margin-bottom:16px;"></p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="edit-student-course-hours">剩余课时数 *</label>
+              <input type="number" id="edit-student-course-hours" required min="0" step="1" placeholder="例如：10">
+            </div>
+          </div>
+          <div class="form-actions-edit">
+            <div class="form-actions-row">
+              <button type="submit" class="btn btn-primary">保存</button>
+              <button type="button" class="btn btn-outline" data-close="modal-edit-student-course">取消</button>
+            </div>
+            <div class="form-actions-delete">
+              <button type="button" class="btn btn-danger" id="btn-remove-student-course" style="width:100%">移出该课程</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 为学员添加课程弹窗 -->
+  <div class="modal-overlay" id="modal-add-student-course" role="dialog" aria-modal="true" aria-labelledby="modal-add-student-course-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-add-student-course-title">添加课程</h3>
+        <button type="button" class="modal-close" data-close="modal-add-student-course" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-add-student-course">
+          <input type="hidden" id="add-student-course-student-id">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="add-student-course-select">选择课程 *</label>
+              <select id="add-student-course-select" required>
+                <option value="">请选择课程</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="add-student-course-hours">课时数 *</label>
+              <input type="number" id="add-student-course-hours" required min="0" step="1" placeholder="例如：10">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">添加</button>
+            <button type="button" class="btn btn-outline" data-close="modal-add-student-course">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- 学员详情弹窗 -->
   <div class="modal-overlay" id="modal-student-detail" role="dialog" aria-modal="true" aria-labelledby="modal-student-detail-title">
     <div class="modal">
@@ -1790,6 +1890,45 @@
       if (error) throw error;
     }
 
+    async function updateCourseStudentRemaining(enrollmentId, remainingLessons) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { error } = await db.from('course_students').update({
+        remaining_lessons: remainingLessons
+      }).eq('id', enrollmentId);
+
+      if (error) throw error;
+    }
+
+    async function ensureCoursesCache() {
+      if (!coursesCache.length) {
+        await refreshTeachersCache();
+        coursesCache = await fetchCourses();
+      }
+    }
+
+    function populateStudentCourseSelect(selectId, enrolledCourseIds) {
+      const select = document.getElementById(selectId);
+      if (!select) return false;
+
+      const enrolled = new Set(enrolledCourseIds || []);
+      const available = coursesCache.filter(c => !enrolled.has(c.id));
+
+      if (!available.length) {
+        select.innerHTML = '<option value="">暂无可添加课程</option>';
+        select.disabled = true;
+        return false;
+      }
+
+      select.disabled = false;
+      select.innerHTML = '<option value="">选择课程</option>' +
+        available.map(c => `
+          <option value="${escapeHtml(c.id)}">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</option>
+        `).join('');
+      return true;
+    }
+
     function populateTeacherSelect(selectId, selectedId) {
       const select = document.getElementById(selectId);
       if (!select) return;
@@ -2084,6 +2223,37 @@
       openModal('modal-consume');
     }
 
+    function openEditStudentCourseModal(studentId, course) {
+      document.getElementById('edit-student-course-enrollment-id').value = course.enrollmentId;
+      document.getElementById('edit-student-course-student-id').value = studentId;
+      document.getElementById('edit-student-course-label').textContent = course.courseType + ' · ' + course.name;
+      document.getElementById('edit-student-course-hours').value = course.remainingLessons;
+      openModal('modal-edit-student-course');
+    }
+
+    async function openAddStudentCourseModal(studentId, enrolledCourses) {
+      try {
+        await ensureCoursesCache();
+        const enrolledIds = (enrolledCourses || []).map(c => c.courseId);
+        const hasAvailable = populateStudentCourseSelect('add-student-course-select', enrolledIds);
+        document.getElementById('add-student-course-student-id').value = studentId;
+        document.getElementById('add-student-course-hours').value = '';
+        document.getElementById('add-student-course-hours').disabled = !hasAvailable;
+        const submitBtn = document.querySelector('#form-add-student-course button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = !hasAvailable;
+        openModal('modal-add-student-course');
+      } catch (err) {
+        console.error(err);
+        showToast('加载课程列表失败');
+      }
+    }
+
+    async function refreshStudentDetailModal(studentId) {
+      if (document.getElementById('modal-student-detail').classList.contains('open')) {
+        await openStudentDetailModal(studentId);
+      }
+    }
+
     function bindClickableRow(listEl, selector, openFn) {
       listEl.querySelectorAll(selector).forEach(el => {
         el.addEventListener('click', () => openFn(el.dataset.id));
@@ -2128,11 +2298,19 @@
             </li>
           `).join('') + '</ul>';
 
-      const coursesHtml = !courses || courses.length === 0
+      const coursesListHtml = !courses || courses.length === 0
         ? '<div class="detail-section-empty">暂未加入任何课程</div>'
         : '<ul class="detail-section-list">' + courses.map(c => `
             <li class="student-course-item">
-              <span class="student-course-info">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)} · 剩余 ${c.remainingLessons} 课时</span>
+              <div class="student-course-info student-course-info-clickable" role="button" tabindex="0"
+                data-enrollment-id="${escapeHtml(c.enrollmentId)}"
+                data-course-id="${escapeHtml(c.courseId)}"
+                data-course-type="${escapeHtml(c.courseType)}"
+                data-course-name="${escapeHtml(c.name)}"
+                data-remaining="${c.remainingLessons}"
+                aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
+                <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</span><span class="student-course-hours">剩余 ${c.remainingLessons} 课时</span>
+              </div>
               <button type="button" class="btn btn-outline btn-sm btn-consume-course"
                 data-student-id="${escapeHtml(student.id)}"
                 data-enrollment-id="${escapeHtml(c.enrollmentId)}"
@@ -2150,8 +2328,11 @@
           <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(student.wechat || '—')}</span></div>
         </div>
         <div class="detail-section">
-          <h4>所在课程</h4>
-          ${coursesHtml}
+          <div class="detail-section-header">
+            <h4>所在课程</h4>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
+          </div>
+          ${coursesListHtml}
         </div>
         <div class="lesson-records-section">
           <h4>消课记录</h4>
@@ -2159,8 +2340,33 @@
         </div>
       `;
 
+      const addCourseBtn = document.getElementById('btn-add-student-course');
+      if (addCourseBtn) {
+        addCourseBtn.addEventListener('click', () => openAddStudentCourseModal(student.id, courses || []));
+      }
+
+      body.querySelectorAll('.student-course-info-clickable').forEach(el => {
+        const openEdit = () => {
+          openEditStudentCourseModal(student.id, {
+            enrollmentId: el.dataset.enrollmentId,
+            courseId: el.dataset.courseId,
+            courseType: el.dataset.courseType,
+            name: el.dataset.courseName,
+            remainingLessons: parseInt(el.dataset.remaining, 10) || 0
+          });
+        };
+        el.addEventListener('click', openEdit);
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openEdit();
+          }
+        });
+      });
+
       body.querySelectorAll('.btn-consume-course').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
           openConsumeModalForCourse(btn.dataset.studentId, {
             enrollmentId: btn.dataset.enrollmentId,
             courseId: btn.dataset.courseId,
@@ -2571,6 +2777,9 @@
       document.getElementById('form-edit-student').addEventListener('submit', onEditStudent);
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
       document.getElementById('form-consume-lesson').addEventListener('submit', onConsumeLesson);
+      document.getElementById('form-edit-student-course').addEventListener('submit', onEditStudentCourse);
+      document.getElementById('btn-remove-student-course').addEventListener('click', onRemoveStudentCourseFromEdit);
+      document.getElementById('form-add-student-course').addEventListener('submit', onAddStudentCourse);
       document.getElementById('form-add-course').addEventListener('submit', onAddCourse);
       document.getElementById('form-edit-course').addEventListener('submit', onEditCourse);
       document.getElementById('btn-delete-course').addEventListener('click', onDeleteCourseFromEdit);
@@ -2834,6 +3043,81 @@
       }
     }
 
+    async function onEditStudentCourse(e) {
+      e.preventDefault();
+
+      const enrollmentId = document.getElementById('edit-student-course-enrollment-id').value;
+      const studentId = document.getElementById('edit-student-course-student-id').value;
+      const hours = parseInt(document.getElementById('edit-student-course-hours').value, 10);
+
+      if (!enrollmentId || !studentId) return;
+
+      if (isNaN(hours) || hours < 0) {
+        showToast('剩余课时数须为不小于 0 的整数');
+        return;
+      }
+
+      try {
+        await updateCourseStudentRemaining(enrollmentId, hours);
+        closeModal('modal-edit-student-course');
+        await refreshStudentDetailModal(studentId);
+        showToast('保存成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '保存失败');
+      }
+    }
+
+    async function onRemoveStudentCourseFromEdit() {
+      const enrollmentId = document.getElementById('edit-student-course-enrollment-id').value;
+      const studentId = document.getElementById('edit-student-course-student-id').value;
+      const label = document.getElementById('edit-student-course-label').textContent || '该课程';
+
+      if (!enrollmentId || !studentId) return;
+
+      if (!confirm('确定将学员移出「' + label + '」吗？')) return;
+
+      try {
+        await removeCourseStudent(enrollmentId);
+        closeModal('modal-edit-student-course');
+        await refreshStudentDetailModal(studentId);
+        showToast('已移出课程');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '移除失败');
+      }
+    }
+
+    async function onAddStudentCourse(e) {
+      e.preventDefault();
+
+      const studentId = document.getElementById('add-student-course-student-id').value;
+      const courseId = document.getElementById('add-student-course-select').value;
+      const hours = parseInt(document.getElementById('add-student-course-hours').value, 10);
+
+      if (!studentId) return;
+
+      if (!courseId) {
+        showToast('请选择课程');
+        return;
+      }
+
+      if (isNaN(hours) || hours < 0) {
+        showToast('课时数须为不小于 0 的整数');
+        return;
+      }
+
+      try {
+        await addCourseStudent(courseId, studentId, hours);
+        closeModal('modal-add-student-course');
+        await refreshStudentDetailModal(studentId);
+        showToast('课程添加成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '添加失败');
+      }
+    }
+
     async function onConsumeLesson(e) {
       e.preventDefault();
 
@@ -2888,9 +3172,7 @@
 
         closeModal('modal-consume');
         await loadAndRenderStudents();
-        if (document.getElementById('modal-student-detail').classList.contains('open')) {
-          await openStudentDetailModal(studentId);
-        }
+        await refreshStudentDetailModal(studentId);
         showToast('消课成功');
       } catch (err) {
         console.error(err);
@@ -2940,9 +3222,7 @@
         }
 
         await loadAndRenderStudents();
-        if (document.getElementById('modal-student-detail').classList.contains('open')) {
-          await openStudentDetailModal(studentId);
-        }
+        await refreshStudentDetailModal(studentId);
         showToast('记录已删除');
       } catch (err) {
         console.error(err);
