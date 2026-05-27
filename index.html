@@ -510,6 +510,73 @@
       font-size: 0.9rem;
     }
 
+    .detail-section h4 {
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      margin: 16px 0 12px;
+    }
+
+    .detail-section-list {
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .detail-section-list li {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .detail-section-list li:last-child {
+      border-bottom: none;
+    }
+
+    .detail-section-empty {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      padding: 8px 0;
+    }
+
+    .course-students-names {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      min-height: 24px;
+      word-break: break-all;
+    }
+
+    .course-student-inline {
+      display: inline;
+      white-space: nowrap;
+    }
+
+    .course-student-remove {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0 2px;
+      font-family: inherit;
+    }
+
+    .course-student-remove:hover {
+      color: var(--accent);
+    }
+
+    .course-students-add {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .course-students-add select {
+      flex: 1;
+      min-width: 140px;
+    }
+
     /* FAB */
     .fab {
       display: none;
@@ -652,7 +719,7 @@
 
     .week-schedule {
       --week-pad-y: 10px;
-      --week-grid-height: 672px;
+      --week-grid-height: 728px;
       --week-day-col-min: 80px;
       min-width: calc(52px + 7 * var(--week-day-col-min));
     }
@@ -758,6 +825,19 @@
       cursor: pointer;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
       z-index: 1;
+    }
+
+    .week-event-small::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 14px 14px;
+      border-color: transparent transparent #d4af37 transparent;
+      pointer-events: none;
     }
 
     .week-event:hover {
@@ -1064,16 +1144,16 @@
               <input type="text" id="add-name" required placeholder="请输入姓名">
             </div>
             <div class="form-group">
-              <label for="add-phone">联系电话 *</label>
-              <input type="tel" id="add-phone" required placeholder="请输入手机号">
+              <label for="add-phone">联系电话</label>
+              <input type="tel" id="add-phone" placeholder="选填">
             </div>
             <div class="form-group">
               <label for="add-wechat">微信号</label>
               <input type="text" id="add-wechat" placeholder="选填">
             </div>
             <div class="form-group">
-              <label for="add-hours">购买课时数 *</label>
-              <input type="number" id="add-hours" required min="1" step="1" placeholder="例如：10">
+              <label for="add-hours">购买课时数</label>
+              <input type="number" id="add-hours" min="0" step="1" placeholder="选填，默认 0">
             </div>
           </div>
           <div class="form-actions">
@@ -1105,6 +1185,13 @@
             <div class="form-group">
               <label for="course-class">课程班级 *</label>
               <input type="text" id="course-class" required placeholder="例如：成人班、提高班">
+            </div>
+            <div class="form-group">
+              <label for="course-class-size">课程规模 *</label>
+              <select id="course-class-size" required>
+                <option value="大课">大课</option>
+                <option value="小课">小课</option>
+              </select>
             </div>
             <div class="form-group">
               <label>星期几 *</label>
@@ -1163,6 +1250,13 @@
             <div class="form-group">
               <label for="edit-course-class">课程班级 *</label>
               <input type="text" id="edit-course-class" required placeholder="例如：成人班、提高班">
+            </div>
+            <div class="form-group">
+              <label for="edit-course-class-size">课程规模 *</label>
+              <select id="edit-course-class-size" required>
+                <option value="大课">大课</option>
+                <option value="小课">小课</option>
+              </select>
             </div>
             <div class="form-group">
               <label>星期几 *</label>
@@ -1342,6 +1436,28 @@
     </div>
   </div>
 
+  <!-- 课程详情弹窗 -->
+  <div class="modal-overlay" id="modal-course-detail" role="dialog" aria-modal="true" aria-labelledby="modal-course-detail-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-course-detail-title">课程详情</h3>
+        <button type="button" class="modal-close" data-close="modal-course-detail" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body" id="course-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- 老师详情弹窗 -->
+  <div class="modal-overlay" id="modal-teacher-detail" role="dialog" aria-modal="true" aria-labelledby="modal-teacher-detail-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-teacher-detail-title">老师详情</h3>
+        <button type="button" class="modal-close" data-close="modal-teacher-detail" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body" id="teacher-detail-body"></div>
+    </div>
+  </div>
+
   <!-- 编辑学员弹窗 -->
   <div class="modal-overlay" id="modal-edit" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
     <div class="modal">
@@ -1394,7 +1510,7 @@
     const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const TEACHER_PASSWORD = '0417';
     const WEEK_GRID_START_MIN = 8 * 60;
-    const WEEK_GRID_END_MIN = 20 * 60;
+    const WEEK_GRID_END_MIN = 21 * 60;
     const WEEK_SLOT_MINUTES = 30;
     const WEEK_SLOT_HEIGHT = 28;
     const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES;
@@ -1466,6 +1582,8 @@
     }
 
     async function isPhoneTaken(phone, excludeId) {
+      if (!phone) return false;
+
       const db = getSupabase();
       if (!db) throw new Error('Supabase 库未加载');
 
@@ -1561,6 +1679,7 @@
         id: row.id,
         courseType: row.course_type || '摩登舞',
         name: row.name,
+        classSize: row.class_size || '大课',
         weekdays: row.weekdays || [],
         startTime: row.start_time,
         endTime: row.end_time,
@@ -1580,6 +1699,69 @@
 
       if (error) throw error;
       return (data || []).map(mapCourse);
+    }
+
+    function mapCourseStudent(row) {
+      const student = row.students;
+      return {
+        id: row.id,
+        courseId: row.course_id,
+        studentId: row.student_id,
+        studentName: student ? student.name : '未知学员'
+      };
+    }
+
+    async function fetchCourseStudents(courseId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('course_students')
+        .select('id, course_id, student_id, students(id, name)')
+        .eq('course_id', courseId);
+
+      if (error) throw error;
+      return (data || []).map(mapCourseStudent);
+    }
+
+    async function fetchStudentCourses(studentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('course_students')
+        .select('id, courses(id, course_type, name)')
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+      return (data || [])
+        .map(row => row.courses)
+        .filter(Boolean)
+        .map(c => ({
+          id: c.id,
+          courseType: c.course_type || '摩登舞',
+          name: c.name
+        }));
+    }
+
+    async function addCourseStudent(courseId, studentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { error } = await db.from('course_students').insert({
+        course_id: courseId,
+        student_id: studentId
+      });
+
+      if (error) throw error;
+    }
+
+    async function removeCourseStudent(enrollmentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { error } = await db.from('course_students').delete().eq('id', enrollmentId);
+      if (error) throw error;
     }
 
     function populateTeacherSelect(selectId, selectedId) {
@@ -1716,9 +1898,10 @@
           const timeLabel = formatTimeRange(course.startTime, course.endTime);
           const typeLabel = course.courseType || '摩登舞';
           const classLabel = course.name || '';
+          const smallClass = course.classSize === '小课' ? ' week-event-small' : '';
 
           events.push(`
-            <div class="week-event" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
+            <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
               style="top:${top}px;height:${height}px;background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
               title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
               <span class="week-event-type">${escapeHtml(typeLabel)}</span>
@@ -1855,15 +2038,7 @@
         </li>
       `).join('');
 
-      listEl.querySelectorAll('.student-info-clickable').forEach(el => {
-        el.addEventListener('click', () => openStudentDetailModal(el.dataset.id));
-        el.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            openStudentDetailModal(el.dataset.id);
-          }
-        });
-      });
+      bindClickableRow(listEl, '.student-info-clickable', openStudentDetailModal);
 
       listEl.querySelectorAll('.btn-consume').forEach(btn => {
         btn.addEventListener('click', () => openConsumeModal(btn.dataset.id));
@@ -1885,6 +2060,18 @@
       openModal('modal-consume');
     }
 
+    function bindClickableRow(listEl, selector, openFn) {
+      listEl.querySelectorAll(selector).forEach(el => {
+        el.addEventListener('click', () => openFn(el.dataset.id));
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openFn(el.dataset.id);
+          }
+        });
+      });
+    }
+
     async function openStudentDetailModal(id) {
       const student = studentsCache.find(s => s.id === id);
       if (!student) return;
@@ -1896,7 +2083,8 @@
 
       try {
         const records = await fetchLessonRecords(id);
-        renderStudentDetailUI(student, records);
+        const courses = await fetchStudentCourses(id);
+        renderStudentDetailUI(student, records, courses);
       } catch (err) {
         console.error(err);
         body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
@@ -1904,7 +2092,7 @@
       }
     }
 
-    function renderStudentDetailUI(student, records) {
+    function renderStudentDetailUI(student, records, courses) {
       const body = document.getElementById('student-detail-body');
 
       const recordsHtml = records.length === 0
@@ -1916,12 +2104,22 @@
             </li>
           `).join('') + '</ul>';
 
+      const coursesHtml = !courses || courses.length === 0
+        ? '<div class="detail-section-empty">暂未加入任何课程</div>'
+        : '<ul class="detail-section-list">' + courses.map(c => `
+            <li>${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</li>
+          `).join('') + '</ul>';
+
       body.innerHTML = `
         <div class="student-detail-info">
           <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
-          <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone)}</span></div>
+          <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone || '—')}</span></div>
           <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(student.wechat || '—')}</span></div>
           <div class="student-detail-row"><span class="label">剩余课时</span><span class="value">${student.remainingHours} 课时</span></div>
+        </div>
+        <div class="detail-section">
+          <h4>所在课程</h4>
+          ${coursesHtml}
         </div>
         <div class="lesson-records-section">
           <h4>消课记录</h4>
@@ -1932,6 +2130,149 @@
       body.querySelectorAll('.btn-delete-record').forEach(btn => {
         btn.addEventListener('click', () => deleteLessonRecord(btn.dataset.id, btn.dataset.studentId));
       });
+    }
+
+    function renderCourseStudentsSection(courseId, enrollments) {
+      const enrolledIds = new Set(enrollments.map(e => e.studentId));
+      const available = studentsCache.filter(s => !enrolledIds.has(s.id));
+
+      const namesHtml = enrollments.length === 0
+        ? '<span class="detail-section-empty" style="padding:0;">暂无学员</span>'
+        : enrollments.map((e, i) => `
+            ${i > 0 ? ' ' : ''}<span class="course-student-inline">${escapeHtml(e.studentName)}<button type="button" class="course-student-remove" data-enrollment-id="${escapeHtml(e.id)}" aria-label="移除${escapeHtml(e.studentName)}">&times;</button></span>
+          `).join('');
+
+      const addSelectHtml = available.length === 0
+        ? '<option value="">暂无可添加学员</option>'
+        : '<option value="">选择学员</option>' + available.map(s => `
+            <option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>
+          `).join('');
+
+      return `
+        <div class="detail-section">
+          <h4>学员名单</h4>
+          <div class="course-students-names" id="course-students-names">${namesHtml}</div>
+          <div class="course-students-add">
+            <select id="course-add-student-select" ${available.length === 0 ? 'disabled' : ''}>${addSelectHtml}</select>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-course-add-student" data-course-id="${escapeHtml(courseId)}" ${available.length === 0 ? 'disabled' : ''}>添加</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function bindCourseStudentsEvents(courseId) {
+      document.querySelectorAll('.course-student-remove').forEach(btn => {
+        btn.addEventListener('click', () => removeStudentFromCourseDetail(btn.dataset.enrollmentId, courseId));
+      });
+
+      const addBtn = document.getElementById('btn-course-add-student');
+      if (addBtn) {
+        addBtn.addEventListener('click', () => addStudentToCourseDetail(courseId));
+      }
+    }
+
+    async function addStudentToCourseDetail(courseId) {
+      const select = document.getElementById('course-add-student-select');
+      const studentId = select ? select.value : '';
+      if (!studentId) {
+        showToast('请选择要添加的学员');
+        return;
+      }
+
+      try {
+        await addCourseStudent(courseId, studentId);
+        await openCourseDetailModal(courseId);
+        showToast('学员已加入课程');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '添加失败');
+      }
+    }
+
+    async function removeStudentFromCourseDetail(enrollmentId, courseId) {
+      if (!confirm('确定将该学员移出此课程吗？')) return;
+
+      try {
+        await removeCourseStudent(enrollmentId);
+        await openCourseDetailModal(courseId);
+        showToast('已移出课程');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '移除失败');
+      }
+    }
+
+    async function openCourseDetailModal(id) {
+      const course = coursesCache.find(c => c.id === id);
+      if (!course) return;
+
+      const body = document.getElementById('course-detail-body');
+      body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
+      document.getElementById('modal-course-detail-title').textContent = '课程详情';
+      openModal('modal-course-detail');
+
+      try {
+        if (!studentsCache.length) {
+          studentsCache = await fetchStudents();
+        }
+        const enrollments = await fetchCourseStudents(id);
+        body.innerHTML = `
+          <div class="student-detail-info" style="border-bottom:none;padding-bottom:0;">
+            <div class="student-detail-row"><span class="label">课程类型</span><span class="value">${escapeHtml(course.courseType || '—')}</span></div>
+            <div class="student-detail-row"><span class="label">课程班级</span><span class="value">${escapeHtml(course.name || '—')}</span></div>
+            <div class="student-detail-row"><span class="label">课程规模</span><span class="value">${escapeHtml(course.classSize || '大课')}</span></div>
+            <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
+            <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
+            <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
+          </div>
+          ${renderCourseStudentsSection(id, enrollments)}
+        `;
+        bindCourseStudentsEvents(id);
+      } catch (err) {
+        console.error(err);
+        body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
+        showToast('加载课程详情失败');
+      }
+    }
+
+    async function openTeacherDetailModal(id) {
+      const teacher = teachersCache.find(t => t.id === id);
+      if (!teacher) return;
+
+      const body = document.getElementById('teacher-detail-body');
+      body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
+      document.getElementById('modal-teacher-detail-title').textContent = '老师详情';
+      openModal('modal-teacher-detail');
+
+      try {
+        if (!coursesCache.length) {
+          await refreshTeachersCache();
+          coursesCache = await fetchCourses();
+        }
+        const teacherCourses = coursesCache.filter(c => c.teacherId === id);
+        const coursesHtml = teacherCourses.length === 0
+          ? '<div class="detail-section-empty">暂无负责课程</div>'
+          : '<ul class="detail-section-list">' + teacherCourses.map(c => `
+              <li>${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</li>
+            `).join('') + '</ul>';
+
+        body.innerHTML = `
+          <div class="student-detail-info" style="border-bottom:none;padding-bottom:0;">
+            <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(teacher.name)}</span></div>
+            <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(teacher.phone)}</span></div>
+            <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(teacher.wechat || '—')}</span></div>
+            <div class="student-detail-row"><span class="label">备注</span><span class="value">${escapeHtml(teacher.notes || '—')}</span></div>
+          </div>
+          <div class="detail-section">
+            <h4>负责课程</h4>
+            ${coursesHtml}
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
+        showToast('加载老师详情失败');
+      }
     }
 
     async function loadAndRenderStudents() {
@@ -1962,7 +2303,7 @@
 
       listEl.innerHTML = courses.map(c => `
         <li class="student-list-item">
-          <div class="course-meta">
+          <div class="course-meta student-info-clickable" data-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="查看课程详情">
             <span class="student-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</span>
             <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
             <span class="sub">上课日期：${escapeHtml(formatWeekdays(c.weekdays))}</span>
@@ -1971,6 +2312,8 @@
           <button type="button" class="btn btn-outline btn-sm btn-edit-course" data-id="${escapeHtml(c.id)}">编辑</button>
         </li>
       `).join('');
+
+      bindClickableRow(listEl, '.student-info-clickable', openCourseDetailModal);
 
       listEl.querySelectorAll('.btn-edit-course').forEach(btn => {
         btn.addEventListener('click', () => openEditCourseModal(btn.dataset.id));
@@ -2007,13 +2350,15 @@
 
       listEl.innerHTML = teachers.map(t => `
         <li class="student-list-item">
-          <div class="course-meta">
+          <div class="course-meta student-info-clickable" data-id="${escapeHtml(t.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(t.name)}详情">
             <span class="student-name">${escapeHtml(t.name)}</span>
             <span class="sub">${escapeHtml(t.phone)}</span>
           </div>
           <button type="button" class="btn btn-outline btn-sm btn-edit-teacher" data-id="${escapeHtml(t.id)}">编辑</button>
         </li>
       `).join('');
+
+      bindClickableRow(listEl, '.student-info-clickable', openTeacherDetailModal);
 
       listEl.querySelectorAll('.btn-edit-teacher').forEach(btn => {
         btn.addEventListener('click', () => openEditTeacherModal(btn.dataset.id));
@@ -2051,6 +2396,7 @@
       document.getElementById('edit-course-id').value = course.id;
       document.getElementById('edit-course-type').value = COURSE_TYPES.includes(course.courseType) ? course.courseType : '摩登舞';
       document.getElementById('edit-course-class').value = course.name;
+      document.getElementById('edit-course-class-size').value = course.classSize === '小课' ? '小课' : '大课';
       setWeekdayCheckboxes('#edit-course-weekdays', course.weekdays);
       document.getElementById('edit-course-start-time').value = formatTime(course.startTime);
       document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
@@ -2184,6 +2530,7 @@
 
       const courseType = document.getElementById('course-type').value;
       const courseClass = document.getElementById('course-class').value.trim();
+      const classSize = document.getElementById('course-class-size').value;
       const weekdays = getSelectedWeekdays('#course-weekdays');
       const startTime = document.getElementById('course-start-time').value;
       const endTime = document.getElementById('course-end-time').value;
@@ -2220,6 +2567,7 @@
         const { error } = await db.from('courses').insert({
           course_type: courseType,
           name: courseClass,
+          class_size: classSize,
           weekdays,
           start_time: startTime,
           end_time: endTime,
@@ -2244,6 +2592,7 @@
       const id = document.getElementById('edit-course-id').value;
       const courseType = document.getElementById('edit-course-type').value;
       const courseClass = document.getElementById('edit-course-class').value.trim();
+      const classSize = document.getElementById('edit-course-class-size').value;
       const weekdays = getSelectedWeekdays('#edit-course-weekdays');
       const startTime = document.getElementById('edit-course-start-time').value;
       const endTime = document.getElementById('edit-course-end-time').value;
@@ -2280,6 +2629,7 @@
         const { error } = await db.from('courses').update({
           course_type: courseType,
           name: courseClass,
+          class_size: classSize,
           weekdays,
           start_time: startTime,
           end_time: endTime,
@@ -2517,20 +2867,21 @@
       const name = document.getElementById('add-name').value.trim();
       const phone = document.getElementById('add-phone').value.trim();
       const wechat = document.getElementById('add-wechat').value.trim();
-      const hours = parseInt(document.getElementById('add-hours').value, 10);
+      const hoursRaw = document.getElementById('add-hours').value.trim();
+      const hours = hoursRaw === '' ? 0 : parseInt(hoursRaw, 10);
 
-      if (!name || !phone) {
-        showToast('请填写姓名和联系电话');
+      if (!name) {
+        showToast('请填写姓名');
         return;
       }
 
-      if (!hours || hours < 1) {
-        showToast('购买课时数须为正整数');
+      if (hoursRaw !== '' && (isNaN(hours) || hours < 0)) {
+        showToast('购买课时数须为不小于 0 的整数');
         return;
       }
 
       try {
-        if (await isPhoneTaken(phone)) {
+        if (phone && await isPhoneTaken(phone)) {
           showToast('该联系电话已存在');
           return;
         }
@@ -2543,7 +2894,7 @@
 
         const { error } = await db.from('students').insert({
           name,
-          phone,
+          phone: phone || null,
           wechat: wechat || null,
           total_lessons: hours,
           remaining_lessons: hours
