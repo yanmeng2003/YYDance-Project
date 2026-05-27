@@ -765,9 +765,19 @@
       z-index: 2;
     }
 
-    .week-event-name {
-      font-weight: 600;
+    .week-event-type {
+      font-weight: 700;
+      font-size: 0.78rem;
       display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-event-class {
+      display: block;
+      font-size: 0.66rem;
+      opacity: 0.95;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -893,7 +903,8 @@
       }
 
       .week-schedule {
-        min-width: calc(52px + 7 * 80px);
+        --week-day-col-min: 90px;
+        min-width: calc(52px + 7 * 90px);
       }
 
       .week-event {
@@ -1085,8 +1096,15 @@
         <form id="form-add-course">
           <div class="form-grid">
             <div class="form-group">
-              <label for="course-name">课程名称 *</label>
-              <input type="text" id="course-name" required placeholder="例如：爵士舞基础班">
+              <label for="course-type">课程类型 *</label>
+              <select id="course-type" required>
+                <option value="摩登舞">摩登舞</option>
+                <option value="拉丁舞">拉丁舞</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="course-class">课程班级 *</label>
+              <input type="text" id="course-class" required placeholder="例如：成人班、提高班">
             </div>
             <div class="form-group">
               <label>星期几 *</label>
@@ -1136,8 +1154,15 @@
           <input type="hidden" id="edit-course-id">
           <div class="form-grid">
             <div class="form-group">
-              <label for="edit-course-name">课程名称 *</label>
-              <input type="text" id="edit-course-name" required placeholder="例如：爵士舞基础班">
+              <label for="edit-course-type">课程类型 *</label>
+              <select id="edit-course-type" required>
+                <option value="摩登舞">摩登舞</option>
+                <option value="拉丁舞">拉丁舞</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-course-class">课程班级 *</label>
+              <input type="text" id="edit-course-class" required placeholder="例如：成人班、提高班">
             </div>
             <div class="form-group">
               <label>星期几 *</label>
@@ -1391,6 +1416,8 @@
 
     const DEFAULT_COURSE_COLOR = { bg: '#f4f2f6', border: '#a89bb0', text: '#4a3f52' };
 
+    const COURSE_TYPES = ['摩登舞', '拉丁舞'];
+
     let coursesViewTab = 'week';
 
     let supabaseClient = null;
@@ -1532,6 +1559,7 @@
       const teacher = row.teachers;
       return {
         id: row.id,
+        courseType: row.course_type || '摩登舞',
         name: row.name,
         weekdays: row.weekdays || [],
         startTime: row.start_time,
@@ -1686,12 +1714,15 @@
           const colors = getCourseColor(course, colorMap);
           const teacherLabel = course.teacherName || '未分配';
           const timeLabel = formatTimeRange(course.startTime, course.endTime);
+          const typeLabel = course.courseType || '摩登舞';
+          const classLabel = course.name || '';
 
           events.push(`
             <div class="week-event" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
               style="top:${top}px;height:${height}px;background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
-              title="${escapeHtml(course.name)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
-              <span class="week-event-name">${escapeHtml(course.name)}</span>
+              title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
+              <span class="week-event-type">${escapeHtml(typeLabel)}</span>
+              <span class="week-event-class">${escapeHtml(classLabel)}</span>
               <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
               <span class="week-event-time">${escapeHtml(timeLabel)}</span>
             </div>
@@ -1932,7 +1963,7 @@
       listEl.innerHTML = courses.map(c => `
         <li class="student-list-item">
           <div class="course-meta">
-            <span class="student-name">${escapeHtml(c.name)}</span>
+            <span class="student-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</span>
             <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
             <span class="sub">上课日期：${escapeHtml(formatWeekdays(c.weekdays))}</span>
             ${c.teacherName ? `<span class="sub">负责老师：${escapeHtml(c.teacherName)}</span>` : ''}
@@ -2018,7 +2049,8 @@
 
       await refreshTeachersCache();
       document.getElementById('edit-course-id').value = course.id;
-      document.getElementById('edit-course-name').value = course.name;
+      document.getElementById('edit-course-type').value = COURSE_TYPES.includes(course.courseType) ? course.courseType : '摩登舞';
+      document.getElementById('edit-course-class').value = course.name;
       setWeekdayCheckboxes('#edit-course-weekdays', course.weekdays);
       document.getElementById('edit-course-start-time').value = formatTime(course.startTime);
       document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
@@ -2150,13 +2182,19 @@
     async function onAddCourse(e) {
       e.preventDefault();
 
-      const name = document.getElementById('course-name').value.trim();
+      const courseType = document.getElementById('course-type').value;
+      const courseClass = document.getElementById('course-class').value.trim();
       const weekdays = getSelectedWeekdays('#course-weekdays');
       const startTime = document.getElementById('course-start-time').value;
       const endTime = document.getElementById('course-end-time').value;
 
-      if (!name) {
-        showToast('请填写课程名称');
+      if (!courseType) {
+        showToast('请选择课程类型');
+        return;
+      }
+
+      if (!courseClass) {
+        showToast('请填写课程班级');
         return;
       }
 
@@ -2180,7 +2218,8 @@
         const teacherId = getTeacherIdFromSelect('course-teacher');
 
         const { error } = await db.from('courses').insert({
-          name,
+          course_type: courseType,
+          name: courseClass,
           weekdays,
           start_time: startTime,
           end_time: endTime,
@@ -2203,13 +2242,19 @@
       e.preventDefault();
 
       const id = document.getElementById('edit-course-id').value;
-      const name = document.getElementById('edit-course-name').value.trim();
+      const courseType = document.getElementById('edit-course-type').value;
+      const courseClass = document.getElementById('edit-course-class').value.trim();
       const weekdays = getSelectedWeekdays('#edit-course-weekdays');
       const startTime = document.getElementById('edit-course-start-time').value;
       const endTime = document.getElementById('edit-course-end-time').value;
 
-      if (!name) {
-        showToast('请填写课程名称');
+      if (!courseType) {
+        showToast('请选择课程类型');
+        return;
+      }
+
+      if (!courseClass) {
+        showToast('请填写课程班级');
         return;
       }
 
@@ -2233,7 +2278,8 @@
         const teacherId = getTeacherIdFromSelect('edit-course-teacher');
 
         const { error } = await db.from('courses').update({
-          name,
+          course_type: courseType,
+          name: courseClass,
           weekdays,
           start_time: startTime,
           end_time: endTime,
@@ -2253,11 +2299,13 @@
 
     async function onDeleteCourseFromEdit() {
       const id = document.getElementById('edit-course-id').value;
-      const name = document.getElementById('edit-course-name').value.trim() || '该课程';
+      const courseType = document.getElementById('edit-course-type').value;
+      const courseClass = document.getElementById('edit-course-class').value.trim();
+      const label = (courseType || '') + (courseClass ? ' · ' + courseClass : '') || '该课程';
 
       if (!id) return;
 
-      if (!confirm('确定要删除「' + name + '」吗？此操作不可恢复。')) {
+      if (!confirm('确定要删除「' + label + '」吗？此操作不可恢复。')) {
         return;
       }
 
