@@ -960,7 +960,8 @@
     }
 
     #modal-add-student-course,
-    #modal-consume {
+    #modal-consume,
+    #modal-bulk-consume {
       z-index: 400;
     }
 
@@ -1564,6 +1565,32 @@
         <button type="button" class="modal-close" data-close="modal-course-detail" aria-label="关闭">&times;</button>
       </div>
       <div class="modal-body" id="course-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- 批量消课弹窗 -->
+  <div class="modal-overlay" id="modal-bulk-consume" role="dialog" aria-modal="true" aria-labelledby="modal-bulk-consume-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-bulk-consume-title">批量消课</h3>
+        <button type="button" class="modal-close" data-close="modal-bulk-consume" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-bulk-consume">
+          <input type="hidden" id="bulk-consume-course-id">
+          <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;">将为本课程所有学员消去1课时</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="bulk-consume-date">日期 *</label>
+              <input type="date" id="bulk-consume-date" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">确认</button>
+            <button type="button" class="btn btn-outline" data-close="modal-bulk-consume">取消</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -2421,6 +2448,17 @@
       if (addBtn) {
         addBtn.addEventListener('click', () => addStudentToCourseDetail(courseId));
       }
+
+      const bulkBtn = document.getElementById('btn-bulk-consume-course');
+      if (bulkBtn) {
+        bulkBtn.addEventListener('click', () => openBulkConsumeModal(courseId));
+      }
+    }
+
+    function openBulkConsumeModal(courseId) {
+      document.getElementById('bulk-consume-course-id').value = courseId;
+      document.getElementById('bulk-consume-date').value = getTodayDateString();
+      openModal('modal-bulk-consume');
     }
 
     async function addStudentToCourseDetail(courseId) {
@@ -2490,6 +2528,9 @@
             <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
             <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
             <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
+          </div>
+          <div style="margin: 16px 0 4px;">
+            <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(id)}">批量消课</button>
           </div>
           ${renderCourseStudentsSection(id, enrollments)}
         `;
@@ -2778,6 +2819,7 @@
       document.getElementById('form-edit-student').addEventListener('submit', onEditStudent);
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
       document.getElementById('form-consume-lesson').addEventListener('submit', onConsumeLesson);
+      document.getElementById('form-bulk-consume').addEventListener('submit', onBulkConsumeCourse);
       document.getElementById('form-edit-student-course').addEventListener('submit', onEditStudentCourse);
       document.getElementById('btn-remove-student-course').addEventListener('click', onRemoveStudentCourseFromEdit);
       document.getElementById('form-add-student-course').addEventListener('submit', onAddStudentCourse);
@@ -3116,6 +3158,68 @@
       } catch (err) {
         console.error(err);
         showToast(err.message || '添加失败');
+      }
+    }
+
+    async function onBulkConsumeCourse(e) {
+      e.preventDefault();
+
+      const courseId = document.getElementById('bulk-consume-course-id').value;
+      const dateStr = document.getElementById('bulk-consume-date').value;
+
+      if (!courseId) return;
+
+      if (!dateStr) {
+        showToast('请选择日期');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const enrollments = await fetchCourseStudents(courseId);
+        const eligible = enrollments.filter(en => en.remainingLessons >= 1);
+        const skipped = enrollments.length - eligible.length;
+
+        if (eligible.length === 0) {
+          closeModal('modal-bulk-consume');
+          if (skipped > 0) {
+            showToast('已跳过' + skipped + '名课时不足的学员');
+          } else {
+            showToast('本课程暂无学员');
+          }
+          return;
+        }
+
+        for (const enrollment of eligible) {
+          const { error: recordError } = await db.from('lesson_records').insert({
+            student_id: enrollment.studentId,
+            course_id: courseId,
+            consumed_at: dateStr
+          });
+          if (recordError) throw recordError;
+
+          const { error: updateError } = await db.from('course_students').update({
+            remaining_lessons: enrollment.remainingLessons - 1
+          }).eq('id', enrollment.id);
+          if (updateError) throw updateError;
+        }
+
+        closeModal('modal-bulk-consume');
+        await openCourseDetailModal(courseId);
+
+        if (skipped > 0) {
+          showToast('已跳过' + skipped + '名课时不足的学员');
+        } else {
+          showToast('批量消课成功');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '批量消课失败');
       }
     }
 
