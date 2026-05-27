@@ -528,6 +528,18 @@
       font-size: 0.9rem;
     }
 
+    .student-course-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .student-course-info {
+      flex: 1;
+      min-width: 0;
+    }
+
     .detail-section-list li:last-child {
       border-bottom: none;
     }
@@ -575,6 +587,11 @@
     .course-students-add select {
       flex: 1;
       min-width: 140px;
+    }
+
+    .course-students-add input[type="number"] {
+      width: 88px;
+      flex-shrink: 0;
     }
 
     /* FAB */
@@ -1409,6 +1426,8 @@
       <div class="modal-body">
         <form id="form-consume-lesson">
           <input type="hidden" id="consume-student-id">
+          <input type="hidden" id="consume-course-id">
+          <input type="hidden" id="consume-enrollment-id">
           <p id="consume-student-hint" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;"></p>
           <div class="form-grid">
             <div class="form-group">
@@ -1605,6 +1624,7 @@
       return {
         id: row.id,
         studentId: row.student_id,
+        courseId: row.course_id || null,
         consumedAt: row.consumed_at
       };
     }
@@ -1707,7 +1727,8 @@
         id: row.id,
         courseId: row.course_id,
         studentId: row.student_id,
-        studentName: student ? student.name : '未知学员'
+        studentName: student ? student.name : '未知学员',
+        remainingLessons: row.remaining_lessons ?? 0
       };
     }
 
@@ -1717,11 +1738,22 @@
 
       const { data, error } = await db
         .from('course_students')
-        .select('id, course_id, student_id, students(id, name)')
+        .select('id, course_id, student_id, remaining_lessons, students(id, name)')
         .eq('course_id', courseId);
 
       if (error) throw error;
       return (data || []).map(mapCourseStudent);
+    }
+
+    function mapStudentCourseEnrollment(row) {
+      const course = row.courses;
+      return {
+        enrollmentId: row.id,
+        courseId: row.course_id,
+        courseType: course ? (course.course_type || '摩登舞') : '摩登舞',
+        name: course ? course.name : '—',
+        remainingLessons: row.remaining_lessons ?? 0
+      };
     }
 
     async function fetchStudentCourses(studentId) {
@@ -1730,27 +1762,21 @@
 
       const { data, error } = await db
         .from('course_students')
-        .select('id, courses(id, course_type, name)')
+        .select('id, course_id, remaining_lessons, courses(id, course_type, name)')
         .eq('student_id', studentId);
 
       if (error) throw error;
-      return (data || [])
-        .map(row => row.courses)
-        .filter(Boolean)
-        .map(c => ({
-          id: c.id,
-          courseType: c.course_type || '摩登舞',
-          name: c.name
-        }));
+      return (data || []).map(mapStudentCourseEnrollment);
     }
 
-    async function addCourseStudent(courseId, studentId) {
+    async function addCourseStudent(courseId, studentId, remainingLessons) {
       const db = getSupabase();
       if (!db) throw new Error('Supabase 库未加载');
 
       const { error } = await db.from('course_students').insert({
         course_id: courseId,
-        student_id: studentId
+        student_id: studentId,
+        remaining_lessons: remainingLessons
       });
 
       if (error) throw error;
@@ -2027,12 +2053,12 @@
 
       listEl.innerHTML = students.map(s => `
         <li class="student-list-item">
-          <div class="student-info student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
+          <div class="course-meta student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
             <span class="student-name">${escapeHtml(s.name)}</span>
-            <span class="hours-badge">${s.remainingHours} 课时</span>
+            <span class="sub">${escapeHtml(s.phone || '—')}</span>
+            <span class="sub">${escapeHtml(s.wechat || '—')}</span>
           </div>
           <div class="student-actions">
-            <button type="button" class="btn btn-outline btn-sm btn-consume" data-id="${escapeHtml(s.id)}">消课</button>
             <button type="button" class="btn btn-outline btn-sm btn-edit" data-id="${escapeHtml(s.id)}">编辑</button>
           </div>
         </li>
@@ -2040,22 +2066,20 @@
 
       bindClickableRow(listEl, '.student-info-clickable', openStudentDetailModal);
 
-      listEl.querySelectorAll('.btn-consume').forEach(btn => {
-        btn.addEventListener('click', () => openConsumeModal(btn.dataset.id));
-      });
-
       listEl.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', () => openEditModal(btn.dataset.id));
       });
     }
 
-    function openConsumeModal(id) {
-      const student = studentsCache.find(s => s.id === id);
-      if (!student) return;
+    function openConsumeModalForCourse(studentId, course) {
+      const student = studentsCache.find(s => s.id === studentId);
+      if (!student || !course) return;
 
-      document.getElementById('consume-student-id').value = student.id;
+      document.getElementById('consume-student-id').value = studentId;
+      document.getElementById('consume-course-id').value = course.courseId;
+      document.getElementById('consume-enrollment-id').value = course.enrollmentId;
       document.getElementById('consume-student-hint').textContent =
-        student.name + ' · 剩余 ' + student.remainingHours + ' 课时';
+        student.name + ' · ' + course.courseType + ' · ' + course.name + ' · 剩余 ' + course.remainingLessons + ' 课时';
       document.getElementById('consume-date').value = getTodayDateString();
       openModal('modal-consume');
     }
@@ -2107,7 +2131,16 @@
       const coursesHtml = !courses || courses.length === 0
         ? '<div class="detail-section-empty">暂未加入任何课程</div>'
         : '<ul class="detail-section-list">' + courses.map(c => `
-            <li>${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</li>
+            <li class="student-course-item">
+              <span class="student-course-info">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)} · 剩余 ${c.remainingLessons} 课时</span>
+              <button type="button" class="btn btn-outline btn-sm btn-consume-course"
+                data-student-id="${escapeHtml(student.id)}"
+                data-enrollment-id="${escapeHtml(c.enrollmentId)}"
+                data-course-id="${escapeHtml(c.courseId)}"
+                data-course-type="${escapeHtml(c.courseType)}"
+                data-course-name="${escapeHtml(c.name)}"
+                data-remaining="${c.remainingLessons}">消课</button>
+            </li>
           `).join('') + '</ul>';
 
       body.innerHTML = `
@@ -2115,7 +2148,6 @@
           <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
           <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone || '—')}</span></div>
           <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(student.wechat || '—')}</span></div>
-          <div class="student-detail-row"><span class="label">剩余课时</span><span class="value">${student.remainingHours} 课时</span></div>
         </div>
         <div class="detail-section">
           <h4>所在课程</h4>
@@ -2126,6 +2158,18 @@
           ${recordsHtml}
         </div>
       `;
+
+      body.querySelectorAll('.btn-consume-course').forEach(btn => {
+        btn.addEventListener('click', () => {
+          openConsumeModalForCourse(btn.dataset.studentId, {
+            enrollmentId: btn.dataset.enrollmentId,
+            courseId: btn.dataset.courseId,
+            courseType: btn.dataset.courseType,
+            name: btn.dataset.courseName,
+            remainingLessons: parseInt(btn.dataset.remaining, 10) || 0
+          });
+        });
+      });
 
       body.querySelectorAll('.btn-delete-record').forEach(btn => {
         btn.addEventListener('click', () => deleteLessonRecord(btn.dataset.id, btn.dataset.studentId));
@@ -2154,6 +2198,7 @@
           <div class="course-students-names" id="course-students-names">${namesHtml}</div>
           <div class="course-students-add">
             <select id="course-add-student-select" ${available.length === 0 ? 'disabled' : ''}>${addSelectHtml}</select>
+            <input type="number" id="course-add-student-hours" min="0" step="1" placeholder="课时数" ${available.length === 0 ? 'disabled' : ''}>
             <button type="button" class="btn btn-outline btn-sm" id="btn-course-add-student" data-course-id="${escapeHtml(courseId)}" ${available.length === 0 ? 'disabled' : ''}>添加</button>
           </div>
         </div>
@@ -2173,14 +2218,28 @@
 
     async function addStudentToCourseDetail(courseId) {
       const select = document.getElementById('course-add-student-select');
+      const hoursInput = document.getElementById('course-add-student-hours');
       const studentId = select ? select.value : '';
+      const hoursRaw = hoursInput ? hoursInput.value.trim() : '';
+
       if (!studentId) {
         showToast('请选择要添加的学员');
         return;
       }
 
+      if (hoursRaw === '') {
+        showToast('请填写课时数');
+        return;
+      }
+
+      const hours = parseInt(hoursRaw, 10);
+      if (isNaN(hours) || hours < 0) {
+        showToast('课时数须为不小于 0 的整数');
+        return;
+      }
+
       try {
-        await addCourseStudent(courseId, studentId);
+        await addCourseStudent(courseId, studentId, hours);
         await openCourseDetailModal(courseId);
         showToast('学员已加入课程');
       } catch (err) {
@@ -2779,16 +2838,12 @@
       e.preventDefault();
 
       const studentId = document.getElementById('consume-student-id').value;
+      const courseId = document.getElementById('consume-course-id').value;
+      const enrollmentId = document.getElementById('consume-enrollment-id').value;
       const dateStr = document.getElementById('consume-date').value;
-      const student = studentsCache.find(s => s.id === studentId);
 
-      if (!student) {
-        showToast('学员不存在');
-        return;
-      }
-
-      if (student.remainingHours < 1) {
-        showToast('剩余课时不足，无法消课');
+      if (!studentId || !courseId || !enrollmentId) {
+        showToast('消课信息不完整');
         return;
       }
 
@@ -2804,21 +2859,38 @@
           return;
         }
 
+        const { data: enrollment, error: fetchError } = await db
+          .from('course_students')
+          .select('remaining_lessons')
+          .eq('id', enrollmentId)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        if (!enrollment || enrollment.remaining_lessons < 1) {
+          showToast('该课程剩余课时不足，无法消课');
+          return;
+        }
+
         const { error: recordError } = await db.from('lesson_records').insert({
           student_id: studentId,
+          course_id: courseId,
           consumed_at: dateStr
         });
 
         if (recordError) throw recordError;
 
-        const { error: updateError } = await db.from('students').update({
-          remaining_lessons: student.remainingHours - 1
-        }).eq('id', studentId);
+        const { error: updateError } = await db.from('course_students').update({
+          remaining_lessons: enrollment.remaining_lessons - 1
+        }).eq('id', enrollmentId);
 
         if (updateError) throw updateError;
 
         closeModal('modal-consume');
         await loadAndRenderStudents();
+        if (document.getElementById('modal-student-detail').classList.contains('open')) {
+          await openStudentDetailModal(studentId);
+        }
         showToast('消课成功');
       } catch (err) {
         console.error(err);
@@ -2827,8 +2899,7 @@
     }
 
     async function deleteLessonRecord(recordId, studentId) {
-      const student = studentsCache.find(s => s.id === studentId);
-      if (!confirm('确定删除这条消课记录吗？删除后剩余课时将加回 1 节。')) {
+      if (!confirm('确定删除这条消课记录吗？删除后该课程剩余课时将加回 1 节。')) {
         return;
       }
 
@@ -2839,15 +2910,33 @@
           return;
         }
 
+        const { data: record, error: fetchError } = await db
+          .from('lesson_records')
+          .select('course_id')
+          .eq('id', recordId)
+          .single();
+
+        if (fetchError) throw fetchError;
+
         const { error: delError } = await db.from('lesson_records').delete().eq('id', recordId);
         if (delError) throw delError;
 
-        if (student) {
-          const newRemaining = Math.min(student.totalLessons, student.remainingHours + 1);
-          const { error: updateError } = await db.from('students').update({
-            remaining_lessons: newRemaining
-          }).eq('id', studentId);
-          if (updateError) throw updateError;
+        if (record && record.course_id) {
+          const { data: enrollment, error: enrollmentError } = await db
+            .from('course_students')
+            .select('id, remaining_lessons')
+            .eq('student_id', studentId)
+            .eq('course_id', record.course_id)
+            .maybeSingle();
+
+          if (enrollmentError) throw enrollmentError;
+
+          if (enrollment) {
+            const { error: updateError } = await db.from('course_students').update({
+              remaining_lessons: enrollment.remaining_lessons + 1
+            }).eq('id', enrollment.id);
+            if (updateError) throw updateError;
+          }
         }
 
         await loadAndRenderStudents();
