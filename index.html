@@ -2,23 +2,26 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>YY Dance舞蹈工作室管理系统</title>
   <style>
     :root {
       --primary: #9b59b6;
       --primary-dark: #7d3c98;
-      --primary-light: #e8daef;
-      --accent: #e91e8c;
-      --accent-light: #fce4ec;
-      --bg: #faf8fc;
+      --primary-light: rgba(155, 89, 182, 0.12);
+      --accent: #9b59b6;
+      --accent-light: rgba(155, 89, 182, 0.08);
+      --bg: #F2F2F7;
       --card-bg: #ffffff;
+      --secondary-bg: #E5E5EA;
       --text: #2d2438;
-      --text-muted: #6b5b7a;
-      --border: #e8dff0;
-      --shadow: 0 4px 20px rgba(155, 89, 182, 0.12);
-      --radius: 12px;
-      --nav-height: 56px;
+      --text-muted: #8E8E93;
+      --border: rgba(60, 60, 67, 0.12);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 52px;
+      --tab-bar-height: 64px;
     }
 
     * {
@@ -28,11 +31,12 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      line-height: 1.5;
+      line-height: 1.47;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* Navigation */
@@ -41,54 +45,89 @@
       top: 0;
       z-index: 100;
       height: var(--nav-height);
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      color: #fff;
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      color: var(--text);
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 0 20px;
-      box-shadow: 0 2px 12px rgba(155, 89, 182, 0.3);
+      border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+      box-shadow: none;
     }
 
     .navbar-brand {
-      font-size: 1rem;
+      font-size: 1.0625rem;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      letter-spacing: -0.01em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 70%;
+      color: var(--text);
     }
 
-    .navbar-nav {
+    /* Tab Bar */
+    .tab-bar {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 120;
       display: flex;
-      gap: 8px;
+      align-items: stretch;
+      gap: 4px;
+      padding: 6px;
+      background: rgba(252, 250, 255, 0.82);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 0.5px solid rgba(155, 89, 182, 0.14);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 24px rgba(155, 89, 182, 0.1), var(--shadow);
     }
 
-    .nav-link {
-      color: rgba(255, 255, 255, 0.9);
-      text-decoration: none;
-      font-size: 0.875rem;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background 0.2s;
-      cursor: pointer;
+    .tab-bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: var(--tab-bar-height);
+      padding: 6px 4px;
       border: none;
       background: transparent;
+      color: var(--text-muted);
       font-family: inherit;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: color 0.2s, background 0.2s;
     }
 
-    .nav-link:hover,
-    .nav-link.active {
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
+    .tab-bar-item:hover {
+      background: rgba(155, 89, 182, 0.06);
+    }
+
+    .tab-bar-item.active {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .tab-bar-icon {
+      font-size: 1.375rem;
+      line-height: 1;
+    }
+
+    .tab-bar-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     /* Main container */
     .container {
       max-width: 960px;
       margin: 0 auto;
-      padding: 24px 16px 48px;
+      padding: 32px 20px calc(120px + env(safe-area-inset-bottom, 0px));
     }
 
     .page {
@@ -108,34 +147,35 @@
     /* Home page */
     .hero {
       text-align: center;
-      padding: 32px 16px 40px;
+      padding: 48px 20px 56px;
     }
 
     .hero h1 {
-      font-size: clamp(1.35rem, 4vw, 1.75rem);
-      color: var(--primary-dark);
-      margin-bottom: 8px;
+      font-size: clamp(1.75rem, 5vw, 2.125rem);
+      color: var(--text);
+      margin-bottom: 12px;
       font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .hero p {
       color: var(--text-muted);
-      font-size: 0.95rem;
+      font-size: 1.0625rem;
     }
 
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 20px;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     .entry-card {
       background: var(--card-bg);
       border-radius: var(--radius);
-      padding: 28px 24px;
+      padding: 32px 28px;
       box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border: none;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
       text-align: center;
@@ -144,67 +184,60 @@
     }
 
     .entry-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--accent));
+      display: none;
     }
 
     .entry-card:hover:not(.disabled) {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 28px rgba(155, 89, 182, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .entry-card.disabled {
       cursor: not-allowed;
-      opacity: 0.75;
-    }
-
-    .entry-card.disabled::before {
-      background: #ccc;
+      opacity: 0.6;
     }
 
     .card-icon {
-      width: 56px;
-      height: 56px;
-      margin: 0 auto 16px;
-      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 20px;
+      border-radius: var(--radius);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 1.625rem;
     }
 
     .entry-card:not(.disabled) .card-icon {
-      background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
+      background: var(--primary-light);
     }
 
     .entry-card.disabled .card-icon {
-      background: #f0f0f0;
+      background: var(--secondary-bg);
     }
 
     .entry-card h2 {
-      font-size: 1.15rem;
-      color: var(--primary-dark);
-      margin-bottom: 8px;
+      font-size: 1.25rem;
+      color: var(--text);
+      margin-bottom: 10px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
     }
 
     .entry-card p {
-      font-size: 0.875rem;
+      font-size: 0.9375rem;
       color: var(--text-muted);
+      line-height: 1.5;
     }
 
     .badge-soon {
       display: inline-block;
-      margin-top: 12px;
-      padding: 4px 12px;
-      background: #f5f5f5;
-      color: #888;
-      font-size: 0.75rem;
-      border-radius: 20px;
+      margin-top: 16px;
+      padding: 5px 14px;
+      background: var(--secondary-bg);
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      border-radius: var(--radius-sm);
       font-weight: 500;
     }
 
@@ -213,14 +246,16 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       flex-wrap: wrap;
     }
 
     .page-header h2 {
-      font-size: 1.35rem;
-      color: var(--primary-dark);
+      font-size: 1.625rem;
+      color: var(--text);
       flex: 1;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .btn {
@@ -228,55 +263,54 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 10px 18px;
+      padding: 11px 20px;
       border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
       font-weight: 500;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
+      transition: background 0.2s, opacity 0.2s;
       font-family: inherit;
     }
 
     .btn:active {
-      transform: scale(0.98);
+      opacity: 0.75;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      background: var(--primary);
       color: #fff;
     }
 
     .btn-primary:hover {
-      filter: brightness(1.05);
+      background: var(--primary-dark);
     }
 
     .btn-outline {
-      background: transparent;
-      color: var(--primary);
-      border: 1px solid var(--primary);
+      background: var(--secondary-bg);
+      color: var(--text);
+      border: none;
     }
 
     .btn-outline:hover {
-      background: var(--primary-light);
+      background: #D1D1D6;
     }
 
     .btn-danger {
-      background: transparent;
-      color: #c0392b;
-      border: 1px solid #e8b4b0;
+      background: rgba(255, 59, 48, 0.1);
+      color: #FF3B30;
+      border: none;
     }
 
     .btn-danger:hover {
-      background: #fdf2f2;
-      border-color: #c0392b;
+      background: rgba(255, 59, 48, 0.16);
     }
 
     .form-actions-edit {
-      margin-top: 20px;
+      margin-top: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
 
     .form-actions-row {
@@ -286,68 +320,70 @@
     }
 
     .form-actions-delete {
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      border-top: 0.5px solid var(--border);
     }
 
     .btn-sm {
-      padding: 6px 12px;
-      font-size: 0.8rem;
+      padding: 7px 14px;
+      font-size: 0.8125rem;
+      border-radius: 10px;
     }
 
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      gap: 20px;
     }
 
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .form-group label {
-      font-size: 0.85rem;
+      font-size: 0.8125rem;
       color: var(--text-muted);
       font-weight: 500;
     }
 
     .form-group input {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
+      padding: 12px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
       font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--secondary-bg);
+      transition: background 0.2s, box-shadow 0.2s;
     }
 
     .form-group input:focus,
     .form-group select:focus,
     .form-group textarea:focus {
       outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.15);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
     }
 
     .form-group select,
     .form-group textarea {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
+      padding: 12px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
       font-family: inherit;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      background: #fff;
+      background: var(--secondary-bg);
+      transition: background 0.2s, box-shadow 0.2s;
     }
 
     .form-group textarea {
-      min-height: 72px;
+      min-height: 80px;
       resize: vertical;
     }
 
     .form-actions {
-      margin-top: 20px;
+      margin-top: 24px;
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
@@ -357,46 +393,49 @@
     .list-card {
       background: var(--card-bg);
       border-radius: var(--radius);
-      padding: 24px;
+      padding: 8px 24px 16px;
       box-shadow: var(--shadow);
-      border: 1px solid var(--border);
+      border: none;
     }
 
     .list-card h3 {
-      font-size: 1rem;
-      color: var(--primary-dark);
-      margin-bottom: 16px;
+      font-size: 1.0625rem;
+      color: var(--text);
+      margin-bottom: 4px;
+      padding: 16px 0 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      font-weight: 600;
+      letter-spacing: -0.01em;
     }
 
     .student-count {
-      font-size: 0.85rem;
+      font-size: 0.8125rem;
       color: var(--text-muted);
-      font-weight: normal;
+      font-weight: 400;
     }
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 56px 24px;
       color: var(--text-muted);
     }
 
     .empty-state .icon {
       font-size: 2.5rem;
-      margin-bottom: 12px;
-      opacity: 0.5;
+      margin-bottom: 16px;
+      opacity: 0.4;
     }
 
     .hours-badge {
       display: inline-block;
       padding: 4px 10px;
-      background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
-      color: var(--primary-dark);
-      border-radius: 20px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.8125rem;
     }
 
     .student-list {
@@ -407,9 +446,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 0.5px solid var(--border);
     }
 
     .student-list-item:last-child {
@@ -417,11 +456,11 @@
     }
 
     .student-list-item:hover {
-      background: rgba(232, 218, 239, 0.25);
-      margin: 0 -12px;
-      padding-left: 12px;
-      padding-right: 12px;
-      border-radius: 8px;
+      background: transparent;
+      margin: 0;
+      padding-left: 0;
+      padding-right: 0;
+      border-radius: 0;
     }
 
     .student-info {
@@ -438,11 +477,12 @@
 
     .student-name {
       font-weight: 600;
-      color: var(--primary-dark);
-      font-size: 1rem;
+      color: var(--text);
+      font-size: 1.0625rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      letter-spacing: -0.01em;
     }
 
     .student-actions {
@@ -455,33 +495,38 @@
 
     .student-detail-info {
       display: grid;
-      gap: 10px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
+      gap: 14px;
+      padding-bottom: 20px;
+      border-bottom: 0.5px solid var(--border);
     }
 
     .student-detail-row {
       display: flex;
       justify-content: space-between;
-      gap: 12px;
-      font-size: 0.9rem;
+      gap: 16px;
+      font-size: 1rem;
     }
 
     .student-detail-row .label {
       color: var(--text-muted);
       flex-shrink: 0;
+      font-size: 0.9375rem;
     }
 
     .student-detail-row .value {
       color: var(--text);
       text-align: right;
       word-break: break-all;
+      font-weight: 500;
     }
 
     .lesson-records-section h4 {
-      font-size: 0.95rem;
-      color: var(--primary-dark);
-      margin: 16px 0 12px;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .lesson-records-list {
@@ -494,9 +539,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 0.9375rem;
     }
 
     .lesson-record-item:last-child {
@@ -505,15 +551,18 @@
 
     .lesson-records-empty {
       text-align: center;
-      padding: 24px 12px;
+      padding: 32px 16px;
       color: var(--text-muted);
-      font-size: 0.9rem;
+      font-size: 0.9375rem;
     }
 
     .detail-section h4 {
-      font-size: 0.95rem;
-      color: var(--primary-dark);
-      margin: 16px 0 12px;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .detail-section-list {
@@ -523,9 +572,9 @@
     }
 
     .detail-section-list li {
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.9rem;
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 0.9375rem;
     }
 
     .student-course-item {
@@ -566,11 +615,16 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin: 16px 0 12px;
+      margin: 24px 0 12px;
     }
 
     .detail-section-header h4 {
       margin: 0;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .detail-section-actions {
@@ -585,8 +639,8 @@
 
     .detail-section-empty {
       color: var(--text-muted);
-      font-size: 0.9rem;
-      padding: 8px 0;
+      font-size: 0.9375rem;
+      padding: 12px 0;
     }
 
     .course-students-list {
@@ -597,10 +651,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.9rem;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 0.9375rem;
     }
 
     .course-student-row:last-child {
@@ -625,27 +679,27 @@
     }
 
     .course-student-remove:hover {
-      color: var(--accent);
+      color: var(--primary);
     }
 
     /* FAB */
     .fab {
       display: none;
       position: fixed;
-      right: 20px;
-      bottom: 24px;
-      z-index: 150;
-      padding: 14px 20px;
+      right: 24px;
+      bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+      z-index: 110;
+      padding: 14px 22px;
       border: none;
-      border-radius: 28px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: var(--radius);
+      background: var(--primary);
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 0.9375rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
-      box-shadow: 0 6px 24px rgba(155, 89, 182, 0.4);
-      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(155, 89, 182, 0.35);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
     }
 
     .fab.visible {
@@ -655,19 +709,19 @@
     }
 
     .fab:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(155, 89, 182, 0.5);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
     }
 
     .fab:active {
-      transform: scale(0.98);
+      opacity: 0.85;
     }
 
     .fab.fab-icon {
       width: 56px;
       height: 56px;
       padding: 0;
-      border-radius: 50%;
+      border-radius: var(--radius);
       font-size: 1.75rem;
       line-height: 1;
       justify-content: center;
@@ -676,17 +730,20 @@
     .weekday-options {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
     }
 
     .weekday-options label {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
+      gap: 8px;
+      font-size: 0.9375rem;
       color: var(--text);
       font-weight: normal;
       cursor: pointer;
+      padding: 8px 12px;
+      background: var(--secondary-bg);
+      border-radius: var(--radius-sm);
     }
 
     .weekday-options input {
@@ -697,13 +754,13 @@
     .course-meta {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       flex: 1;
       min-width: 0;
     }
 
     .course-meta .sub {
-      font-size: 0.85rem;
+      font-size: 0.8125rem;
       color: var(--text-muted);
     }
 
@@ -717,36 +774,38 @@
     .courses-tabs {
       display: flex;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      padding: 4px;
+      background: var(--secondary-bg);
+      border-radius: var(--radius-sm);
     }
 
     .courses-tab {
-      padding: 8px 20px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--card-bg);
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
       color: var(--text-muted);
       cursor: pointer;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 0.9375rem;
       font-weight: 500;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      flex: 1;
     }
 
     .courses-tab:hover {
-      background: var(--primary-light);
-      color: var(--primary-dark);
+      color: var(--text);
     }
 
     .courses-tab.active {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: #fff;
-      border-color: transparent;
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: var(--shadow);
     }
 
     .courses-tab.active:hover {
-      filter: brightness(1.05);
-      color: #fff;
+      color: var(--primary);
     }
 
     .courses-panel {
@@ -763,7 +822,7 @@
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
       border-radius: var(--radius);
-      border: 1px solid var(--border);
+      border: none;
       background: var(--card-bg);
       box-shadow: var(--shadow);
     }
@@ -778,21 +837,21 @@
     .week-header-row {
       display: grid;
       grid-template-columns: 52px repeat(7, minmax(var(--week-day-col-min), 1fr));
-      border-bottom: 1px solid var(--border);
-      background: var(--primary-light);
+      border-bottom: 0.5px solid var(--border);
+      background: var(--secondary-bg);
     }
 
     .week-corner {
-      border-right: 1px solid var(--border);
+      border-right: 0.5px solid var(--border);
     }
 
     .week-day-head {
-      padding: 10px 4px;
+      padding: 12px 4px;
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 0.8125rem;
       font-weight: 600;
-      color: var(--primary-dark);
-      border-right: 1px solid var(--border);
+      color: var(--text-muted);
+      border-right: 0.5px solid var(--border);
     }
 
     .week-day-head:last-child {
@@ -806,7 +865,7 @@
 
     .week-time-labels {
       position: relative;
-      border-right: 1px solid var(--border);
+      border-right: 0.5px solid var(--border);
       padding-top: var(--week-pad-y);
       padding-bottom: var(--week-pad-y);
       min-height: calc(var(--week-grid-height) + 2 * var(--week-pad-y));
@@ -817,7 +876,7 @@
       position: absolute;
       right: 6px;
       transform: translateY(-50%);
-      font-size: 0.7rem;
+      font-size: 0.6875rem;
       color: var(--text-muted);
       line-height: 1;
       white-space: nowrap;
@@ -825,7 +884,7 @@
 
     .week-day-column {
       position: relative;
-      border-right: 1px solid var(--border);
+      border-right: 0.5px solid var(--border);
       padding-top: var(--week-pad-y);
       padding-bottom: var(--week-pad-y);
       min-height: calc(var(--week-grid-height) + 2 * var(--week-pad-y));
@@ -842,15 +901,15 @@
     }
 
     .week-slot-first {
-      border-top: 1px solid var(--border);
+      border-top: 0.5px solid var(--border);
     }
 
     .week-slot-half {
-      border-bottom: 1px dashed rgba(155, 89, 182, 0.22);
+      border-bottom: 0.5px dashed rgba(60, 60, 67, 0.12);
     }
 
     .week-slot-hour {
-      border-bottom: 1px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
     }
 
     .week-events-layer {
@@ -866,7 +925,7 @@
       position: absolute;
       left: 3px;
       right: 3px;
-      border-radius: 6px;
+      border-radius: 10px;
       padding: 4px 6px;
       font-size: 0.72rem;
       line-height: 1.35;
@@ -874,7 +933,7 @@
       border-left: 3px solid;
       pointer-events: auto;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow);
       z-index: 1;
     }
 
@@ -950,10 +1009,12 @@
       position: fixed;
       inset: 0;
       z-index: 300;
-      background: rgba(45, 36, 56, 0.45);
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 20px;
     }
 
     .modal-overlay.open {
@@ -962,6 +1023,7 @@
 
     #modal-add-student-course,
     #modal-add-course-student,
+    #modal-edit-student-course,
     #modal-consume,
     #modal-bulk-consume {
       z-index: 400;
@@ -969,18 +1031,18 @@
 
     .modal {
       background: var(--card-bg);
-      border-radius: var(--radius);
+      border-radius: 20px;
       width: 100%;
       max-width: 480px;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 12px 40px rgba(155, 89, 182, 0.25);
-      border: 1px solid var(--border);
-      animation: modalIn 0.25s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+      border: none;
+      animation: modalIn 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     @keyframes modalIn {
-      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      from { opacity: 0; transform: scale(0.96) translateY(12px); }
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
@@ -988,19 +1050,21 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 24px 0;
+      padding: 24px 24px 0;
     }
 
     .modal-header h3 {
-      font-size: 1.1rem;
-      color: var(--primary-dark);
+      font-size: 1.25rem;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
 
     .modal-close {
       width: 32px;
       height: 32px;
       border: none;
-      background: var(--bg);
+      background: var(--secondary-bg);
       border-radius: 50%;
       font-size: 1.25rem;
       line-height: 1;
@@ -1010,15 +1074,16 @@
       align-items: center;
       justify-content: center;
       font-family: inherit;
+      transition: background 0.2s;
     }
 
     .modal-close:hover {
-      background: var(--primary-light);
-      color: var(--primary-dark);
+      background: #D1D1D6;
+      color: var(--text);
     }
 
     .modal-body {
-      padding: 20px 24px 24px;
+      padding: 20px 24px 28px;
     }
 
     .modal-body .form-grid {
@@ -1032,12 +1097,17 @@
 
       .fab {
         right: 16px;
-        bottom: 20px;
+        bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .tab-bar {
+        left: 12px;
+        right: 12px;
       }
 
       .week-view-scroll {
         margin: 0 -4px;
-        border-radius: 10px;
+        border-radius: var(--radius);
       }
 
       .week-schedule {
@@ -1054,18 +1124,21 @@
     /* Toast */
     .toast {
       position: fixed;
-      bottom: 24px;
+      bottom: calc(108px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       transform: translateX(-50%) translateY(80px);
-      background: var(--primary-dark);
+      background: rgba(45, 36, 56, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: #fff;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      padding: 14px 24px;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
       opacity: 0;
-      transition: transform 0.3s, opacity 0.3s;
-      z-index: 200;
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.35s;
+      z-index: 500;
       pointer-events: none;
     }
 
@@ -1078,43 +1151,12 @@
 <body>
   <nav class="navbar">
     <span class="navbar-brand">YY Dance舞蹈工作室</span>
-    <div class="navbar-nav">
-      <button type="button" class="nav-link active" data-page="home">首页</button>
-      <button type="button" class="nav-link" data-page="students">学员管理</button>
-      <button type="button" class="nav-link" data-page="courses">课程管理</button>
-    </div>
   </nav>
 
   <main class="container">
-    <!-- 首页 -->
-    <section id="page-home" class="page active">
-      <div class="hero">
-        <h1>YY Dance舞蹈工作室管理系统</h1>
-        <p>专业、高效的舞蹈工作室运营管理</p>
-      </div>
-      <div class="cards-grid">
-        <div class="entry-card" id="card-students" role="button" tabindex="0">
-          <div class="card-icon">👤</div>
-          <h2>学员管理</h2>
-          <p>添加学员、查看剩余课时</p>
-        </div>
-        <div class="entry-card" id="card-courses" role="button" tabindex="0">
-          <div class="card-icon">📅</div>
-          <h2>课程管理</h2>
-          <p>创建课程、查看上课时间</p>
-        </div>
-        <div class="entry-card" id="card-teachers" role="button" tabindex="0">
-          <div class="card-icon">🎓</div>
-          <h2>老师管理</h2>
-          <p>管理老师信息（需密码）</p>
-        </div>
-      </div>
-    </section>
-
     <!-- 学员管理页 -->
-    <section id="page-students" class="page">
+    <section id="page-students" class="page active">
       <div class="page-header">
-        <button type="button" class="btn btn-outline" id="btn-back-home">← 返回首页</button>
         <h2>学员管理</h2>
       </div>
 
@@ -1134,7 +1176,6 @@
     <!-- 课程管理页 -->
     <section id="page-courses" class="page">
       <div class="page-header">
-        <button type="button" class="btn btn-outline" id="btn-back-home-courses">← 返回首页</button>
         <h2>课程管理</h2>
       </div>
 
@@ -1165,7 +1206,6 @@
     <!-- 老师管理页 -->
     <section id="page-teachers" class="page">
       <div class="page-header">
-        <button type="button" class="btn btn-outline" id="btn-back-home-teachers">← 返回首页</button>
         <h2>老师管理</h2>
       </div>
 
@@ -1182,6 +1222,21 @@
       </div>
     </section>
   </main>
+
+  <nav class="tab-bar" role="tablist" aria-label="主导航">
+    <button type="button" class="tab-bar-item active" data-page="students" role="tab" aria-selected="true">
+      <span class="tab-bar-icon" aria-hidden="true">👤</span>
+      <span class="tab-bar-label">学员管理</span>
+    </button>
+    <button type="button" class="tab-bar-item" data-page="courses" role="tab" aria-selected="false">
+      <span class="tab-bar-icon" aria-hidden="true">📅</span>
+      <span class="tab-bar-label">课程管理</span>
+    </button>
+    <button type="button" class="tab-bar-item" data-page="teachers" role="tab" aria-selected="false">
+      <span class="tab-bar-icon" aria-hidden="true">🎓</span>
+      <span class="tab-bar-label">老师管理</span>
+    </button>
+  </nav>
 
   <button type="button" class="fab" id="fab-add-student" aria-label="添加学员">+ 添加学员</button>
   <button type="button" class="fab" id="fab-add-course" aria-label="添加课程">+ 添加课程</button>
@@ -1357,28 +1412,6 @@
     </div>
   </div>
 
-  <!-- 老师入口密码验证 -->
-  <div class="modal-overlay" id="modal-teacher-password" role="dialog" aria-modal="true" aria-labelledby="modal-teacher-password-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-teacher-password-title">验证密码</h3>
-        <button type="button" class="modal-close" data-close="modal-teacher-password" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="form-teacher-password">
-          <div class="form-group">
-            <label for="teacher-password">请输入管理密码 *</label>
-            <input type="password" id="teacher-password" required placeholder="请输入密码" autocomplete="off">
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">确认进入</button>
-            <button type="button" class="btn btn-outline" data-close="modal-teacher-password">取消</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
   <!-- 添加老师弹窗 -->
   <div class="modal-overlay" id="modal-add-teacher" role="dialog" aria-modal="true" aria-labelledby="modal-add-teacher-title">
     <div class="modal">
@@ -1496,7 +1529,7 @@
         <form id="form-edit-student-course">
           <input type="hidden" id="edit-student-course-enrollment-id">
           <input type="hidden" id="edit-student-course-student-id">
-          <p id="edit-student-course-label" style="font-size:0.95rem;font-weight:700;color:var(--primary-dark);margin-bottom:16px;"></p>
+          <p id="edit-student-course-label" style="font-size:1.0625rem;font-weight:700;color:var(--text);margin-bottom:16px;letter-spacing:-0.01em;"></p>
           <div class="form-grid">
             <div class="form-group">
               <label for="edit-student-course-hours">剩余课时数 *</label>
@@ -1688,7 +1721,6 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjanFsbHFwemloYmpqb3l0cnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzE0ODAsImV4cCI6MjA5NTMwNzQ4MH0.EACmM5pQlZ2K-EaM-S5lmM91Uq5aL5Q_tIMRJmcaf30';
 
     const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    const TEACHER_PASSWORD = '0417';
     const WEEK_GRID_START_MIN = 8 * 60;
     const WEEK_GRID_END_MIN = 21 * 60;
     const WEEK_SLOT_MINUTES = 30;
@@ -2229,15 +2261,16 @@
     }
 
     function navigateTo(page) {
+      if (!['students', 'courses', 'teachers'].includes(page)) return;
+
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + page).classList.add('active');
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.toggle('active', link.dataset.page === page);
+      document.querySelectorAll('.tab-bar-item').forEach(tab => {
+        const isActive = tab.dataset.page === page;
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
       updateFabVisibility(page);
-      if (page !== 'students' && page !== 'courses' && page !== 'teachers') {
-        closeAllModals();
-      }
       if (page === 'students') {
         loadAndRenderStudents();
       }
@@ -2248,12 +2281,6 @@
       if (page === 'teachers') {
         loadAndRenderTeachers();
       }
-    }
-
-    function openTeacherPasswordModal() {
-      document.getElementById('teacher-password').value = '';
-      openModal('modal-teacher-password');
-      setTimeout(() => document.getElementById('teacher-password').focus(), 100);
     }
 
     function renderStudentListUI(students) {
@@ -2801,45 +2828,12 @@
     }
 
     function bindEvents() {
-      document.getElementById('card-students').addEventListener('click', () => navigateTo('students'));
-      document.getElementById('card-students').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          navigateTo('students');
-        }
-      });
-
-      document.getElementById('card-courses').addEventListener('click', () => navigateTo('courses'));
-      document.getElementById('card-courses').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          navigateTo('courses');
-        }
-      });
-
-      document.getElementById('card-teachers').addEventListener('click', openTeacherPasswordModal);
-      document.getElementById('card-teachers').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          openTeacherPasswordModal();
-        }
-      });
-
-      document.getElementById('btn-back-home').addEventListener('click', () => navigateTo('home'));
-      document.getElementById('btn-back-home-courses').addEventListener('click', () => navigateTo('home'));
-      document.getElementById('btn-back-home-teachers').addEventListener('click', () => navigateTo('home'));
-
       document.querySelectorAll('.courses-tab').forEach(btn => {
         btn.addEventListener('click', () => switchCoursesTab(btn.dataset.coursesTab));
       });
 
-      document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', () => {
-          const page = link.dataset.page;
-          if (page === 'students' || page === 'home' || page === 'courses') {
-            navigateTo(page);
-          }
-        });
+      document.querySelectorAll('.tab-bar-item').forEach(tab => {
+        tab.addEventListener('click', () => navigateTo(tab.dataset.page));
       });
 
       document.getElementById('fab-add-student').addEventListener('click', () => {
@@ -2861,17 +2855,6 @@
       document.getElementById('fab-add-teacher').addEventListener('click', () => {
         document.getElementById('form-add-teacher').reset();
         openModal('modal-add-teacher');
-      });
-
-      document.getElementById('form-teacher-password').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const pwd = document.getElementById('teacher-password').value;
-        if (pwd === TEACHER_PASSWORD) {
-          closeModal('modal-teacher-password');
-          navigateTo('teachers');
-        } else {
-          showToast('密码错误');
-        }
       });
 
       document.querySelectorAll('[data-close]').forEach(el => {
@@ -3546,9 +3529,8 @@
 
     function initApp() {
       bindEvents();
-      updateFabVisibility('home');
+      navigateTo('students');
       if (getSupabase()) {
-        loadAndRenderStudents();
         refreshTeachersCache().catch(() => {});
       } else {
         console.warn('Supabase JS 未就绪，页面导航仍可用，数据功能需刷新后重试');
