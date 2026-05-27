@@ -1474,16 +1474,16 @@
               <input type="text" id="edit-name" required placeholder="请输入姓名">
             </div>
             <div class="form-group">
-              <label for="edit-phone">联系电话 *</label>
-              <input type="tel" id="edit-phone" required placeholder="请输入手机号">
+              <label for="edit-phone">联系电话</label>
+              <input type="tel" id="edit-phone" placeholder="选填">
             </div>
             <div class="form-group">
               <label for="edit-wechat">微信号</label>
               <input type="text" id="edit-wechat" placeholder="选填">
             </div>
             <div class="form-group">
-              <label for="edit-hours">剩余课时数 *</label>
-              <input type="number" id="edit-hours" required min="0" step="1" placeholder="例如：10">
+              <label for="edit-hours">剩余课时数</label>
+              <input type="number" id="edit-hours" min="0" step="1" placeholder="选填，留空则不变">
             </div>
           </div>
           <div class="form-actions-edit">
@@ -2411,7 +2411,7 @@
 
       document.getElementById('edit-id').value = student.id;
       document.getElementById('edit-name').value = student.name;
-      document.getElementById('edit-phone').value = student.phone;
+      document.getElementById('edit-phone').value = student.phone || '';
       document.getElementById('edit-wechat').value = student.wechat || '';
       document.getElementById('edit-hours').value = student.remainingHours;
 
@@ -2916,23 +2916,33 @@
       e.preventDefault();
 
       const id = document.getElementById('edit-id').value;
+      const student = studentsCache.find(s => s.id === id);
+      if (!student) {
+        showToast('学员不存在');
+        return;
+      }
+
       const name = document.getElementById('edit-name').value.trim();
       const phone = document.getElementById('edit-phone').value.trim();
       const wechat = document.getElementById('edit-wechat').value.trim();
-      const hours = parseInt(document.getElementById('edit-hours').value, 10);
+      const hoursRaw = document.getElementById('edit-hours').value.trim();
 
-      if (!name || !phone) {
-        showToast('请填写姓名和联系电话');
+      if (!name) {
+        showToast('请填写姓名');
         return;
       }
 
-      if (isNaN(hours) || hours < 0) {
-        showToast('课时数须为不小于 0 的整数');
-        return;
+      let hours = student.remainingHours;
+      if (hoursRaw !== '') {
+        hours = parseInt(hoursRaw, 10);
+        if (isNaN(hours) || hours < 0) {
+          showToast('课时数须为不小于 0 的整数');
+          return;
+        }
       }
 
       try {
-        if (await isPhoneTaken(phone, id)) {
+        if (phone && await isPhoneTaken(phone, id)) {
           showToast('该联系电话已被其他学员使用');
           return;
         }
@@ -2945,7 +2955,7 @@
 
         const { error } = await db.from('students').update({
           name,
-          phone,
+          phone: phone || null,
           wechat: wechat || null,
           remaining_lessons: hours
         }).eq('id', id);
