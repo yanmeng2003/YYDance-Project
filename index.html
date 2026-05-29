@@ -1146,9 +1146,129 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
+    /* Detail push pages */
+    .detail-page {
+      position: fixed;
+      top: var(--nav-height);
+      left: 0;
+      right: 0;
+      bottom: calc(var(--tab-bar-height) + 28px + env(safe-area-inset-bottom, 0px));
+      z-index: 115;
+      background: var(--bg);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: none;
+    }
+
+    .detail-page.is-visible {
+      display: block;
+    }
+
+    .detail-page.is-open {
+      transform: translateX(0);
+    }
+
+    .detail-page-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 8px 20px 32px;
+    }
+
+    .detail-page-nav {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 12px 20px 0;
+    }
+
+    .detail-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 0;
+      border: none;
+      background: transparent;
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .detail-back-btn:active {
+      opacity: 0.6;
+    }
+
+    .detail-page-title {
+      font-size: 1.625rem;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+
+    .detail-page-card {
+      padding: 20px 24px 24px;
+    }
+
+    .detail-page-body .lesson-records-list,
+    .detail-page-body .detail-section-list {
+      max-height: none;
+    }
+
+    /* Splash screen */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(180deg, #3d1a6e 0%, #1a0a3d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.6s ease-out;
+      will-change: opacity;
+    }
+
+    .splash-screen.is-exiting {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .splash-logo {
+      width: 280px;
+      height: auto;
+      display: block;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: splashLogoIn 0.8s ease-out forwards;
+      will-change: transform, opacity;
+    }
+
+    @keyframes splashLogoIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    body.splash-active {
+      overflow: hidden;
+    }
   </style>
 </head>
-<body>
+<body class="splash-active">
+  <div id="splash-screen" class="splash-screen" aria-hidden="false">
+    <img src="logo.png" alt="" class="splash-logo" width="280" height="280">
+  </div>
+
   <nav class="navbar">
     <span class="navbar-brand">YY Dance舞蹈工作室</span>
   </nav>
@@ -1581,27 +1701,31 @@
     </div>
   </div>
 
-  <!-- 学员详情弹窗 -->
-  <div class="modal-overlay" id="modal-student-detail" role="dialog" aria-modal="true" aria-labelledby="modal-student-detail-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-student-detail-title">学员详情</h3>
-        <button type="button" class="modal-close" data-close="modal-student-detail" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body" id="student-detail-body"></div>
+  <!-- 学员详情页（推入） -->
+  <section class="detail-page" id="detail-student" aria-hidden="true">
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-student" aria-label="返回学员列表">← 返回</button>
     </div>
-  </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
+      <div class="list-card detail-page-card">
+        <div class="detail-page-body" id="student-detail-body"></div>
+      </div>
+    </div>
+  </section>
 
-  <!-- 课程详情弹窗 -->
-  <div class="modal-overlay" id="modal-course-detail" role="dialog" aria-modal="true" aria-labelledby="modal-course-detail-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-course-detail-title">课程详情</h3>
-        <button type="button" class="modal-close" data-close="modal-course-detail" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body" id="course-detail-body"></div>
+  <!-- 课程详情页（推入） -->
+  <section class="detail-page" id="detail-course" aria-hidden="true">
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-course" aria-label="返回课程列表">← 返回</button>
     </div>
-  </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title" id="course-detail-title">课程详情</h2>
+      <div class="list-card detail-page-card">
+        <div class="detail-page-body" id="course-detail-body"></div>
+      </div>
+    </div>
+  </section>
 
   <!-- 批量消课弹窗 -->
   <div class="modal-overlay" id="modal-bulk-consume" role="dialog" aria-modal="true" aria-labelledby="modal-bulk-consume-title">
@@ -2254,6 +2378,57 @@
       document.body.style.overflow = '';
     }
 
+    function openDetailPage(pageId) {
+      const page = document.getElementById(pageId);
+      if (!page) return;
+
+      page.classList.add('is-visible');
+      page.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => page.classList.add('is-open'));
+      });
+    }
+
+    function closeDetailPage(pageId) {
+      const page = document.getElementById(pageId);
+      if (!page || !page.classList.contains('is-open')) return;
+
+      page.classList.remove('is-open');
+      page.setAttribute('aria-hidden', 'true');
+
+      const finishClose = () => {
+        page.classList.remove('is-visible');
+      };
+
+      const onTransitionEnd = (e) => {
+        if (e.target !== page || e.propertyName !== 'transform') return;
+        page.removeEventListener('transitionend', onTransitionEnd);
+        finishClose();
+      };
+
+      page.addEventListener('transitionend', onTransitionEnd);
+      setTimeout(() => {
+        if (page.classList.contains('is-visible') && !page.classList.contains('is-open')) {
+          page.removeEventListener('transitionend', onTransitionEnd);
+          finishClose();
+        }
+      }, 400);
+    }
+
+    function closeAllDetailPages() {
+      ['detail-student', 'detail-course'].forEach(id => {
+        const page = document.getElementById(id);
+        if (!page) return;
+        page.classList.remove('is-open', 'is-visible');
+        page.setAttribute('aria-hidden', 'true');
+      });
+    }
+
+    function isDetailPageOpen(pageId) {
+      const page = document.getElementById(pageId);
+      return page && page.classList.contains('is-open');
+    }
+
     function updateFabVisibility(page) {
       document.getElementById('fab-add-student').classList.toggle('visible', page === 'students');
       document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
@@ -2262,6 +2437,8 @@
 
     function navigateTo(page) {
       if (!['students', 'courses', 'teachers'].includes(page)) return;
+
+      closeAllDetailPages();
 
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + page).classList.add('active');
@@ -2358,7 +2535,7 @@
     }
 
     async function refreshStudentDetailModal(studentId) {
-      if (document.getElementById('modal-student-detail').classList.contains('open')) {
+      if (isDetailPageOpen('detail-student')) {
         await openStudentDetailModal(studentId);
       }
     }
@@ -2381,8 +2558,8 @@
 
       const body = document.getElementById('student-detail-body');
       body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
-      document.getElementById('modal-student-detail-title').textContent = '学员详情';
-      openModal('modal-student-detail');
+      document.getElementById('student-detail-title').textContent = '学员详情';
+      openDetailPage('detail-student');
 
       try {
         const records = await fetchLessonRecords(id);
@@ -2516,16 +2693,18 @@
     }
 
     function bindCourseStudentsEvents(courseId, enrollments) {
-      document.querySelectorAll('.course-student-remove').forEach(btn => {
+      const root = document.getElementById('course-detail-body');
+
+      root.querySelectorAll('.course-student-remove').forEach(btn => {
         btn.addEventListener('click', () => removeStudentFromCourseDetail(btn.dataset.enrollmentId, courseId));
       });
 
-      const bulkBtn = document.getElementById('btn-bulk-consume-course');
+      const bulkBtn = root.querySelector('#btn-bulk-consume-course');
       if (bulkBtn) {
         bulkBtn.addEventListener('click', () => openBulkConsumeModal(courseId));
       }
 
-      const addBtn = document.getElementById('btn-add-course-student');
+      const addBtn = root.querySelector('#btn-add-course-student');
       if (addBtn) {
         addBtn.addEventListener('click', () => openAddCourseStudentModal(courseId, enrollments));
       }
@@ -2611,8 +2790,8 @@
 
       const body = document.getElementById('course-detail-body');
       body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
-      document.getElementById('modal-course-detail-title').textContent = '课程详情';
-      openModal('modal-course-detail');
+      document.getElementById('course-detail-title').textContent = '课程详情';
+      openDetailPage('detail-course');
 
       try {
         if (!studentsCache.length) {
@@ -2859,6 +3038,10 @@
 
       document.querySelectorAll('[data-close]').forEach(el => {
         el.addEventListener('click', () => closeModal(el.dataset.close));
+      });
+
+      document.querySelectorAll('[data-detail-back]').forEach(btn => {
+        btn.addEventListener('click', () => closeDetailPage(btn.dataset.detailBack));
       });
 
       document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -3527,6 +3710,25 @@
       }
     }
 
+    function runSplashScreen() {
+      const splash = document.getElementById('splash-screen');
+      if (!splash) return;
+
+      const LOGO_ANIM_MS = 800;
+      const HOLD_MS = 1000;
+      const FADE_OUT_MS = 600;
+
+      setTimeout(() => {
+        splash.classList.add('is-exiting');
+        splash.setAttribute('aria-hidden', 'true');
+
+        setTimeout(() => {
+          splash.remove();
+          document.body.classList.remove('splash-active');
+        }, FADE_OUT_MS);
+      }, LOGO_ANIM_MS + HOLD_MS);
+    }
+
     function initApp() {
       bindEvents();
       navigateTo('students');
@@ -3535,6 +3737,7 @@
       } else {
         console.warn('Supabase JS 未就绪，页面导航仍可用，数据功能需刷新后重试');
       }
+      runSplashScreen();
     }
 
     if (document.readyState === 'loading') {
