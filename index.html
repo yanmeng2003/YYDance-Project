@@ -818,8 +818,8 @@
 
     /* 周视图 */
     .week-view-scroll {
-      overflow-x: auto;
-      overflow-y: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       border-radius: var(--radius);
       border: none;
@@ -827,16 +827,22 @@
       box-shadow: var(--shadow);
     }
 
+    .week-view-scaler {
+      width: 100%;
+    }
+
     .week-schedule {
       --week-pad-y: 10px;
       --week-grid-height: 728px;
+      --week-time-col: 52px;
       --week-day-col-min: 80px;
-      min-width: calc(52px + 7 * var(--week-day-col-min));
+      width: 100%;
+      transform-origin: top left;
     }
 
     .week-header-row {
       display: grid;
-      grid-template-columns: 52px repeat(7, minmax(var(--week-day-col-min), 1fr));
+      grid-template-columns: var(--week-time-col) repeat(7, minmax(0, 1fr));
       border-bottom: 0.5px solid var(--border);
       background: var(--secondary-bg);
     }
@@ -860,7 +866,7 @@
 
     .week-body {
       display: grid;
-      grid-template-columns: 52px repeat(7, minmax(var(--week-day-col-min), 1fr));
+      grid-template-columns: var(--week-time-col) repeat(7, minmax(0, 1fr));
     }
 
     .week-time-labels {
@@ -1106,18 +1112,17 @@
       }
 
       .week-view-scroll {
-        margin: 0 -4px;
+        margin: 0;
         border-radius: var(--radius);
       }
 
       .week-schedule {
-        --week-day-col-min: 90px;
-        min-width: calc(52px + 7 * 90px);
+        width: calc(var(--week-time-col) + 7 * var(--week-day-col-min));
       }
 
-      .week-event {
-        font-size: 0.68rem;
-        padding: 3px 5px;
+      .week-header-row,
+      .week-body {
+        grid-template-columns: var(--week-time-col) repeat(7, var(--week-day-col-min));
       }
     }
 
@@ -1727,6 +1732,19 @@
     </div>
   </section>
 
+  <!-- 老师详情页（推入） -->
+  <section class="detail-page" id="detail-teacher" aria-hidden="true">
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-teacher" aria-label="返回老师列表">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title" id="teacher-detail-title">老师详情</h2>
+      <div class="list-card detail-page-card">
+        <div class="detail-page-body" id="teacher-detail-body"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- 批量消课弹窗 -->
   <div class="modal-overlay" id="modal-bulk-consume" role="dialog" aria-modal="true" aria-labelledby="modal-bulk-consume-title">
     <div class="modal">
@@ -1781,17 +1799,6 @@
           </div>
         </form>
       </div>
-    </div>
-  </div>
-
-  <!-- 老师详情弹窗 -->
-  <div class="modal-overlay" id="modal-teacher-detail" role="dialog" aria-modal="true" aria-labelledby="modal-teacher-detail-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-teacher-detail-title">老师详情</h3>
-        <button type="button" class="modal-close" data-close="modal-teacher-detail" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body" id="teacher-detail-body"></div>
     </div>
   </div>
 
@@ -2246,6 +2253,48 @@
       });
       document.getElementById('courses-panel-week').classList.toggle('active', tab === 'week');
       document.getElementById('courses-panel-list').classList.toggle('active', tab === 'list');
+      if (tab === 'week') {
+        requestAnimationFrame(() => fitWeekViewToWidth());
+      }
+    }
+
+    let weekViewResizeObserver = null;
+
+    function fitWeekViewToWidth() {
+      const container = document.getElementById('week-view-container');
+      const scroll = container?.querySelector('.week-view-scroll');
+      const scaler = container?.querySelector('.week-view-scaler');
+      const schedule = container?.querySelector('.week-schedule');
+      if (!scroll || !scaler || !schedule) return;
+
+      schedule.style.transform = '';
+      scaler.style.height = '';
+
+      const isMobile = window.matchMedia('(max-width: 640px)').matches;
+      if (!isMobile) return;
+
+      const availableWidth = scroll.clientWidth;
+      const designWidth = schedule.offsetWidth;
+      if (!availableWidth || !designWidth) return;
+
+      const scale = Math.min(1, availableWidth / designWidth);
+      schedule.style.transform = `scale(${scale})`;
+      scaler.style.height = `${schedule.offsetHeight * scale}px`;
+    }
+
+    function observeWeekViewResize() {
+      const container = document.getElementById('week-view-container');
+      const scroll = container?.querySelector('.week-view-scroll');
+      if (!scroll) return;
+
+      if (weekViewResizeObserver) {
+        weekViewResizeObserver.disconnect();
+      }
+
+      weekViewResizeObserver = new ResizeObserver(() => {
+        fitWeekViewToWidth();
+      });
+      weekViewResizeObserver.observe(scroll);
     }
 
     function renderWeekViewUI(courses) {
@@ -2329,14 +2378,16 @@
 
       container.innerHTML = `
         <div class="week-view-scroll">
-          <div class="week-schedule">
-            <div class="week-header-row">
-              <div class="week-corner"></div>
-              ${dayHeadsHtml}
-            </div>
-            <div class="week-body">
-              <div class="week-time-labels">${hourLabelsHtml.join('')}</div>
-              ${dayColumnsHtml}
+          <div class="week-view-scaler">
+            <div class="week-schedule">
+              <div class="week-header-row">
+                <div class="week-corner"></div>
+                ${dayHeadsHtml}
+              </div>
+              <div class="week-body">
+                <div class="week-time-labels">${hourLabelsHtml.join('')}</div>
+                ${dayColumnsHtml}
+              </div>
             </div>
           </div>
         </div>
@@ -2351,6 +2402,11 @@
             open();
           }
         });
+      });
+
+      requestAnimationFrame(() => {
+        fitWeekViewToWidth();
+        observeWeekViewResize();
       });
     }
 
@@ -2416,7 +2472,7 @@
     }
 
     function closeAllDetailPages() {
-      ['detail-student', 'detail-course'].forEach(id => {
+      ['detail-student', 'detail-course', 'detail-teacher'].forEach(id => {
         const page = document.getElementById(id);
         if (!page) return;
         page.classList.remove('is-open', 'is-visible');
@@ -2823,8 +2879,8 @@
 
       const body = document.getElementById('teacher-detail-body');
       body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
-      document.getElementById('modal-teacher-detail-title').textContent = '老师详情';
-      openModal('modal-teacher-detail');
+      document.getElementById('teacher-detail-title').textContent = '老师详情';
+      openDetailPage('detail-teacher');
 
       try {
         if (!coursesCache.length) {
