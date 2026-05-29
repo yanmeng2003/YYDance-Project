@@ -485,6 +485,39 @@
       letter-spacing: -0.01em;
     }
 
+    .student-name-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    .student-name-row .student-name {
+      flex: 0 1 auto;
+    }
+
+    .renewal-badge {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 1px 6px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: #e67e22;
+      border: 1px solid #e67e22;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .detail-page-title-name-row {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     .student-actions {
       display: flex;
       gap: 8px;
@@ -664,6 +697,10 @@
     .course-student-name {
       flex: 1;
       min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
       word-break: break-all;
     }
 
@@ -1883,6 +1920,9 @@
     let studentsCache = [];
     let coursesCache = [];
     let teachersCache = [];
+    let studentsRenewalSet = new Set();
+
+    const RENEWAL_LESSONS_THRESHOLD = 3;
 
     function initSupabaseClient() {
       const lib = window.supabase || globalThis.supabase;
@@ -2091,6 +2131,54 @@
 
       if (error) throw error;
       return (data || []).map(mapStudentCourseEnrollment);
+    }
+
+    async function refreshStudentsRenewalSet() {
+      try {
+        const db = getSupabase();
+        if (!db) {
+          studentsRenewalSet = new Set();
+          return;
+        }
+
+        const { data, error } = await db
+          .from('course_students')
+          .select('student_id, remaining_lessons');
+
+        if (error) throw error;
+
+        const next = new Set();
+        (data || []).forEach(row => {
+          if ((row.remaining_lessons ?? 0) <= RENEWAL_LESSONS_THRESHOLD) {
+            next.add(row.student_id);
+          }
+        });
+        studentsRenewalSet = next;
+      } catch (err) {
+        console.error(err);
+        studentsRenewalSet = new Set();
+      }
+    }
+
+    function studentNeedsRenewalFromCourses(courses) {
+      return (courses || []).some(c => (c.remainingLessons ?? 0) <= RENEWAL_LESSONS_THRESHOLD);
+    }
+
+    function studentNeedsRenewalById(studentId) {
+      return studentsRenewalSet.has(studentId);
+    }
+
+    function renewalBadgeHtml(show) {
+      return show ? '<span class="renewal-badge">待续报</span>' : '';
+    }
+
+    function sortStudentsForList(students) {
+      return [...students].sort((a, b) => {
+        const aRenewal = studentNeedsRenewalById(a.id);
+        const bRenewal = studentNeedsRenewalById(b.id);
+        if (aRenewal === bRenewal) return 0;
+        return aRenewal ? -1 : 1;
+      });
     }
 
     async function addCourseStudent(courseId, studentId, remainingLessons) {
@@ -2520,10 +2608,11 @@
       const countEl = document.getElementById('student-count');
       const emptyEl = document.getElementById('empty-state');
       const listEl = document.getElementById('student-list');
+      const sortedStudents = sortStudentsForList(students);
 
-      countEl.textContent = '共 ' + students.length + ' 人';
+      countEl.textContent = '共 ' + sortedStudents.length + ' 人';
 
-      if (students.length === 0) {
+      if (sortedStudents.length === 0) {
         emptyEl.style.display = 'block';
         listEl.style.display = 'none';
         return;
@@ -2532,10 +2621,13 @@
       emptyEl.style.display = 'none';
       listEl.style.display = 'block';
 
-      listEl.innerHTML = students.map(s => `
+      listEl.innerHTML = sortedStudents.map(s => `
         <li class="student-list-item">
           <div class="course-meta student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
-            <span class="student-name">${escapeHtml(s.name)}</span>
+            <span class="student-name-row">
+              <span class="student-name">${escapeHtml(s.name)}</span>
+              ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
+            </span>
             <span class="sub">${escapeHtml(s.phone || '—')}</span>
             <span class="sub">${escapeHtml(s.wechat || '—')}</span>
           </div>
@@ -2591,6 +2683,10 @@
     }
 
     async function refreshStudentDetailModal(studentId) {
+      await refreshStudentsRenewalSet();
+      if (document.getElementById('page-students').classList.contains('active')) {
+        renderStudentListUI(studentsCache);
+      }
       if (isDetailPageOpen('detail-student')) {
         await openStudentDetailModal(studentId);
       }
@@ -2614,7 +2710,8 @@
 
       const body = document.getElementById('student-detail-body');
       body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
-      document.getElementById('student-detail-title').textContent = '学员详情';
+      document.getElementById('student-detail-title').innerHTML =
+        `<span class="detail-page-title-name-row"><span class="detail-page-title-name">${escapeHtml(student.name)}</span></span>`;
       openDetailPage('detail-student');
 
       try {
@@ -2630,6 +2727,9 @@
 
     function renderStudentDetailUI(student, records, courses) {
       const body = document.getElementById('student-detail-body');
+
+      document.getElementById('student-detail-title').innerHTML =
+        `<span class="detail-page-title-name-row"><span class="detail-page-title-name">${escapeHtml(student.name)}</span>${renewalBadgeHtml(studentNeedsRenewalFromCourses(courses))}</span>`;
 
       const recordsHtml = records.length === 0
         ? '<div class="lesson-records-empty">暂无消课记录</div>'
@@ -2729,7 +2829,10 @@
         ? '<div class="detail-section-empty">暂无学员</div>'
         : '<ul class="course-students-list">' + enrollments.map(e => `
             <li class="course-student-row">
-              <span class="course-student-name">${escapeHtml(e.studentName)}</span>
+              <span class="course-student-name">
+                <span>${escapeHtml(e.studentName)}</span>
+                ${renewalBadgeHtml(studentNeedsRenewalById(e.studentId))}
+              </span>
               <button type="button" class="course-student-remove" data-enrollment-id="${escapeHtml(e.id)}" aria-label="移除${escapeHtml(e.studentName)}">&times;</button>
             </li>
           `).join('') + '</ul>';
@@ -2850,6 +2953,7 @@
       openDetailPage('detail-course');
 
       try {
+        await refreshStudentsRenewalSet();
         if (!studentsCache.length) {
           studentsCache = await fetchStudents();
         }
@@ -2916,6 +3020,7 @@
     async function loadAndRenderStudents() {
       try {
         studentsCache = await fetchStudents();
+        await refreshStudentsRenewalSet();
         renderStudentListUI(studentsCache);
       } catch (err) {
         console.error(err);
@@ -2961,6 +3066,7 @@
     async function loadAndRenderCourses() {
       try {
         await refreshTeachersCache();
+        await refreshStudentsRenewalSet();
         coursesCache = await fetchCourses();
         renderCourseListUI(coursesCache);
         renderWeekViewUI(coursesCache);
