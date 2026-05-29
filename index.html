@@ -1280,7 +1280,7 @@
 
   <main class="container">
     <!-- 学员管理页 -->
-    <section id="page-students" class="page active">
+    <section id="page-students" class="page">
       <div class="page-header">
         <h2>学员管理</h2>
       </div>
@@ -1299,7 +1299,7 @@
     </section>
 
     <!-- 课程管理页 -->
-    <section id="page-courses" class="page">
+    <section id="page-courses" class="page active">
       <div class="page-header">
         <h2>课程管理</h2>
       </div>
@@ -1349,11 +1349,11 @@
   </main>
 
   <nav class="tab-bar" role="tablist" aria-label="主导航">
-    <button type="button" class="tab-bar-item active" data-page="students" role="tab" aria-selected="true">
+    <button type="button" class="tab-bar-item" data-page="students" role="tab" aria-selected="false">
       <span class="tab-bar-icon" aria-hidden="true">👤</span>
       <span class="tab-bar-label">学员管理</span>
     </button>
-    <button type="button" class="tab-bar-item" data-page="courses" role="tab" aria-selected="false">
+    <button type="button" class="tab-bar-item active" data-page="courses" role="tab" aria-selected="true">
       <span class="tab-bar-icon" aria-hidden="true">📅</span>
       <span class="tab-bar-label">课程管理</span>
     </button>
@@ -3787,7 +3787,7 @@
 
     function initApp() {
       bindEvents();
-      navigateTo('students');
+      navigateTo('courses');
       if (getSupabase()) {
         refreshTeachersCache().catch(() => {});
       } else {
