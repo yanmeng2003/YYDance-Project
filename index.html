@@ -535,6 +535,15 @@
       display: block;
     }
 
+    .course-list-item-inactive .student-name,
+    .course-list-item-inactive .sub {
+      color: var(--text-muted);
+    }
+
+    .course-list-item-inactive {
+      opacity: 0.72;
+    }
+
     .detail-page-title-name-row {
       display: inline-flex;
       align-items: center;
@@ -1488,6 +1497,14 @@
                 <option value="小课">小课</option>
               </select>
             </div>
+            <div class="form-group">
+              <label for="course-status">课程状态 *</label>
+              <select id="course-status" required>
+                <option value="待开课">待开课</option>
+                <option value="开课中" selected>开课中</option>
+                <option value="已结课">已结课</option>
+              </select>
+            </div>
             <div class="form-group course-season-group" id="course-season-group">
               <label for="course-season">课程季度 *</label>
               <input type="text" id="course-season" placeholder="例如：2026暑期、2026秋季">
@@ -1555,6 +1572,14 @@
               <select id="edit-course-class-size" required>
                 <option value="大课">大课</option>
                 <option value="小课">小课</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-course-status">课程状态 *</label>
+              <select id="edit-course-status" required>
+                <option value="待开课">待开课</option>
+                <option value="开课中">开课中</option>
+                <option value="已结课">已结课</option>
               </select>
             </div>
             <div class="form-group course-season-group" id="edit-course-season-group">
@@ -1937,6 +1962,7 @@
     const DEFAULT_COURSE_COLOR = { bg: '#f4f2f6', border: '#a89bb0', text: '#4a3f52' };
 
     const COURSE_TYPES = ['摩登舞', '拉丁舞'];
+    const COURSE_STATUSES = ['待开课', '开课中', '已结课'];
 
     let coursesViewTab = 'week';
 
@@ -2104,12 +2130,21 @@
         name: row.name,
         classSize: row.class_size || '大课',
         season: row.season || '',
+        status: normalizeCourseStatus(row.status),
         weekdays: row.weekdays || [],
         startTime: row.start_time,
         endTime: row.end_time,
         teacherId: row.teacher_id || null,
         teacherName: teacher ? teacher.name : null
       };
+    }
+
+    function normalizeCourseStatus(status) {
+      return COURSE_STATUSES.includes(status) ? status : '开课中';
+    }
+
+    function isActiveCourse(course) {
+      return normalizeCourseStatus(course.status) === '开课中';
     }
 
     async function fetchCourses() {
@@ -2456,6 +2491,26 @@
       return [...days].sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b)).join('、');
     }
 
+    function formatCourseListWeekdays(days) {
+      if (!days || !days.length) return '—';
+
+      const sorted = [...new Set(days)].sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b));
+      const workdays = ['周一', '周二', '周三', '周四', '周五'];
+      const weekend = ['周六', '周日'];
+
+      if (sorted.length === 7 && WEEKDAY_ORDER.every(d => sorted.includes(d))) {
+        return '每天';
+      }
+      if (sorted.length === 5 && workdays.every(d => sorted.includes(d))) {
+        return '工作日';
+      }
+      if (sorted.length === 2 && weekend.every(d => sorted.includes(d))) {
+        return '周末';
+      }
+
+      return sorted.join('、');
+    }
+
     function getSelectedWeekdays(containerId) {
       return Array.from(document.querySelectorAll(containerId + ' input[name="weekday"]:checked'))
         .map(el => el.value);
@@ -2552,8 +2607,9 @@
 
     function renderWeekViewUI(courses) {
       const container = document.getElementById('week-view-container');
+      const activeCourses = courses.filter(isActiveCourse);
 
-      if (!courses.length) {
+      if (!activeCourses.length) {
         container.innerHTML = `
           <div class="week-view-scroll">
             <div class="week-empty">
@@ -2583,7 +2639,7 @@
 
       const dayColumnsHtml = WEEKDAY_ORDER.map(day => {
         const events = [];
-        courses.forEach(course => {
+        activeCourses.forEach(course => {
           if (!course.weekdays || !course.weekdays.includes(day)) return;
 
           const startMin = timeToMinutes(course.startTime);
@@ -3131,6 +3187,7 @@
             <div class="student-detail-row"><span class="label">课程班级</span><span class="value">${escapeHtml(course.name || '—')}</span></div>
             <div class="student-detail-row"><span class="label">课程规模</span><span class="value">${escapeHtml(course.classSize || '大课')}</span></div>
             ${isLargeClassCourse(course.classSize) ? `<div class="student-detail-row"><span class="label">课程季度</span><span class="value">${escapeHtml(course.season || '—')}</span></div>` : ''}
+            <div class="student-detail-row"><span class="label">课程状态</span><span class="value">${escapeHtml(normalizeCourseStatus(course.status))}</span></div>
             <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
             <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
             <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
@@ -3208,6 +3265,11 @@
 
     function sortCoursesForList(courses) {
       return [...courses].sort((a, b) => {
+        const aActive = isActiveCourse(a);
+        const bActive = isActiveCourse(b);
+        if (aActive !== bActive) return aActive ? -1 : 1;
+        if (!aActive && !bActive) return 0;
+
         const aLarge = isLargeClassCourse(a.classSize);
         const bLarge = isLargeClassCourse(b.classSize);
         if (aLarge === bLarge) return 0;
@@ -3233,11 +3295,11 @@
       listEl.style.display = 'block';
 
       listEl.innerHTML = sortedCourses.map(c => `
-        <li class="student-list-item">
+        <li class="student-list-item${isActiveCourse(c) ? '' : ' course-list-item-inactive'}">
           <div class="course-meta student-info-clickable" data-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="查看课程详情">
             <span class="student-name">${escapeHtml(formatCourseListLabel(c))}</span>
             <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
-            <span class="sub">上课日期：${escapeHtml(formatWeekdays(c.weekdays))}</span>
+            <span class="sub">上课日期：${escapeHtml(formatCourseListWeekdays(c.weekdays))}</span>
             ${c.teacherName ? `<span class="sub">负责老师：${escapeHtml(c.teacherName)}</span>` : ''}
           </div>
           <button type="button" class="btn btn-outline btn-sm btn-edit-course" data-id="${escapeHtml(c.id)}">编辑</button>
@@ -3334,6 +3396,7 @@
         console.error(err);
       }
       updateCourseSeasonFieldVisibility('course-class-size', 'course-season-group', 'course-season');
+      document.getElementById('course-status').value = '开课中';
       openDetailPage('detail-course-add');
     }
 
@@ -3347,6 +3410,7 @@
       document.getElementById('edit-course-class').value = course.name;
       document.getElementById('edit-course-class-size').value = course.classSize === '小课' ? '小课' : '大课';
       document.getElementById('edit-course-season').value = course.season || '';
+      document.getElementById('edit-course-status').value = normalizeCourseStatus(course.status);
       setWeekdayCheckboxes('#edit-course-weekdays', course.weekdays);
       document.getElementById('edit-course-start-time').value = formatTime(course.startTime);
       document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
@@ -3441,6 +3505,7 @@
       const courseType = document.getElementById('course-type').value;
       const courseClass = document.getElementById('course-class').value.trim();
       const classSize = document.getElementById('course-class-size').value;
+      const status = document.getElementById('course-status').value;
       const season = document.getElementById('course-season').value.trim();
       const weekdays = getSelectedWeekdays('#course-weekdays');
       const startTime = document.getElementById('course-start-time').value;
@@ -3484,6 +3549,7 @@
           course_type: courseType,
           name: courseClass,
           class_size: classSize,
+          status,
           season: isLargeClassCourse(classSize) ? season : null,
           weekdays,
           start_time: startTime,
@@ -3510,6 +3576,7 @@
       const courseType = document.getElementById('edit-course-type').value;
       const courseClass = document.getElementById('edit-course-class').value.trim();
       const classSize = document.getElementById('edit-course-class-size').value;
+      const status = document.getElementById('edit-course-status').value;
       const season = document.getElementById('edit-course-season').value.trim();
       const weekdays = getSelectedWeekdays('#edit-course-weekdays');
       const startTime = document.getElementById('edit-course-start-time').value;
@@ -3553,6 +3620,7 @@
           course_type: courseType,
           name: courseClass,
           class_size: classSize,
+          status,
           season: isLargeClassCourse(classSize) ? season : null,
           weekdays,
           start_time: startTime,
