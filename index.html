@@ -1447,10 +1447,6 @@
               <input type="tel" id="add-phone" placeholder="选填">
             </div>
             <div class="form-group">
-              <label for="add-wechat">微信号</label>
-              <input type="text" id="add-wechat" placeholder="选填">
-            </div>
-            <div class="form-group">
               <label for="add-hours">购买课时数</label>
               <input type="number" id="add-hours" min="0" step="1" placeholder="选填，默认 0">
             </div>
@@ -1889,10 +1885,6 @@
             <div class="form-group">
               <label for="edit-phone">联系电话</label>
               <input type="tel" id="edit-phone" placeholder="选填">
-            </div>
-            <div class="form-group">
-              <label for="edit-wechat">微信号</label>
-              <input type="text" id="edit-wechat" placeholder="选填">
             </div>
             <div class="form-group">
               <label for="edit-hours">剩余课时数</label>
@@ -2796,7 +2788,6 @@
 
       listEl.innerHTML = sortedStudents.map(s => {
         const phone = (s.phone || '').trim();
-        const wechat = (s.wechat || '').trim();
         return `
         <li class="student-list-item">
           <div class="course-meta student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
@@ -2806,7 +2797,6 @@
               ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
             </span>
             ${phone ? `<span class="sub">${escapeHtml(phone)}</span>` : ''}
-            ${wechat ? `<span class="sub">${escapeHtml(wechat)}</span>` : ''}
           </div>
           <div class="student-actions">
             <button type="button" class="btn btn-outline btn-sm btn-edit" data-id="${escapeHtml(s.id)}">编辑</button>
@@ -2945,7 +2935,6 @@
         <div class="student-detail-info">
           <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
           <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone || '—')}</span></div>
-          <div class="student-detail-row"><span class="label">微信</span><span class="value">${escapeHtml(student.wechat || '—')}</span></div>
         </div>
         <div class="detail-section">
           <div class="detail-section-header">
@@ -3207,14 +3196,34 @@
       }
     }
 
+    function formatCourseListLabel(course) {
+      const type = course.courseType || '摩登舞';
+      const name = course.name || '';
+      const season = (course.season || '').trim();
+      if (isLargeClassCourse(course.classSize) && season) {
+        return type + '·' + season + '·' + name;
+      }
+      return type + '·' + name;
+    }
+
+    function sortCoursesForList(courses) {
+      return [...courses].sort((a, b) => {
+        const aLarge = isLargeClassCourse(a.classSize);
+        const bLarge = isLargeClassCourse(b.classSize);
+        if (aLarge === bLarge) return 0;
+        return aLarge ? -1 : 1;
+      });
+    }
+
     function renderCourseListUI(courses) {
       const countEl = document.getElementById('course-count');
       const emptyEl = document.getElementById('course-empty-state');
       const listEl = document.getElementById('course-list');
+      const sortedCourses = sortCoursesForList(courses);
 
-      countEl.textContent = '共 ' + courses.length + ' 门';
+      countEl.textContent = '共 ' + sortedCourses.length + ' 门';
 
-      if (courses.length === 0) {
+      if (sortedCourses.length === 0) {
         emptyEl.style.display = 'block';
         listEl.style.display = 'none';
         return;
@@ -3223,10 +3232,10 @@
       emptyEl.style.display = 'none';
       listEl.style.display = 'block';
 
-      listEl.innerHTML = courses.map(c => `
+      listEl.innerHTML = sortedCourses.map(c => `
         <li class="student-list-item">
           <div class="course-meta student-info-clickable" data-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="查看课程详情">
-            <span class="student-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</span>
+            <span class="student-name">${escapeHtml(formatCourseListLabel(c))}</span>
             <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
             <span class="sub">上课日期：${escapeHtml(formatWeekdays(c.weekdays))}</span>
             ${c.teacherName ? `<span class="sub">负责老师：${escapeHtml(c.teacherName)}</span>` : ''}
@@ -3354,7 +3363,6 @@
       document.getElementById('edit-id').value = student.id;
       document.getElementById('edit-name').value = student.name;
       document.getElementById('edit-phone').value = student.phone || '';
-      document.getElementById('edit-wechat').value = student.wechat || '';
       document.getElementById('edit-hours').value = student.remainingHours;
 
       openModal('modal-edit');
@@ -3946,7 +3954,6 @@
 
       const name = document.getElementById('add-name').value.trim();
       const phone = document.getElementById('add-phone').value.trim();
-      const wechat = document.getElementById('add-wechat').value.trim();
       const hoursRaw = document.getElementById('add-hours').value.trim();
       const hours = hoursRaw === '' ? 0 : parseInt(hoursRaw, 10);
 
@@ -3975,7 +3982,6 @@
         const { error } = await db.from('students').insert({
           name,
           phone: phone || null,
-          wechat: wechat || null,
           total_lessons: hours,
           remaining_lessons: hours
         });
@@ -4004,7 +4010,6 @@
 
       const name = document.getElementById('edit-name').value.trim();
       const phone = document.getElementById('edit-phone').value.trim();
-      const wechat = document.getElementById('edit-wechat').value.trim();
       const hoursRaw = document.getElementById('edit-hours').value.trim();
 
       if (!name) {
@@ -4036,7 +4041,6 @@
         const { error } = await db.from('students').update({
           name,
           phone: phone || null,
-          wechat: wechat || null,
           remaining_lessons: hours
         }).eq('id', id);
 
