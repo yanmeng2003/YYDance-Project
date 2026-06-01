@@ -1440,14 +1440,14 @@
     </div>
   </div>
 
-  <!-- 添加课程弹窗 -->
-  <div class="modal-overlay" id="modal-add-course" role="dialog" aria-modal="true" aria-labelledby="modal-add-course-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-add-course-title">添加课程</h3>
-        <button type="button" class="modal-close" data-close="modal-add-course" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body">
+  <!-- 添加课程页（推入） -->
+  <section class="detail-page" id="detail-course-add" aria-hidden="true">
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-course-add" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title">添加课程</h2>
+      <div class="list-card detail-page-card">
         <form id="form-add-course">
           <div class="form-grid">
             <div class="form-group">
@@ -1497,21 +1497,21 @@
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">添加课程</button>
-            <button type="button" class="btn btn-outline" data-close="modal-add-course">取消</button>
+            <button type="button" class="btn btn-outline" data-detail-back="detail-course-add">取消</button>
           </div>
         </form>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- 编辑课程弹窗 -->
-  <div class="modal-overlay" id="modal-edit-course" role="dialog" aria-modal="true" aria-labelledby="modal-edit-course-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-edit-course-title">编辑课程</h3>
-        <button type="button" class="modal-close" data-close="modal-edit-course" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body">
+  <!-- 编辑课程页（推入） -->
+  <section class="detail-page" id="detail-course-edit" aria-hidden="true">
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-course-edit" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title">编辑课程</h2>
+      <div class="list-card detail-page-card">
         <form id="form-edit-course">
           <input type="hidden" id="edit-course-id">
           <div class="form-grid">
@@ -1563,7 +1563,7 @@
           <div class="form-actions-edit">
             <div class="form-actions-row">
               <button type="submit" class="btn btn-primary">保存</button>
-              <button type="button" class="btn btn-outline" data-close="modal-edit-course">取消</button>
+              <button type="button" class="btn btn-outline" data-detail-back="detail-course-edit">取消</button>
             </div>
             <div class="form-actions-delete">
               <button type="button" class="btn btn-danger" id="btn-delete-course">删除课程</button>
@@ -1572,7 +1572,7 @@
         </form>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- 添加老师弹窗 -->
   <div class="modal-overlay" id="modal-add-teacher" role="dialog" aria-modal="true" aria-labelledby="modal-add-teacher-title">
@@ -2560,7 +2560,7 @@
     }
 
     function closeAllDetailPages() {
-      ['detail-student', 'detail-course', 'detail-teacher'].forEach(id => {
+      ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit'].forEach(id => {
         const page = document.getElementById(id);
         if (!page) return;
         page.classList.remove('is-open', 'is-visible');
@@ -3132,6 +3132,22 @@
       openModal('modal-edit-teacher');
     }
 
+    function finishCourseFormSave(pageId) {
+      closeDetailPage(pageId);
+      switchCoursesTab('list');
+    }
+
+    async function openAddCoursePage() {
+      document.getElementById('form-add-course').reset();
+      try {
+        await refreshTeachersCache();
+        populateTeacherSelect('course-teacher', '');
+      } catch (err) {
+        console.error(err);
+      }
+      openDetailPage('detail-course-add');
+    }
+
     async function openEditCourseModal(id) {
       const course = coursesCache.find(c => c.id === id);
       if (!course) return;
@@ -3146,7 +3162,7 @@
       document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
       populateTeacherSelect('edit-course-teacher', course.teacherId || '');
 
-      openModal('modal-edit-course');
+      openDetailPage('detail-course-edit');
     }
 
     function openEditModal(id) {
@@ -3182,15 +3198,8 @@
         openModal('modal-add');
       });
 
-      document.getElementById('fab-add-course').addEventListener('click', async () => {
-        document.getElementById('form-add-course').reset();
-        try {
-          await refreshTeachersCache();
-          populateTeacherSelect('course-teacher', '');
-        } catch (err) {
-          console.error(err);
-        }
-        openModal('modal-add-course');
+      document.getElementById('fab-add-course').addEventListener('click', () => {
+        openAddCoursePage();
       });
 
       document.getElementById('fab-add-teacher').addEventListener('click', () => {
@@ -3286,7 +3295,7 @@
         if (error) throw error;
 
         e.target.reset();
-        closeModal('modal-add-course');
+        finishCourseFormSave('detail-course-add');
         await loadAndRenderCourses();
         showToast('课程添加成功');
       } catch (err) {
@@ -3347,7 +3356,7 @@
 
         if (error) throw error;
 
-        closeModal('modal-edit-course');
+        finishCourseFormSave('detail-course-edit');
         await loadAndRenderCourses();
         showToast('保存成功');
       } catch (err) {
@@ -3378,7 +3387,8 @@
         const { error } = await db.from('courses').delete().eq('id', id);
         if (error) throw error;
 
-        closeModal('modal-edit-course');
+        closeDetailPage('detail-course-edit');
+        switchCoursesTab('list');
         await loadAndRenderCourses();
         showToast('课程已删除');
       } catch (err) {
