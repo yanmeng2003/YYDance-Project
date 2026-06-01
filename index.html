@@ -491,6 +491,7 @@
       gap: 6px;
       max-width: 100%;
       min-width: 0;
+      flex-wrap: wrap;
     }
 
     .student-name-row .student-name {
@@ -509,6 +510,29 @@
       border: 1px solid #e67e22;
       border-radius: 6px;
       white-space: nowrap;
+    }
+
+    .season-badge {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 1px 6px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--primary-dark);
+      background: var(--primary-light);
+      border: none;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .course-season-group {
+      display: none;
+    }
+
+    .course-season-group.is-visible {
+      display: block;
     }
 
     .detail-page-title-name-row {
@@ -1468,6 +1492,10 @@
                 <option value="小课">小课</option>
               </select>
             </div>
+            <div class="form-group course-season-group" id="course-season-group">
+              <label for="course-season">课程季度 *</label>
+              <input type="text" id="course-season" placeholder="例如：2026暑期、2026秋季">
+            </div>
             <div class="form-group">
               <label>星期几 *</label>
               <div class="weekday-options" id="course-weekdays">
@@ -1532,6 +1560,10 @@
                 <option value="大课">大课</option>
                 <option value="小课">小课</option>
               </select>
+            </div>
+            <div class="form-group course-season-group" id="edit-course-season-group">
+              <label for="edit-course-season">课程季度 *</label>
+              <input type="text" id="edit-course-season" placeholder="例如：2026暑期、2026秋季">
             </div>
             <div class="form-group">
               <label>星期几 *</label>
@@ -1921,8 +1953,10 @@
     let coursesCache = [];
     let teachersCache = [];
     let studentsRenewalSet = new Set();
+    let studentSeasonsMap = new Map();
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
+    const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
 
     function initSupabaseClient() {
       const lib = window.supabase || globalThis.supabase;
@@ -1985,11 +2019,14 @@
     }
 
     function mapLessonRecord(row) {
+      const course = row.courses;
       return {
         id: row.id,
         studentId: row.student_id,
         courseId: row.course_id || null,
-        consumedAt: row.consumed_at
+        consumedAt: row.consumed_at,
+        courseType: course ? (course.course_type || '') : '',
+        courseName: course ? (course.name || '') : ''
       };
     }
 
@@ -1999,7 +2036,7 @@
 
       const { data, error } = await db
         .from('lesson_records')
-        .select('*')
+        .select('id, student_id, course_id, consumed_at, courses(course_type, name)')
         .eq('student_id', studentId)
         .order('consumed_at', { ascending: false });
 
@@ -2033,6 +2070,16 @@
       return y + '-' + m + '-' + day;
     }
 
+    function formatLessonRecordText(record) {
+      const date = formatConsumedAt(record.consumedAt);
+      const type = (record.courseType || '').trim();
+      const name = (record.courseName || '').trim();
+      if (type && name) {
+        return date + ' ' + type + '·' + name;
+      }
+      return date;
+    }
+
     function mapTeacher(row) {
       return {
         id: row.id,
@@ -2064,6 +2111,7 @@
         courseType: row.course_type || '摩登舞',
         name: row.name,
         classSize: row.class_size || '大课',
+        season: row.season || '',
         weekdays: row.weekdays || [],
         startTime: row.start_time,
         endTime: row.end_time,
@@ -2116,6 +2164,8 @@
         courseId: row.course_id,
         courseType: course ? (course.course_type || '摩登舞') : '摩登舞',
         name: course ? course.name : '—',
+        classSize: course ? (course.class_size || '大课') : '大课',
+        season: course ? (course.season || '') : '',
         remainingLessons: row.remaining_lessons ?? 0
       };
     }
@@ -2126,11 +2176,99 @@
 
       const { data, error } = await db
         .from('course_students')
-        .select('id, course_id, remaining_lessons, courses(id, course_type, name)')
+        .select('id, course_id, remaining_lessons, courses(id, course_type, name, class_size, season)')
         .eq('student_id', studentId);
 
       if (error) throw error;
       return (data || []).map(mapStudentCourseEnrollment);
+    }
+
+    function isLargeClassCourse(classSize) {
+      return (classSize || '大课') !== '小课';
+    }
+
+    function parseSeason(seasonStr) {
+      if (!seasonStr) return null;
+      const match = String(seasonStr).trim().match(/^(\d{4})(春季|暑期|秋季)$/);
+      if (!match) return null;
+      const year = parseInt(match[1], 10);
+      const term = match[2];
+      return {
+        year,
+        term,
+        sortKey: year * 3 + SEASON_TERM_ORDER[term]
+      };
+    }
+
+    function compareSeason(seasonA, seasonB) {
+      const a = parseSeason(seasonA);
+      const b = parseSeason(seasonB);
+      if (!a && !b) return 0;
+      if (!a) return -1;
+      if (!b) return 1;
+      return a.sortKey - b.sortKey;
+    }
+
+    function isSeasonLaterThan(seasonA, seasonB) {
+      return compareSeason(seasonA, seasonB) > 0;
+    }
+
+    function enrollmentRowNeedsRenewal(currentRow, largeClassRows) {
+      if (!isLargeClassCourse(currentRow.courses?.class_size)) return false;
+      if ((currentRow.remaining_lessons ?? 0) > RENEWAL_LESSONS_THRESHOLD) return false;
+
+      const currentSeason = currentRow.courses?.season || '';
+      const hasLaterSeason = largeClassRows.some(other => {
+        if (other === currentRow) return false;
+        return isSeasonLaterThan(other.courses?.season, currentSeason);
+      });
+      return !hasLaterSeason;
+    }
+
+    function courseEnrollmentNeedsRenewal(current, allLargeCourses) {
+      if (!isLargeClassCourse(current.classSize)) return false;
+      if ((current.remainingLessons ?? 0) > RENEWAL_LESSONS_THRESHOLD) return false;
+
+      const currentSeason = current.season || '';
+      const hasLaterSeason = allLargeCourses.some(other => {
+        if (other.courseId === current.courseId) return false;
+        return isSeasonLaterThan(other.season, currentSeason);
+      });
+      return !hasLaterSeason;
+    }
+
+    async function refreshStudentSeasonsMap() {
+      try {
+        const db = getSupabase();
+        if (!db) {
+          studentSeasonsMap = new Map();
+          return;
+        }
+
+        const { data, error } = await db
+          .from('course_students')
+          .select('student_id, courses(class_size, season)');
+
+        if (error) throw error;
+
+        const temp = new Map();
+        (data || []).forEach(row => {
+          if (!isLargeClassCourse(row.courses?.class_size)) return;
+          const season = (row.courses?.season || '').trim();
+          if (!season) return;
+          if (!temp.has(row.student_id)) temp.set(row.student_id, new Set());
+          temp.get(row.student_id).add(season);
+        });
+
+        const next = new Map();
+        temp.forEach((seasons, studentId) => {
+          next.set(studentId, Array.from(seasons).sort(compareSeason));
+        });
+        studentSeasonsMap = next;
+      } catch (err) {
+        console.error(err);
+        studentSeasonsMap = new Map();
+      }
     }
 
     async function refreshStudentsRenewalSet() {
@@ -2143,14 +2281,21 @@
 
         const { data, error } = await db
           .from('course_students')
-          .select('student_id, remaining_lessons');
+          .select('student_id, remaining_lessons, courses(class_size, season)');
 
         if (error) throw error;
 
-        const next = new Set();
+        const byStudent = new Map();
         (data || []).forEach(row => {
-          if ((row.remaining_lessons ?? 0) <= RENEWAL_LESSONS_THRESHOLD) {
-            next.add(row.student_id);
+          if (!isLargeClassCourse(row.courses?.class_size)) return;
+          if (!byStudent.has(row.student_id)) byStudent.set(row.student_id, []);
+          byStudent.get(row.student_id).push(row);
+        });
+
+        const next = new Set();
+        byStudent.forEach((rows, studentId) => {
+          if (rows.some(row => enrollmentRowNeedsRenewal(row, rows))) {
+            next.add(studentId);
           }
         });
         studentsRenewalSet = next;
@@ -2160,8 +2305,14 @@
       }
     }
 
+    async function refreshStudentTagsData() {
+      await refreshStudentSeasonsMap();
+      await refreshStudentsRenewalSet();
+    }
+
     function studentNeedsRenewalFromCourses(courses) {
-      return (courses || []).some(c => (c.remainingLessons ?? 0) <= RENEWAL_LESSONS_THRESHOLD);
+      const largeCourses = (courses || []).filter(c => isLargeClassCourse(c.classSize));
+      return largeCourses.some(c => courseEnrollmentNeedsRenewal(c, largeCourses));
     }
 
     function studentNeedsRenewalById(studentId) {
@@ -2170,6 +2321,28 @@
 
     function renewalBadgeHtml(show) {
       return show ? '<span class="renewal-badge">待续报</span>' : '';
+    }
+
+    function seasonBadgesHtml(studentId) {
+      const seasons = studentSeasonsMap.get(studentId) || [];
+      return seasons.map(season => `<span class="season-badge">${escapeHtml(season)}</span>`).join('');
+    }
+
+    function updateCourseSeasonFieldVisibility(classSizeSelectId, seasonGroupId, seasonInputId) {
+      const classSize = document.getElementById(classSizeSelectId).value;
+      const group = document.getElementById(seasonGroupId);
+      const input = document.getElementById(seasonInputId);
+      const isLarge = isLargeClassCourse(classSize);
+
+      group.classList.toggle('is-visible', isLarge);
+      input.required = isLarge;
+      if (!isLarge) input.value = '';
+    }
+
+    function bindCourseClassSizeToggle(classSizeSelectId, seasonGroupId, seasonInputId) {
+      document.getElementById(classSizeSelectId).addEventListener('change', () => {
+        updateCourseSeasonFieldVisibility(classSizeSelectId, seasonGroupId, seasonInputId);
+      });
     }
 
     function sortStudentsForList(students) {
@@ -2621,21 +2794,26 @@
       emptyEl.style.display = 'none';
       listEl.style.display = 'block';
 
-      listEl.innerHTML = sortedStudents.map(s => `
+      listEl.innerHTML = sortedStudents.map(s => {
+        const phone = (s.phone || '').trim();
+        const wechat = (s.wechat || '').trim();
+        return `
         <li class="student-list-item">
           <div class="course-meta student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
             <span class="student-name-row">
               <span class="student-name">${escapeHtml(s.name)}</span>
+              ${seasonBadgesHtml(s.id)}
               ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
             </span>
-            <span class="sub">${escapeHtml(s.phone || '—')}</span>
-            <span class="sub">${escapeHtml(s.wechat || '—')}</span>
+            ${phone ? `<span class="sub">${escapeHtml(phone)}</span>` : ''}
+            ${wechat ? `<span class="sub">${escapeHtml(wechat)}</span>` : ''}
           </div>
           <div class="student-actions">
             <button type="button" class="btn btn-outline btn-sm btn-edit" data-id="${escapeHtml(s.id)}">编辑</button>
           </div>
         </li>
-      `).join('');
+      `;
+      }).join('');
 
       bindClickableRow(listEl, '.student-info-clickable', openStudentDetailModal);
 
@@ -2683,7 +2861,7 @@
     }
 
     async function refreshStudentDetailModal(studentId) {
-      await refreshStudentsRenewalSet();
+      await refreshStudentTagsData();
       if (document.getElementById('page-students').classList.contains('active')) {
         renderStudentListUI(studentsCache);
       }
@@ -2735,7 +2913,7 @@
         ? '<div class="lesson-records-empty">暂无消课记录</div>'
         : '<ul class="lesson-records-list">' + records.map(r => `
             <li class="lesson-record-item">
-              <span>${escapeHtml(formatConsumedAt(r.consumedAt))}</span>
+              <span>${escapeHtml(formatLessonRecordText(r))}</span>
               <button type="button" class="btn btn-outline btn-sm btn-delete-record" data-id="${escapeHtml(r.id)}" data-student-id="${escapeHtml(student.id)}">删除</button>
             </li>
           `).join('') + '</ul>';
@@ -2953,7 +3131,7 @@
       openDetailPage('detail-course');
 
       try {
-        await refreshStudentsRenewalSet();
+        await refreshStudentTagsData();
         if (!studentsCache.length) {
           studentsCache = await fetchStudents();
         }
@@ -2963,6 +3141,7 @@
             <div class="student-detail-row"><span class="label">课程类型</span><span class="value">${escapeHtml(course.courseType || '—')}</span></div>
             <div class="student-detail-row"><span class="label">课程班级</span><span class="value">${escapeHtml(course.name || '—')}</span></div>
             <div class="student-detail-row"><span class="label">课程规模</span><span class="value">${escapeHtml(course.classSize || '大课')}</span></div>
+            ${isLargeClassCourse(course.classSize) ? `<div class="student-detail-row"><span class="label">课程季度</span><span class="value">${escapeHtml(course.season || '—')}</span></div>` : ''}
             <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
             <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
             <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
@@ -3020,7 +3199,7 @@
     async function loadAndRenderStudents() {
       try {
         studentsCache = await fetchStudents();
-        await refreshStudentsRenewalSet();
+        await refreshStudentTagsData();
         renderStudentListUI(studentsCache);
       } catch (err) {
         console.error(err);
@@ -3066,7 +3245,7 @@
     async function loadAndRenderCourses() {
       try {
         await refreshTeachersCache();
-        await refreshStudentsRenewalSet();
+        await refreshStudentTagsData();
         coursesCache = await fetchCourses();
         renderCourseListUI(coursesCache);
         renderWeekViewUI(coursesCache);
@@ -3145,6 +3324,7 @@
       } catch (err) {
         console.error(err);
       }
+      updateCourseSeasonFieldVisibility('course-class-size', 'course-season-group', 'course-season');
       openDetailPage('detail-course-add');
     }
 
@@ -3157,10 +3337,12 @@
       document.getElementById('edit-course-type').value = COURSE_TYPES.includes(course.courseType) ? course.courseType : '摩登舞';
       document.getElementById('edit-course-class').value = course.name;
       document.getElementById('edit-course-class-size').value = course.classSize === '小课' ? '小课' : '大课';
+      document.getElementById('edit-course-season').value = course.season || '';
       setWeekdayCheckboxes('#edit-course-weekdays', course.weekdays);
       document.getElementById('edit-course-start-time').value = formatTime(course.startTime);
       document.getElementById('edit-course-end-time').value = formatTime(course.endTime);
       populateTeacherSelect('edit-course-teacher', course.teacherId || '');
+      updateCourseSeasonFieldVisibility('edit-course-class-size', 'edit-course-season-group', 'edit-course-season');
 
       openDetailPage('detail-course-edit');
     }
@@ -3233,6 +3415,8 @@
       document.getElementById('form-add-course').addEventListener('submit', onAddCourse);
       document.getElementById('form-edit-course').addEventListener('submit', onEditCourse);
       document.getElementById('btn-delete-course').addEventListener('click', onDeleteCourseFromEdit);
+      bindCourseClassSizeToggle('course-class-size', 'course-season-group', 'course-season');
+      bindCourseClassSizeToggle('edit-course-class-size', 'edit-course-season-group', 'edit-course-season');
       document.getElementById('form-add-teacher').addEventListener('submit', onAddTeacher);
       document.getElementById('form-edit-teacher').addEventListener('submit', onEditTeacher);
       document.getElementById('btn-delete-teacher').addEventListener('click', onDeleteTeacher);
@@ -3249,6 +3433,7 @@
       const courseType = document.getElementById('course-type').value;
       const courseClass = document.getElementById('course-class').value.trim();
       const classSize = document.getElementById('course-class-size').value;
+      const season = document.getElementById('course-season').value.trim();
       const weekdays = getSelectedWeekdays('#course-weekdays');
       const startTime = document.getElementById('course-start-time').value;
       const endTime = document.getElementById('course-end-time').value;
@@ -3260,6 +3445,11 @@
 
       if (!courseClass) {
         showToast('请填写课程班级');
+        return;
+      }
+
+      if (isLargeClassCourse(classSize) && !season) {
+        showToast('请填写课程季度');
         return;
       }
 
@@ -3286,6 +3476,7 @@
           course_type: courseType,
           name: courseClass,
           class_size: classSize,
+          season: isLargeClassCourse(classSize) ? season : null,
           weekdays,
           start_time: startTime,
           end_time: endTime,
@@ -3311,6 +3502,7 @@
       const courseType = document.getElementById('edit-course-type').value;
       const courseClass = document.getElementById('edit-course-class').value.trim();
       const classSize = document.getElementById('edit-course-class-size').value;
+      const season = document.getElementById('edit-course-season').value.trim();
       const weekdays = getSelectedWeekdays('#edit-course-weekdays');
       const startTime = document.getElementById('edit-course-start-time').value;
       const endTime = document.getElementById('edit-course-end-time').value;
@@ -3322,6 +3514,11 @@
 
       if (!courseClass) {
         showToast('请填写课程班级');
+        return;
+      }
+
+      if (isLargeClassCourse(classSize) && !season) {
+        showToast('请填写课程季度');
         return;
       }
 
@@ -3348,6 +3545,7 @@
           course_type: courseType,
           name: courseClass,
           class_size: classSize,
+          season: isLargeClassCourse(classSize) ? season : null,
           weekdays,
           start_time: startTime,
           end_time: endTime,
