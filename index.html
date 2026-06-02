@@ -470,16 +470,6 @@
       opacity: 0.4;
     }
 
-    .hours-badge {
-      display: inline-block;
-      padding: 4px 10px;
-      background: var(--primary-light);
-      color: var(--primary);
-      border-radius: var(--radius-sm);
-      font-weight: 600;
-      font-size: 0.8125rem;
-    }
-
     .student-list {
       list-style: none;
     }
@@ -1505,10 +1495,6 @@
               <label for="add-phone">联系电话</label>
               <input type="tel" id="add-phone" placeholder="选填">
             </div>
-            <div class="form-group">
-              <label for="add-hours">购买课时数</label>
-              <input type="number" id="add-hours" min="0" step="1" placeholder="选填，默认 0">
-            </div>
           </div>
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">添加学员</button>
@@ -1961,10 +1947,6 @@
               <label for="edit-phone">联系电话</label>
               <input type="tel" id="edit-phone" placeholder="选填">
             </div>
-            <div class="form-group">
-              <label for="edit-hours">剩余课时数</label>
-              <input type="number" id="edit-hours" min="0" step="1" placeholder="选填，留空则不变">
-            </div>
           </div>
           <div class="form-actions-edit">
             <div class="form-actions-row">
@@ -2048,9 +2030,7 @@
         id: row.id,
         name: row.name,
         phone: row.phone,
-        wechat: row.wechat || '',
-        remainingHours: row.remaining_lessons,
-        totalLessons: row.total_lessons
+        wechat: row.wechat || ''
       };
     }
 
@@ -3484,7 +3464,6 @@
       document.getElementById('edit-id').value = student.id;
       document.getElementById('edit-name').value = student.name;
       document.getElementById('edit-phone').value = student.phone || '';
-      document.getElementById('edit-hours').value = student.remainingHours;
 
       openModal('modal-edit');
     }
@@ -4079,16 +4058,9 @@
 
       const name = document.getElementById('add-name').value.trim();
       const phone = document.getElementById('add-phone').value.trim();
-      const hoursRaw = document.getElementById('add-hours').value.trim();
-      const hours = hoursRaw === '' ? 0 : parseInt(hoursRaw, 10);
 
       if (!name) {
         showToast('请填写姓名');
-        return;
-      }
-
-      if (hoursRaw !== '' && (isNaN(hours) || hours < 0)) {
-        showToast('购买课时数须为不小于 0 的整数');
         return;
       }
 
@@ -4107,8 +4079,8 @@
         const { error } = await db.from('students').insert({
           name,
           phone: phone || null,
-          total_lessons: hours,
-          remaining_lessons: hours
+          total_lessons: 0,
+          remaining_lessons: 0
         });
 
         if (error) throw error;
@@ -4135,20 +4107,10 @@
 
       const name = document.getElementById('edit-name').value.trim();
       const phone = document.getElementById('edit-phone').value.trim();
-      const hoursRaw = document.getElementById('edit-hours').value.trim();
 
       if (!name) {
         showToast('请填写姓名');
         return;
-      }
-
-      let hours = student.remainingHours;
-      if (hoursRaw !== '') {
-        hours = parseInt(hoursRaw, 10);
-        if (isNaN(hours) || hours < 0) {
-          showToast('课时数须为不小于 0 的整数');
-          return;
-        }
       }
 
       try {
@@ -4165,8 +4127,7 @@
 
         const { error } = await db.from('students').update({
           name,
-          phone: phone || null,
-          remaining_lessons: hours
+          phone: phone || null
         }).eq('id', id);
 
         if (error) throw error;
