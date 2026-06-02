@@ -664,6 +664,10 @@
     }
 
     .student-course-name {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
       font-weight: 700;
       font-size: 0.9rem;
       color: #2d2438;
@@ -2355,6 +2359,12 @@
       return seasons.map(season => `<span class="season-badge">${escapeHtml(season)}</span>`).join('');
     }
 
+    function courseSeasonBadgeHtml(classSize, season) {
+      const value = (season || '').trim();
+      if (!isLargeClassCourse(classSize) || !value) return '';
+      return `<span class="season-badge">${escapeHtml(value)}</span>`;
+    }
+
     function updateCourseSeasonFieldVisibility(classSizeSelectId, seasonGroupId, seasonInputId) {
       const classSize = document.getElementById(classSizeSelectId).value;
       const group = document.getElementById(seasonGroupId);
@@ -2975,7 +2985,7 @@
                 data-course-name="${escapeHtml(c.name)}"
                 data-remaining="${c.remainingLessons}"
                 aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
-                <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}</span><span class="student-course-hours">剩余 ${c.remainingLessons} 课时</span>
+                <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span><span class="student-course-hours">剩余 ${c.remainingLessons} 课时</span>
               </div>
               <button type="button" class="btn btn-outline btn-sm btn-consume-course"
                 data-student-id="${escapeHtml(student.id)}"
