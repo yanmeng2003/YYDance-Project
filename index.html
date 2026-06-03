@@ -1400,13 +1400,12 @@
     }
 
     .admin-login-hero {
-      height: 50vh;
-      min-height: 280px;
+      flex: 1;
+      min-height: 220px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 48px 24px 24px;
-      flex-shrink: 0;
+      padding: 40px 24px 20px;
     }
 
     .admin-login-logo {
@@ -1417,10 +1416,11 @@
     }
 
     .admin-login-sheet {
-      flex: 1;
+      flex-shrink: 0;
+      width: 100%;
       background: #fff;
       border-radius: 28px 28px 0 0;
-      padding: 36px 28px calc(36px + env(safe-area-inset-bottom, 0px));
+      padding: 28px 24px calc(24px + env(safe-area-inset-bottom, 0px));
       box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.14);
       animation: adminLoginSheetIn 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
     }
@@ -1437,29 +1437,33 @@
     }
 
     .admin-login-title {
-      font-size: 1.75rem;
+      font-size: 1.625rem;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: var(--text);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      text-align: center;
     }
 
     .admin-login-subtitle {
       color: var(--text-muted);
       font-size: 0.9375rem;
-      margin-bottom: 28px;
+      margin-bottom: 22px;
       line-height: 1.45;
+      text-align: center;
     }
 
     .admin-login-form {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      max-width: 340px;
+      margin: 0 auto;
     }
 
     .admin-login-form input {
       width: 100%;
-      padding: 16px 18px;
+      padding: 14px 16px;
       border: none;
       border-radius: 14px;
       font-size: 1.0625rem;
@@ -1481,11 +1485,11 @@
 
     .admin-login-form .btn-primary {
       width: 100%;
-      padding: 16px 20px;
+      padding: 14px 20px;
       font-size: 1.0625rem;
       font-weight: 600;
       border-radius: 14px;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .admin-login-form .btn-primary:disabled {
@@ -1495,7 +1499,8 @@
 
     .admin-login-error {
       display: none;
-      margin-top: 16px;
+      margin: 14px auto 0;
+      max-width: 340px;
       color: #FF3B30;
       font-size: 0.9375rem;
       text-align: center;
