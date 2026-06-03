@@ -1037,8 +1037,6 @@
 
     .week-event {
       position: absolute;
-      left: 3px;
-      right: 3px;
       border-radius: 10px;
       padding: 4px 6px;
       font-size: 0.72rem;
@@ -1049,6 +1047,7 @@
       cursor: pointer;
       box-shadow: var(--shadow);
       z-index: 1;
+      box-sizing: border-box;
     }
 
     .week-event-small::after {
@@ -1377,6 +1376,135 @@
     body.splash-active {
       overflow: hidden;
     }
+
+    .app-shell {
+      display: none;
+    }
+
+    .app-shell.visible {
+      display: block;
+    }
+
+    .admin-login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #3d1a6e 0%, #1a0a3d 100%);
+      overflow: hidden;
+    }
+
+    .admin-login-screen.hidden {
+      display: none;
+    }
+
+    .admin-login-hero {
+      height: 50vh;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px 24px;
+      flex-shrink: 0;
+    }
+
+    .admin-login-logo {
+      width: min(200px, 42vw);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.18));
+    }
+
+    .admin-login-sheet {
+      flex: 1;
+      background: #fff;
+      border-radius: 28px 28px 0 0;
+      padding: 36px 28px calc(36px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.14);
+      animation: adminLoginSheetIn 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
+    }
+
+    @keyframes adminLoginSheetIn {
+      from {
+        transform: translateY(32px);
+        opacity: 0.92;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .admin-login-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .admin-login-subtitle {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      margin-bottom: 28px;
+      line-height: 1.45;
+    }
+
+    .admin-login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .admin-login-form input {
+      width: 100%;
+      padding: 16px 18px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.0625rem;
+      font-family: inherit;
+      background: var(--secondary-bg);
+      color: var(--text);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .admin-login-form input::placeholder {
+      color: #AEAEB2;
+    }
+
+    .admin-login-form input:focus {
+      outline: none;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+    }
+
+    .admin-login-form .btn-primary {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      border-radius: 14px;
+      margin-top: 4px;
+    }
+
+    .admin-login-form .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .admin-login-error {
+      display: none;
+      margin-top: 16px;
+      color: #FF3B30;
+      font-size: 0.9375rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .admin-login-error.visible {
+      display: block;
+    }
   </style>
 </head>
 <body class="splash-active">
@@ -1384,6 +1512,22 @@
     <img src="logo.png" alt="" class="splash-logo" width="280" height="280">
   </div>
 
+  <section id="login-screen" class="admin-login-screen hidden" aria-label="登录">
+    <div class="admin-login-hero">
+      <img src="logo.png" alt="耀毅国标舞" class="admin-login-logo" width="200">
+    </div>
+    <div class="admin-login-sheet">
+      <h1 class="admin-login-title">欢迎回来</h1>
+      <p class="admin-login-subtitle">请输入手机号以继续</p>
+      <form id="form-admin-login" class="admin-login-form">
+        <input type="tel" id="admin-login-phone" required placeholder="手机号" autocomplete="tel" inputmode="tel">
+        <button type="submit" class="btn btn-primary" id="btn-admin-login">确认</button>
+      </form>
+      <div id="admin-login-error" class="admin-login-error" role="alert">无访问权限，请联系管理员</div>
+    </div>
+  </section>
+
+  <div id="app-shell" class="app-shell">
   <nav class="navbar">
     <span class="navbar-brand">YY Dance舞蹈工作室</span>
   </nav>
@@ -1963,12 +2107,16 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = 'https://dcjqllqpzihbjjoytrzt.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjanFsbHFwemloYmpqb3l0cnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzE0ODAsImV4cCI6MjA5NTMwNzQ4MH0.EACmM5pQlZ2K-EaM-S5lmM91Uq5aL5Q_tIMRJmcaf30';
+
+    const ADMIN_AUTH_STORAGE_KEY = 'yydance_admin_auth_phone';
+    const ADMIN_EXTRA_ALLOWED_PHONE = '18015208086';
 
     const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const WEEK_GRID_START_MIN = 8 * 60;
@@ -2642,6 +2790,142 @@
       weekViewResizeObserver.observe(scroll);
     }
 
+    function weekEventsOverlap(a, b) {
+      return a.startMin < b.endMin && b.startMin < a.endMin;
+    }
+
+    function collectWeekDayEvents(activeCourses, day) {
+      const events = [];
+
+      activeCourses.forEach(course => {
+        if (!course.weekdays || !course.weekdays.includes(day)) return;
+
+        const startMin = timeToMinutes(course.startTime);
+        const endMin = timeToMinutes(course.endTime);
+        const visibleStart = Math.max(startMin, WEEK_GRID_START_MIN);
+        const visibleEnd = Math.min(endMin, WEEK_GRID_END_MIN);
+
+        if (visibleEnd <= visibleStart) return;
+
+        events.push({
+          course,
+          startMin: visibleStart,
+          endMin: visibleEnd,
+          column: 0,
+          totalColumns: 1
+        });
+      });
+
+      return events;
+    }
+
+    function layoutWeekDayEvents(events) {
+      if (!events.length) return events;
+
+      if (events.length === 1) {
+        events[0].column = 0;
+        events[0].totalColumns = 1;
+        return events;
+      }
+
+      const parent = events.map((_, i) => i);
+
+      function find(i) {
+        while (parent[i] !== i) {
+          parent[i] = parent[parent[i]];
+          i = parent[i];
+        }
+        return i;
+      }
+
+      function union(i, j) {
+        const rootI = find(i);
+        const rootJ = find(j);
+        if (rootI !== rootJ) parent[rootI] = rootJ;
+      }
+
+      for (let i = 0; i < events.length; i++) {
+        for (let j = i + 1; j < events.length; j++) {
+          if (weekEventsOverlap(events[i], events[j])) union(i, j);
+        }
+      }
+
+      const clusters = new Map();
+      events.forEach((event, index) => {
+        const root = find(index);
+        if (!clusters.has(root)) clusters.set(root, []);
+        clusters.get(root).push(event);
+      });
+
+      clusters.forEach(cluster => {
+        if (cluster.length === 1) {
+          cluster[0].column = 0;
+          cluster[0].totalColumns = 1;
+          return;
+        }
+
+        cluster.sort((a, b) => {
+          if (a.startMin !== b.startMin) return a.startMin - b.startMin;
+          return (b.endMin - b.startMin) - (a.endMin - a.startMin);
+        });
+
+        const columnEnds = [];
+        cluster.forEach(event => {
+          let col = columnEnds.findIndex(end => end <= event.startMin);
+          if (col === -1) {
+            col = columnEnds.length;
+            columnEnds.push(event.endMin);
+          } else {
+            columnEnds[col] = event.endMin;
+          }
+          event.column = col;
+        });
+
+        const totalColumns = columnEnds.length;
+        cluster.forEach(event => {
+          event.totalColumns = totalColumns;
+        });
+      });
+
+      return events;
+    }
+
+    function weekEventColumnStyle(column, totalColumns) {
+      if (totalColumns <= 1) {
+        return 'left:3px;width:calc(100% - 6px);';
+      }
+
+      const slotWidth = 100 / totalColumns;
+      return `left:calc(${slotWidth * column}% + 3px);width:calc(${slotWidth}% - 6px);`;
+    }
+
+    function buildWeekEventHtml(eventLayout, colorMap) {
+      const course = eventLayout.course;
+      const top = ((eventLayout.startMin - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT;
+      const height = Math.max(
+        ((eventLayout.endMin - eventLayout.startMin) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT - 2,
+        22
+      );
+      const colors = getCourseColor(course, colorMap);
+      const teacherLabel = course.teacherName || '未分配';
+      const timeLabel = formatTimeRange(course.startTime, course.endTime);
+      const typeLabel = course.courseType || '摩登舞';
+      const classLabel = course.name || '';
+      const smallClass = course.classSize === '小课' ? ' week-event-small' : '';
+      const positionStyle = weekEventColumnStyle(eventLayout.column, eventLayout.totalColumns);
+
+      return `
+        <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
+          style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
+          title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
+          <span class="week-event-type">${escapeHtml(typeLabel)}</span>
+          <span class="week-event-class">${escapeHtml(classLabel)}</span>
+          <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
+          <span class="week-event-time">${escapeHtml(timeLabel)}</span>
+        </div>
+      `;
+    }
+
     function renderWeekViewUI(courses) {
       const container = document.getElementById('week-view-container');
       const activeCourses = courses.filter(isActiveCourse);
@@ -2675,45 +2959,13 @@
       }).join('');
 
       const dayColumnsHtml = WEEKDAY_ORDER.map(day => {
-        const events = [];
-        activeCourses.forEach(course => {
-          if (!course.weekdays || !course.weekdays.includes(day)) return;
-
-          const startMin = timeToMinutes(course.startTime);
-          const endMin = timeToMinutes(course.endTime);
-          const visibleStart = Math.max(startMin, WEEK_GRID_START_MIN);
-          const visibleEnd = Math.min(endMin, WEEK_GRID_END_MIN);
-
-          if (visibleEnd <= visibleStart) return;
-
-          const top = ((visibleStart - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT;
-          const height = Math.max(
-            ((visibleEnd - visibleStart) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT - 2,
-            22
-          );
-          const colors = getCourseColor(course, colorMap);
-          const teacherLabel = course.teacherName || '未分配';
-          const timeLabel = formatTimeRange(course.startTime, course.endTime);
-          const typeLabel = course.courseType || '摩登舞';
-          const classLabel = course.name || '';
-          const smallClass = course.classSize === '小课' ? ' week-event-small' : '';
-
-          events.push(`
-            <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
-              style="top:${top}px;height:${height}px;background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
-              title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
-              <span class="week-event-type">${escapeHtml(typeLabel)}</span>
-              <span class="week-event-class">${escapeHtml(classLabel)}</span>
-              <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
-              <span class="week-event-time">${escapeHtml(timeLabel)}</span>
-            </div>
-          `);
-        });
+        const dayEvents = layoutWeekDayEvents(collectWeekDayEvents(activeCourses, day));
+        const eventsHtml = dayEvents.map(eventLayout => buildWeekEventHtml(eventLayout, colorMap)).join('');
 
         return `
           <div class="week-day-column" data-day="${day}">
             ${slotBgHtml}
-            <div class="week-events-layer">${events.join('')}</div>
+            <div class="week-events-layer">${eventsHtml}</div>
           </div>
         `;
       }).join('');
@@ -3475,6 +3727,9 @@
     }
 
     function bindEvents() {
+      document.getElementById('form-admin-login').addEventListener('submit', onAdminLoginSubmit);
+      document.getElementById('admin-login-phone').addEventListener('input', hideAdminLoginError);
+
       document.querySelectorAll('.courses-tab').forEach(btn => {
         btn.addEventListener('click', () => switchCoursesTab(btn.dataset.coursesTab));
       });
@@ -4170,9 +4425,12 @@
       }
     }
 
-    function runSplashScreen() {
+    function runSplashScreen(onComplete) {
       const splash = document.getElementById('splash-screen');
-      if (!splash) return;
+      if (!splash) {
+        if (onComplete) onComplete();
+        return;
+      }
 
       const LOGO_ANIM_MS = 800;
       const HOLD_MS = 1000;
@@ -4185,8 +4443,113 @@
         setTimeout(() => {
           splash.remove();
           document.body.classList.remove('splash-active');
+          if (onComplete) onComplete();
         }, FADE_OUT_MS);
       }, LOGO_ANIM_MS + HOLD_MS);
+    }
+
+    function normalizePhone(phone) {
+      return String(phone || '').trim();
+    }
+
+    function hasAdminSession() {
+      return !!localStorage.getItem(ADMIN_AUTH_STORAGE_KEY);
+    }
+
+    function saveAdminSession(phone) {
+      localStorage.setItem(ADMIN_AUTH_STORAGE_KEY, normalizePhone(phone));
+    }
+
+    function showAdminLoginScreen() {
+      document.getElementById('app-shell').classList.remove('visible');
+      document.getElementById('login-screen').classList.remove('hidden');
+    }
+
+    function hideAdminLoginError() {
+      const errEl = document.getElementById('admin-login-error');
+      errEl.textContent = '无访问权限，请联系管理员';
+      errEl.classList.remove('visible');
+    }
+
+    function showAdminLoginError() {
+      document.getElementById('admin-login-error').classList.add('visible');
+    }
+
+    async function fetchAllowedTeacherPhones() {
+      const teachers = await fetchTeachers();
+      return teachers
+        .map(t => normalizePhone(t.phone))
+        .filter(Boolean);
+    }
+
+    async function isPhoneAllowedForAdmin(phone) {
+      const normalized = normalizePhone(phone);
+      if (!normalized) return false;
+      if (normalized === ADMIN_EXTRA_ALLOWED_PHONE) return true;
+
+      const teacherPhones = await fetchAllowedTeacherPhones();
+      return teacherPhones.includes(normalized);
+    }
+
+    function enterAdminApp(phone) {
+      saveAdminSession(phone);
+      hideAdminLoginError();
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-shell').classList.add('visible');
+      initLucideIcons();
+      navigateTo('courses');
+      if (getSupabase()) {
+        refreshTeachersCache().catch(() => {});
+      } else {
+        console.warn('Supabase JS 未就绪，页面导航仍可用，数据功能需刷新后重试');
+      }
+    }
+
+    function startAdminApp() {
+      if (hasAdminSession()) {
+        enterAdminApp(localStorage.getItem(ADMIN_AUTH_STORAGE_KEY));
+        return;
+      }
+
+      showAdminLoginScreen();
+    }
+
+    async function onAdminLoginSubmit(e) {
+      e.preventDefault();
+      hideAdminLoginError();
+
+      const phoneInput = document.getElementById('admin-login-phone');
+      const phone = normalizePhone(phoneInput.value);
+      if (!phone) return;
+
+      const btn = document.getElementById('btn-admin-login');
+      btn.disabled = true;
+      btn.textContent = '验证中...';
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          const errEl = document.getElementById('admin-login-error');
+          errEl.textContent = '网络加载失败，请刷新页面';
+          errEl.classList.add('visible');
+          return;
+        }
+
+        const allowed = await isPhoneAllowedForAdmin(phone);
+        if (allowed) {
+          enterAdminApp(phone);
+        } else {
+          showAdminLoginError();
+        }
+      } catch (err) {
+        console.error(err);
+        const errEl = document.getElementById('admin-login-error');
+        errEl.textContent = err.message || '验证失败，请稍后重试';
+        errEl.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '确认';
+      }
     }
 
     function initLucideIcons() {
@@ -4198,13 +4561,7 @@
     function initApp() {
       bindEvents();
       initLucideIcons();
-      navigateTo('courses');
-      if (getSupabase()) {
-        refreshTeachersCache().catch(() => {});
-      } else {
-        console.warn('Supabase JS 未就绪，页面导航仍可用，数据功能需刷新后重试');
-      }
-      runSplashScreen();
+      runSplashScreen(startAdminApp);
     }
 
     if (document.readyState === 'loading') {
