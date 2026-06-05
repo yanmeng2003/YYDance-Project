@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="耀毅国标舞">
+  <link rel="apple-touch-icon" href="logo-icon.png">
+  <title>耀毅国标舞工作室</title>
+  <style>
+    :root {
+      --primary: #9b59b6;
+      --primary-dark: #7d3c98;
+      --primary-light: rgba(155, 89, 182, 0.12);
+      --bg: #F2F2F7;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --glass-blur: blur(20px);
+      --glass-blur-strong: blur(30px) saturate(180%);
+      --secondary-bg: #E5E5EA;
+      --text: #2d2438;
+      --text-muted: #8E8E93;
+      --border: rgba(60, 60, 67, 0.12);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --nav-height: 52px;
+      --tab-bar-height: 64px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.47;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--nav-height);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: var(--glass-blur-strong);
+      -webkit-backdrop-filter: var(--glass-blur-strong);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+      isolation: isolate;
+    }
+
+    .navbar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+      pointer-events: none;
+    }
+
+    .navbar-brand {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .tab-bar {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      z-index: 120;
+      display: flex;
+      align-items: stretch;
+      gap: 4px;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: var(--glass-blur-strong);
+      -webkit-backdrop-filter: var(--glass-blur-strong);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(155, 89, 182, 0.06);
+      isolation: isolate;
+    }
+
+    .tab-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 16px;
+      right: 16px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+      pointer-events: none;
+      border-radius: 20px 20px 0 0;
+    }
+
+    .tab-bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: var(--tab-bar-height);
+      padding: 6px 4px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .tab-bar-item:hover {
+      background: rgba(155, 89, 182, 0.06);
+    }
+
+    .tab-bar-item.active {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .tab-bar-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      line-height: 1;
+    }
+
+    .tab-bar-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
+    }
+
+    .tab-bar-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px calc(120px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .page-header h2 {
+      font-size: 1.625rem;
+      color: var(--text);
+      flex: 1;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 11px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      font-family: inherit;
+    }
+
+    .btn:active {
+      opacity: 0.75;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-group label {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .form-group input {
+      padding: 12px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-family: inherit;
+      background: var(--secondary-bg);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+    }
+
+    .list-card {
+      background: var(--card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: var(--radius);
+      padding: 8px 24px 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+    }
+
+    .list-card h3 {
+      font-size: 1.0625rem;
+      color: var(--text);
+      margin-bottom: 4px;
+      padding: 16px 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .student-count {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 56px 24px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    .student-list {
+      list-style: none;
+    }
+
+    .student-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .student-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .student-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 1.0625rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.01em;
+    }
+
+    .course-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .course-meta .sub {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+    }
+
+    .courses-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 4px;
+      background: var(--secondary-bg);
+      border-radius: var(--radius-sm);
+    }
+
+    .courses-tab {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      flex: 1;
+    }
+
+    .courses-tab:hover {
+      color: var(--text);
+    }
+
+    .courses-tab.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: var(--shadow);
+    }
+
+    .courses-panel {
+      display: none;
+    }
+
+    .courses-panel.active {
+      display: block;
+    }
+
+    .week-view-scroll {
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: var(--card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow);
+    }
+
+    .week-view-scaler {
+      width: 100%;
+    }
+
+    .week-schedule {
+      --week-pad-y: 10px;
+      --week-grid-height: 728px;
+      --week-time-col: 52px;
+      --week-day-col-min: 80px;
+      width: 100%;
+      transform-origin: top left;
+    }
+
+    .week-header-row {
+      display: grid;
+      grid-template-columns: var(--week-time-col) repeat(7, minmax(0, 1fr));
+      border-bottom: 0.5px solid var(--border);
+      background: var(--secondary-bg);
+    }
+
+    .week-corner {
+      border-right: 0.5px solid var(--border);
+    }
+
+    .week-day-head {
+      padding: 12px 4px;
+      text-align: center;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-right: 0.5px solid var(--border);
+    }
+
+    .week-day-head:last-child {
+      border-right: none;
+    }
+
+    .week-body {
+      display: grid;
+      grid-template-columns: var(--week-time-col) repeat(7, minmax(0, 1fr));
+    }
+
+    .week-time-labels {
+      position: relative;
+      border-right: 0.5px solid var(--border);
+      padding-top: var(--week-pad-y);
+      padding-bottom: var(--week-pad-y);
+      min-height: calc(var(--week-grid-height) + 2 * var(--week-pad-y));
+      box-sizing: border-box;
+    }
+
+    .week-hour-label {
+      position: absolute;
+      right: 6px;
+      transform: translateY(-50%);
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .week-day-column {
+      position: relative;
+      border-right: 0.5px solid var(--border);
+      padding-top: var(--week-pad-y);
+      padding-bottom: var(--week-pad-y);
+      min-height: calc(var(--week-grid-height) + 2 * var(--week-pad-y));
+      box-sizing: border-box;
+    }
+
+    .week-day-column:last-child {
+      border-right: none;
+    }
+
+    .week-slot-bg {
+      height: 28px;
+      box-sizing: border-box;
+    }
+
+    .week-slot-first {
+      border-top: 0.5px solid var(--border);
+    }
+
+    .week-slot-half {
+      border-bottom: 0.5px dashed rgba(60, 60, 67, 0.12);
+    }
+
+    .week-slot-hour {
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .week-events-layer {
+      position: absolute;
+      top: var(--week-pad-y);
+      left: 0;
+      right: 0;
+      height: var(--week-grid-height);
+      pointer-events: none;
+    }
+
+    .week-event {
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      border-radius: 10px;
+      padding: 4px 6px;
+      font-size: 0.72rem;
+      line-height: 1.35;
+      overflow: hidden;
+      border-left: 3px solid;
+      pointer-events: none;
+      box-shadow: var(--shadow);
+      z-index: 1;
+    }
+
+    .week-event-small::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 14px 14px;
+      border-color: transparent transparent #d4af37 transparent;
+      pointer-events: none;
+    }
+
+    .week-event-type {
+      font-weight: 700;
+      font-size: 0.78rem;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-event-class {
+      display: block;
+      font-size: 0.66rem;
+      opacity: 0.95;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-event-teacher {
+      display: block;
+      font-size: 0.65rem;
+      opacity: 0.92;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-event-time {
+      display: block;
+      font-size: 0.62rem;
+      opacity: 0.88;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .week-empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+    }
+
+    .week-empty .icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .student-detail-info {
+      display: grid;
+      gap: 14px;
+      padding-bottom: 20px;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    #page-student .page-header {
+      margin-bottom: 14px;
+    }
+
+    #student-info-card {
+      padding: 22px 24px 24px;
+    }
+
+    #student-info-body .student-detail-info {
+      padding-bottom: 18px;
+    }
+
+    #student-info-body .student-info-loading,
+    #student-info-body .student-info-error {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 8px 0 4px;
+    }
+
+    .student-detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 1rem;
+    }
+
+    .student-detail-row .label {
+      color: var(--text-muted);
+      flex-shrink: 0;
+      font-size: 0.9375rem;
+    }
+
+    .student-detail-row .value {
+      color: var(--text);
+      text-align: right;
+      word-break: break-all;
+      font-weight: 500;
+    }
+
+    .detail-section h4 {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .detail-section-list {
+      list-style: none;
+    }
+
+    .detail-section-list li {
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 0.9375rem;
+    }
+
+    .detail-section-list li:last-child {
+      border-bottom: none;
+    }
+
+    .detail-section-empty {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      padding: 12px 0;
+    }
+
+    .student-course-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .student-course-name {
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #2d2438;
+    }
+
+    .student-course-hours {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .season-badge {
+      display: inline-flex;
+      align-items: center;
+      flex-shrink: 0;
+      padding: 1px 6px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--primary-dark);
+      background: var(--primary-light);
+      border: none;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .lesson-records-section h4 {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin: 24px 0 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .lesson-records-list {
+      list-style: none;
+    }
+
+    .lesson-record-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 0.9375rem;
+    }
+
+    .lesson-record-item:last-child {
+      border-bottom: none;
+    }
+
+    .lesson-records-empty {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+    }
+
+    .login-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .login-screen.hidden {
+      display: none;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+    }
+
+    .login-card h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .login-card .login-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      margin-bottom: 28px;
+    }
+
+    .login-error {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 14px;
+      background: rgba(255, 59, 48, 0.08);
+      color: #FF3B30;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    .login-error.visible {
+      display: block;
+    }
+
+    .app-shell {
+      display: none;
+    }
+
+    .app-shell.visible {
+      display: block;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: calc(108px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(45, 36, 56, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: var(--radius);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.35s;
+      z-index: 500;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(180deg, #3d1a6e 0%, #1a0a3d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.6s ease-out;
+      will-change: opacity;
+    }
+
+    .splash-screen.is-exiting {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .splash-logo {
+      width: 280px;
+      height: auto;
+      display: block;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: splashLogoIn 0.8s ease-out forwards;
+      will-change: transform, opacity;
+    }
+
+    @keyframes splashLogoIn {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    body.splash-active {
+      overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+      .navbar-brand {
+        font-size: 0.9rem;
+      }
+
+      .tab-bar {
+        left: 16px;
+        right: 16px;
+      }
+
+      .week-view-scroll {
+        margin: 0;
+        border-radius: var(--radius);
+      }
+
+      .week-schedule {
+        width: calc(var(--week-time-col) + 7 * var(--week-day-col-min));
+      }
+
+      .week-header-row,
+      .week-body {
+        grid-template-columns: var(--week-time-col) repeat(7, var(--week-day-col-min));
+      }
+    }
+  </style>
+</head>
+<body class="splash-active">
+  <div id="splash-screen" class="splash-screen" aria-hidden="false">
+    <img src="logo.png" alt="" class="splash-logo" width="280" height="280">
+  </div>
+
+  <section id="login-screen" class="login-screen">
+    <div class="login-card">
+      <h1>耀毅国标舞</h1>
+      <p class="login-subtitle">请输入手机号查询学员信息</p>
+      <form id="form-login">
+        <div class="form-group">
+          <label for="login-phone">手机号</label>
+          <input type="tel" id="login-phone" required placeholder="请输入手机号" autocomplete="tel">
+        </div>
+        <div style="margin-top: 24px;">
+          <button type="submit" class="btn btn-primary" id="btn-login">查询</button>
+        </div>
+      </form>
+      <div id="login-error" class="login-error" role="alert">暂未找到学员信息，请联系工作室</div>
+    </div>
+  </section>
+
+  <div id="app-shell" class="app-shell">
+    <nav class="navbar">
+      <span class="navbar-brand">耀毅国标舞工作室</span>
+    </nav>
+
+    <main class="container">
+      <section id="page-courses" class="page active">
+        <div class="page-header">
+          <h2>课程信息</h2>
+        </div>
+
+        <div class="courses-tabs">
+          <button type="button" class="courses-tab active" data-courses-tab="week">周视图</button>
+          <button type="button" class="courses-tab" data-courses-tab="list">课程列表</button>
+        </div>
+
+        <div id="courses-panel-week" class="courses-panel active">
+          <div id="week-view-container"></div>
+        </div>
+
+        <div id="courses-panel-list" class="courses-panel">
+          <div class="list-card">
+            <h3>
+              课程列表
+              <span class="student-count" id="course-count">共 0 门</span>
+            </h3>
+            <div id="course-empty-state" class="empty-state">
+              <div class="icon">📋</div>
+              <p>暂无开课中的课程</p>
+            </div>
+            <ul class="student-list" id="course-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-student" class="page">
+        <div class="page-header">
+          <h2>学员信息</h2>
+        </div>
+        <div class="list-card" id="student-info-card">
+          <div id="student-info-body">
+            <p class="student-info-loading">加载中...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="tab-bar" role="tablist" aria-label="主导航">
+      <button type="button" class="tab-bar-item active" data-page="courses" role="tab" aria-selected="true">
+        <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="calendar"></i></span>
+        <span class="tab-bar-label">课程信息</span>
+      </button>
+      <button type="button" class="tab-bar-item" data-page="student" role="tab" aria-selected="false">
+        <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="user"></i></span>
+        <span class="tab-bar-label">学员信息</span>
+      </button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = 'https://dcjqllqpzihbjjoytrzt.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjanFsbHFwemloYmpqb3l0cnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MzE0ODAsImV4cCI6MjA5NTMwNzQ4MH0.EACmM5pQlZ2K-EaM-S5lmM91Uq5aL5Q_tIMRJmcaf30';
+
+    const STORAGE_KEY_STUDENT_ID = 'yydance_parent_student_id';
+    const STORAGE_KEY_PHONE = 'yydance_parent_phone';
+
+    const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const WEEK_GRID_START_MIN = 8 * 60;
+    const WEEK_GRID_END_MIN = 21 * 60;
+    const WEEK_SLOT_MINUTES = 30;
+    const WEEK_SLOT_HEIGHT = 28;
+    const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES;
+    const WEEK_VIEW_PAD_Y = 10;
+
+    const TEACHER_COLOR_PALETTE = [
+      { bg: '#e8daef', border: '#9b59b6', text: '#5b2c6f' },
+      { bg: '#fce4ec', border: '#e91e8c', text: '#880e4f' },
+      { bg: '#d5f5e3', border: '#27ae60', text: '#1e5631' },
+      { bg: '#fdebd0', border: '#e67e22', text: '#7e5109' },
+      { bg: '#d6eaf8', border: '#3498db', text: '#1a5276' },
+      { bg: '#fcf3cf', border: '#f1c40f', text: '#7d6608' },
+      { bg: '#e8f8f5', border: '#1abc9c', text: '#0e6251' },
+      { bg: '#f5eef8', border: '#8e44ad', text: '#4a235a' },
+      { bg: '#fdedec', border: '#e74c3c', text: '#78281f' },
+      { bg: '#ebf5fb', border: '#5dade2', text: '#1b4f72' }
+    ];
+
+    const DEFAULT_COURSE_COLOR = { bg: '#f4f2f6', border: '#a89bb0', text: '#4a3f52' };
+    const COURSE_STATUSES = ['待开课', '开课中', '已结课'];
+
+    let supabaseClient = null;
+    let coursesViewTab = 'week';
+    let coursesCache = [];
+    let teachersCache = [];
+    let currentStudent = null;
+    let weekViewResizeObserver = null;
+
+    function initSupabaseClient() {
+      const lib = window.supabase || globalThis.supabase;
+      if (!lib) return null;
+      if (typeof lib.createClient === 'function') {
+        return lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      return null;
+    }
+
+    function getSupabase() {
+      if (!supabaseClient) {
+        supabaseClient = initSupabaseClient();
+      }
+      return supabaseClient;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    function mapStudent(row) {
+      return {
+        id: row.id,
+        name: row.name,
+        phone: row.phone || ''
+      };
+    }
+
+    function mapTeacher(row) {
+      return {
+        id: row.id,
+        name: row.name,
+        createdAt: row.created_at
+      };
+    }
+
+    function mapCourse(row) {
+      const teacher = row.teachers;
+      return {
+        id: row.id,
+        courseType: row.course_type || '摩登舞',
+        name: row.name,
+        classSize: row.class_size || '大课',
+        season: row.season || '',
+        status: normalizeCourseStatus(row.status),
+        weekdays: row.weekdays || [],
+        startTime: row.start_time,
+        endTime: row.end_time,
+        teacherId: row.teacher_id || null,
+        teacherName: teacher ? teacher.name : null
+      };
+    }
+
+    function normalizeCourseStatus(status) {
+      return COURSE_STATUSES.includes(status) ? status : '开课中';
+    }
+
+    function isActiveCourse(course) {
+      return normalizeCourseStatus(course.status) === '开课中';
+    }
+
+    function isLargeClassCourse(classSize) {
+      return (classSize || '大课') !== '小课';
+    }
+
+    async function fetchStudentByPhone(phone) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const trimmed = (phone || '').trim();
+      if (!trimmed) return null;
+
+      const { data, error } = await db
+        .from('students')
+        .select('*')
+        .eq('phone', trimmed)
+        .limit(1);
+
+      if (error) throw error;
+      return data && data.length ? mapStudent(data[0]) : null;
+    }
+
+    async function fetchStudentById(id) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('students')
+        .select('*')
+        .eq('id', id)
+        .limit(1);
+
+      if (error) throw error;
+      return data && data.length ? mapStudent(data[0]) : null;
+    }
+
+    function mapStudentCourseEnrollment(row) {
+      const course = row.courses;
+      return {
+        enrollmentId: row.id,
+        courseId: row.course_id,
+        courseType: course ? (course.course_type || '摩登舞') : '摩登舞',
+        name: course ? course.name : '—',
+        classSize: course ? (course.class_size || '大课') : '大课',
+        season: course ? (course.season || '') : '',
+        remainingLessons: row.remaining_lessons ?? 0
+      };
+    }
+
+    async function fetchStudentCourses(studentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('course_students')
+        .select('id, course_id, remaining_lessons, courses(id, course_type, name, class_size, season)')
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+      return (data || []).map(mapStudentCourseEnrollment);
+    }
+
+    async function fetchStudentEnrolledCourses(studentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('course_students')
+        .select('courses(*, teachers(id, name, created_at))')
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+
+      const courses = [];
+      const teacherMap = new Map();
+
+      (data || []).forEach(row => {
+        const courseRow = row.courses;
+        if (!courseRow) return;
+
+        courses.push(mapCourse(courseRow));
+
+        const teacher = courseRow.teachers;
+        if (teacher && teacher.id && !teacherMap.has(teacher.id)) {
+          teacherMap.set(teacher.id, mapTeacher(teacher));
+        }
+      });
+
+      teachersCache = Array.from(teacherMap.values());
+      return courses;
+    }
+
+    function mapLessonRecord(row) {
+      const course = row.courses;
+      return {
+        id: row.id,
+        consumedAt: row.consumed_at,
+        courseType: course ? (course.course_type || '') : '',
+        courseName: course ? (course.name || '') : ''
+      };
+    }
+
+    async function fetchLessonRecords(studentId) {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('lesson_records')
+        .select('id, consumed_at, courses(course_type, name)')
+        .eq('student_id', studentId)
+        .order('consumed_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(mapLessonRecord);
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      return String(timeStr).slice(0, 5);
+    }
+
+    function formatTimeRange(start, end) {
+      return formatTime(start) + ' - ' + formatTime(end);
+    }
+
+    function formatCourseListWeekdays(days) {
+      if (!days || !days.length) return '—';
+
+      const sorted = [...new Set(days)].sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b));
+      const workdays = ['周一', '周二', '周三', '周四', '周五'];
+      const weekend = ['周六', '周日'];
+
+      if (sorted.length === 7 && WEEKDAY_ORDER.every(d => sorted.includes(d))) {
+        return '每天';
+      }
+      if (sorted.length === 5 && workdays.every(d => sorted.includes(d))) {
+        return '工作日';
+      }
+      if (sorted.length === 2 && weekend.every(d => sorted.includes(d))) {
+        return '周末';
+      }
+
+      return sorted.join('、');
+    }
+
+    function formatCourseListLabel(course) {
+      const type = course.courseType || '摩登舞';
+      const name = course.name || '';
+      const season = (course.season || '').trim();
+      if (isLargeClassCourse(course.classSize) && season) {
+        return type + '·' + season + '·' + name;
+      }
+      return type + '·' + name;
+    }
+
+    function formatEnrollmentLabel(enrollment) {
+      return formatCourseListLabel({
+        courseType: enrollment.courseType,
+        name: enrollment.name,
+        classSize: enrollment.classSize,
+        season: enrollment.season
+      });
+    }
+
+    function courseSeasonBadgeHtml(classSize, season) {
+      const value = (season || '').trim();
+      if (!isLargeClassCourse(classSize) || !value) return '';
+      return `<span class="season-badge">${escapeHtml(value)}</span>`;
+    }
+
+    function formatConsumedAt(isoStr) {
+      if (!isoStr) return '—';
+      const str = String(isoStr);
+      const datePart = str.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (datePart) return datePart[1];
+      const d = new Date(isoStr);
+      if (isNaN(d.getTime())) return '—';
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    function formatParentLessonRecord(record) {
+      const date = formatConsumedAt(record.consumedAt);
+      const type = (record.courseType || '').trim();
+      const name = (record.courseName || '').trim();
+      const courseLabel = type && name ? type + '·' + name : (name || type || '—');
+      return date + ' ' + courseLabel;
+    }
+
+    function timeToMinutes(timeStr) {
+      const t = formatTime(timeStr);
+      if (!t) return 0;
+      const parts = t.split(':');
+      return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+
+    function buildTeacherColorMap() {
+      const sorted = [...teachersCache].sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return ta - tb;
+      });
+      const map = {};
+      sorted.forEach((t, i) => {
+        map[t.id] = TEACHER_COLOR_PALETTE[i % TEACHER_COLOR_PALETTE.length];
+      });
+      return map;
+    }
+
+    function getCourseColor(course, colorMap) {
+      if (course.teacherId && colorMap[course.teacherId]) {
+        return colorMap[course.teacherId];
+      }
+      return DEFAULT_COURSE_COLOR;
+    }
+
+    function sortCoursesForList(courses) {
+      return [...courses].sort((a, b) => {
+        const aLarge = isLargeClassCourse(a.classSize);
+        const bLarge = isLargeClassCourse(b.classSize);
+        if (aLarge === bLarge) return 0;
+        return aLarge ? -1 : 1;
+      });
+    }
+
+    function getActiveCourses() {
+      return coursesCache.filter(isActiveCourse);
+    }
+
+    function switchCoursesTab(tab) {
+      coursesViewTab = tab;
+      document.querySelectorAll('.courses-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.coursesTab === tab);
+      });
+      document.getElementById('courses-panel-week').classList.toggle('active', tab === 'week');
+      document.getElementById('courses-panel-list').classList.toggle('active', tab === 'list');
+      if (tab === 'week') {
+        requestAnimationFrame(() => fitWeekViewToWidth());
+      }
+    }
+
+    function fitWeekViewToWidth() {
+      const container = document.getElementById('week-view-container');
+      const scroll = container?.querySelector('.week-view-scroll');
+      const scaler = container?.querySelector('.week-view-scaler');
+      const schedule = container?.querySelector('.week-schedule');
+      if (!scroll || !scaler || !schedule) return;
+
+      schedule.style.transform = '';
+      scaler.style.height = '';
+
+      const isMobile = window.matchMedia('(max-width: 640px)').matches;
+      if (!isMobile) return;
+
+      const availableWidth = scroll.clientWidth;
+      const designWidth = schedule.offsetWidth;
+      if (!availableWidth || !designWidth) return;
+
+      const scale = Math.min(1, availableWidth / designWidth);
+      schedule.style.transform = `scale(${scale})`;
+      scaler.style.height = `${schedule.offsetHeight * scale}px`;
+    }
+
+    function observeWeekViewResize() {
+      const container = document.getElementById('week-view-container');
+      const scroll = container?.querySelector('.week-view-scroll');
+      if (!scroll) return;
+
+      if (weekViewResizeObserver) {
+        weekViewResizeObserver.disconnect();
+      }
+
+      weekViewResizeObserver = new ResizeObserver(() => {
+        fitWeekViewToWidth();
+      });
+      weekViewResizeObserver.observe(scroll);
+    }
+
+    function renderWeekViewUI(courses) {
+      const container = document.getElementById('week-view-container');
+      const activeCourses = courses.filter(isActiveCourse);
+
+      if (!activeCourses.length) {
+        container.innerHTML = `
+          <div class="week-view-scroll">
+            <div class="week-empty">
+              <div class="icon">📅</div>
+              <p>暂无开课中的课程</p>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const colorMap = buildTeacherColorMap();
+
+      const hourLabelsHtml = [];
+      for (let h = WEEK_GRID_START_MIN / 60; h <= WEEK_GRID_END_MIN / 60; h++) {
+        const top = WEEK_VIEW_PAD_Y + (h - WEEK_GRID_START_MIN / 60) * 2 * WEEK_SLOT_HEIGHT;
+        hourLabelsHtml.push(
+          `<div class="week-hour-label" style="top:${top}px">${String(h).padStart(2, '0')}:00</div>`
+        );
+      }
+
+      const slotBgHtml = Array.from({ length: WEEK_SLOT_COUNT }, (_, i) => {
+        const slotClass = i % 2 === 0 ? 'week-slot-half' : 'week-slot-hour';
+        const firstClass = i === 0 ? ' week-slot-first' : '';
+        return `<div class="week-slot-bg ${slotClass}${firstClass}"></div>`;
+      }).join('');
+
+      const dayColumnsHtml = WEEKDAY_ORDER.map(day => {
+        const events = [];
+        activeCourses.forEach(course => {
+          if (!course.weekdays || !course.weekdays.includes(day)) return;
+
+          const startMin = timeToMinutes(course.startTime);
+          const endMin = timeToMinutes(course.endTime);
+          const visibleStart = Math.max(startMin, WEEK_GRID_START_MIN);
+          const visibleEnd = Math.min(endMin, WEEK_GRID_END_MIN);
+
+          if (visibleEnd <= visibleStart) return;
+
+          const top = ((visibleStart - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT;
+          const height = Math.max(
+            ((visibleEnd - visibleStart) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT - 2,
+            22
+          );
+          const colors = getCourseColor(course, colorMap);
+          const teacherLabel = course.teacherName || '未分配';
+          const timeLabel = formatTimeRange(course.startTime, course.endTime);
+          const typeLabel = course.courseType || '摩登舞';
+          const classLabel = course.name || '';
+          const smallClass = course.classSize === '小课' ? ' week-event-small' : '';
+
+          events.push(`
+            <div class="week-event${smallClass}"
+              style="top:${top}px;height:${height}px;background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
+              title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
+              <span class="week-event-type">${escapeHtml(typeLabel)}</span>
+              <span class="week-event-class">${escapeHtml(classLabel)}</span>
+              <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
+              <span class="week-event-time">${escapeHtml(timeLabel)}</span>
+            </div>
+          `);
+        });
+
+        return `
+          <div class="week-day-column" data-day="${day}">
+            ${slotBgHtml}
+            <div class="week-events-layer">${events.join('')}</div>
+          </div>
+        `;
+      }).join('');
+
+      const dayHeadsHtml = WEEKDAY_ORDER.map(d =>
+        `<div class="week-day-head">${d}</div>`
+      ).join('');
+
+      container.innerHTML = `
+        <div class="week-view-scroll">
+          <div class="week-view-scaler">
+            <div class="week-schedule">
+              <div class="week-header-row">
+                <div class="week-corner"></div>
+                ${dayHeadsHtml}
+              </div>
+              <div class="week-body">
+                <div class="week-time-labels">${hourLabelsHtml.join('')}</div>
+                ${dayColumnsHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      requestAnimationFrame(() => {
+        fitWeekViewToWidth();
+        observeWeekViewResize();
+      });
+    }
+
+    function renderCourseListUI(courses) {
+      const countEl = document.getElementById('course-count');
+      const emptyEl = document.getElementById('course-empty-state');
+      const listEl = document.getElementById('course-list');
+      const activeCourses = courses.filter(isActiveCourse);
+      const sortedCourses = sortCoursesForList(activeCourses);
+
+      countEl.textContent = '共 ' + sortedCourses.length + ' 门';
+
+      if (sortedCourses.length === 0) {
+        emptyEl.style.display = 'block';
+        listEl.style.display = 'none';
+        return;
+      }
+
+      emptyEl.style.display = 'none';
+      listEl.style.display = 'block';
+
+      listEl.innerHTML = sortedCourses.map(c => `
+        <li class="student-list-item">
+          <div class="course-meta">
+            <span class="student-name">${escapeHtml(formatCourseListLabel(c))}</span>
+            <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
+            <span class="sub">上课日期：${escapeHtml(formatCourseListWeekdays(c.weekdays))}</span>
+            ${c.teacherName ? `<span class="sub">负责老师：${escapeHtml(c.teacherName)}</span>` : ''}
+          </div>
+        </li>
+      `).join('');
+    }
+
+    async function loadAndRenderCourses() {
+      if (!currentStudent) return;
+
+      try {
+        coursesCache = await fetchStudentEnrolledCourses(currentStudent.id);
+        const activeCourses = getActiveCourses();
+        renderCourseListUI(activeCourses);
+        renderWeekViewUI(activeCourses);
+      } catch (err) {
+        console.error(err);
+        showToast('加载课程失败，请检查网络');
+      }
+    }
+
+    function renderStudentInfoUI(student, courses, records) {
+      const body = document.getElementById('student-info-body');
+
+      const coursesListHtml = !courses || courses.length === 0
+        ? '<div class="detail-section-empty">暂未加入任何课程</div>'
+        : '<ul class="detail-section-list">' + courses.map(c => `
+            <li class="student-course-item">
+              <span class="student-course-name">${escapeHtml(formatEnrollmentLabel(c))}${courseSeasonBadgeHtml(c.classSize, c.season)}<span class="student-course-hours">剩余 ${c.remainingLessons} 课时</span></span>
+            </li>
+          `).join('') + '</ul>';
+
+      const recordsHtml = records.length === 0
+        ? '<div class="lesson-records-empty">暂无上课记录</div>'
+        : '<ul class="lesson-records-list">' + records.map(r => `
+            <li class="lesson-record-item">
+              <span>${escapeHtml(formatParentLessonRecord(r))}</span>
+            </li>
+          `).join('') + '</ul>';
+
+      body.innerHTML = `
+        <div class="student-detail-info">
+          <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
+        </div>
+        <div class="detail-section">
+          <h4>所在课程</h4>
+          ${coursesListHtml}
+        </div>
+        <div class="lesson-records-section">
+          <h4>上课记录</h4>
+          ${recordsHtml}
+        </div>
+      `;
+    }
+
+    async function loadAndRenderStudentInfo() {
+      if (!currentStudent) return;
+
+      const body = document.getElementById('student-info-body');
+      body.innerHTML = '<p class="student-info-loading">加载中...</p>';
+
+      try {
+        const [courses, records] = await Promise.all([
+          fetchStudentCourses(currentStudent.id),
+          fetchLessonRecords(currentStudent.id)
+        ]);
+        renderStudentInfoUI(currentStudent, courses, records);
+      } catch (err) {
+        console.error(err);
+        body.innerHTML = '<p class="student-info-error">加载失败</p>';
+        showToast('加载学员信息失败');
+      }
+    }
+
+    function saveSession(student, phone) {
+      localStorage.setItem(STORAGE_KEY_STUDENT_ID, student.id);
+      localStorage.setItem(STORAGE_KEY_PHONE, phone.trim());
+    }
+
+    function clearSession() {
+      localStorage.removeItem(STORAGE_KEY_STUDENT_ID);
+      localStorage.removeItem(STORAGE_KEY_PHONE);
+    }
+
+    function showLoginScreen() {
+      currentStudent = null;
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('app-shell').classList.remove('visible');
+    }
+
+    function showAppShell() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-shell').classList.add('visible');
+      initLucideIcons();
+    }
+
+    function hideLoginError() {
+      document.getElementById('login-error').classList.remove('visible');
+    }
+
+    function showLoginError() {
+      document.getElementById('login-error').classList.add('visible');
+    }
+
+    async function enterApp(student, phone) {
+      currentStudent = student;
+      saveSession(student, phone);
+      hideLoginError();
+      showAppShell();
+      navigateTo('courses');
+      loadAndRenderCourses();
+      loadAndRenderStudentInfo();
+    }
+
+    async function tryRestoreSession() {
+      const savedId = localStorage.getItem(STORAGE_KEY_STUDENT_ID);
+      const savedPhone = localStorage.getItem(STORAGE_KEY_PHONE) || '';
+
+      if (!savedId) {
+        showLoginScreen();
+        if (savedPhone) {
+          document.getElementById('login-phone').value = savedPhone;
+        }
+        return;
+      }
+
+      try {
+        const student = await fetchStudentById(savedId);
+        if (student) {
+          await enterApp(student, savedPhone || student.phone || '');
+          return;
+        }
+        clearSession();
+      } catch (err) {
+        console.error(err);
+        clearSession();
+      }
+
+      showLoginScreen();
+      if (savedPhone) {
+        document.getElementById('login-phone').value = savedPhone;
+      }
+    }
+
+    async function onLoginSubmit(e) {
+      e.preventDefault();
+      hideLoginError();
+
+      const phoneInput = document.getElementById('login-phone');
+      const phone = phoneInput.value.trim();
+      if (!phone) return;
+
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.textContent = '查询中...';
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const student = await fetchStudentByPhone(phone);
+        if (student) {
+          await enterApp(student, phone);
+        } else {
+          showLoginError();
+        }
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '查询失败，请稍后重试');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '查询';
+      }
+    }
+
+    function navigateTo(page) {
+      if (!['courses', 'student'].includes(page)) return;
+
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.tab-bar-item').forEach(tab => {
+        const isActive = tab.dataset.page === page;
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      if (page === 'courses') {
+        switchCoursesTab(coursesViewTab);
+      }
+      if (page === 'student') {
+        loadAndRenderStudentInfo();
+      }
+    }
+
+    function runSplashScreen() {
+      const splash = document.getElementById('splash-screen');
+      if (!splash) return;
+
+      const LOGO_ANIM_MS = 800;
+      const HOLD_MS = 1000;
+      const FADE_OUT_MS = 600;
+
+      setTimeout(() => {
+        splash.classList.add('is-exiting');
+        splash.setAttribute('aria-hidden', 'true');
+
+        setTimeout(() => {
+          splash.remove();
+          document.body.classList.remove('splash-active');
+        }, FADE_OUT_MS);
+      }, LOGO_ANIM_MS + HOLD_MS);
+    }
+
+    function initLucideIcons() {
+      if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }
+
+    function bindEvents() {
+      document.getElementById('form-login').addEventListener('submit', onLoginSubmit);
+      document.getElementById('login-phone').addEventListener('input', hideLoginError);
+
+      document.querySelectorAll('.courses-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchCoursesTab(btn.dataset.coursesTab));
+      });
+
+      document.querySelectorAll('.tab-bar-item').forEach(tab => {
+        tab.addEventListener('click', () => navigateTo(tab.dataset.page));
+      });
+    }
+
+    function initApp() {
+      bindEvents();
+      initLucideIcons();
+      runSplashScreen();
+
+      if (getSupabase()) {
+        tryRestoreSession();
+      } else {
+        console.warn('Supabase JS 未就绪，请刷新页面');
+        showLoginScreen();
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
