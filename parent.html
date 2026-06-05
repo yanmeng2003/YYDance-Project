@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="耀毅国标舞">
   <link rel="apple-touch-icon" href="logo-icon.png">
   <title>耀毅国标舞工作室</title>
@@ -714,58 +715,129 @@
       font-size: 0.9375rem;
     }
 
-    .login-screen {
-      min-height: 100vh;
+    .admin-login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
       display: flex;
       flex-direction: column;
+      background: linear-gradient(180deg, #3d1a6e 0%, #1a0a3d 100%);
+      overflow: hidden;
+    }
+
+    .admin-login-screen.hidden {
+      display: none;
+    }
+
+    .admin-login-hero {
+      flex: 1;
+      min-height: 220px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 32px 24px calc(32px + env(safe-area-inset-bottom, 0px));
+      padding: 40px 24px 20px;
     }
 
-    .login-screen.hidden {
-      display: none;
+    .admin-login-logo {
+      width: min(200px, 42vw);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.18));
     }
 
-    .login-card {
+    .admin-login-sheet {
+      flex-shrink: 0;
       width: 100%;
-      max-width: 400px;
-      background: var(--card-bg);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      border-radius: var(--radius);
-      padding: 32px 28px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(255, 255, 255, 0.45);
+      background: #fff;
+      border-radius: 28px 28px 0 0;
+      padding: 28px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.14);
+      animation: adminLoginSheetIn 0.55s cubic-bezier(0.32, 0.72, 0, 1) both;
     }
 
-    .login-card h1 {
-      font-size: 1.5rem;
+    @keyframes adminLoginSheetIn {
+      from {
+        transform: translateY(32px);
+        opacity: 0.92;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .admin-login-title {
+      font-size: 1.625rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin-bottom: 8px;
+      color: var(--text);
+      margin-bottom: 6px;
       text-align: center;
     }
 
-    .login-card .login-subtitle {
-      text-align: center;
+    .admin-login-subtitle {
       color: var(--text-muted);
       font-size: 0.9375rem;
-      margin-bottom: 28px;
-    }
-
-    .login-error {
-      display: none;
-      margin-top: 16px;
-      padding: 12px 14px;
-      background: rgba(255, 59, 48, 0.08);
-      color: #FF3B30;
-      border-radius: var(--radius-sm);
-      font-size: 0.875rem;
+      margin-bottom: 22px;
+      line-height: 1.45;
       text-align: center;
     }
 
-    .login-error.visible {
+    .admin-login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+
+    .admin-login-form input {
+      width: 100%;
+      padding: 14px 16px;
+      border: none;
+      border-radius: 14px;
+      font-size: 1.0625rem;
+      font-family: inherit;
+      background: var(--secondary-bg);
+      color: var(--text);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .admin-login-form input::placeholder {
+      color: #AEAEB2;
+    }
+
+    .admin-login-form input:focus {
+      outline: none;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+    }
+
+    .admin-login-form .btn-primary {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      border-radius: 14px;
+      margin-top: 2px;
+    }
+
+    .admin-login-form .btn-primary:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .admin-login-error {
+      display: none;
+      margin: 14px auto 0;
+      max-width: 340px;
+      color: #FF3B30;
+      font-size: 0.9375rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .admin-login-error.visible {
       display: block;
     }
 
@@ -876,20 +948,18 @@
     <img src="logo.png" alt="" class="splash-logo" width="280" height="280">
   </div>
 
-  <section id="login-screen" class="login-screen">
-    <div class="login-card">
-      <h1>耀毅国标舞</h1>
-      <p class="login-subtitle">请输入手机号查询学员信息</p>
-      <form id="form-login">
-        <div class="form-group">
-          <label for="login-phone">手机号</label>
-          <input type="tel" id="login-phone" required placeholder="请输入手机号" autocomplete="tel">
-        </div>
-        <div style="margin-top: 24px;">
-          <button type="submit" class="btn btn-primary" id="btn-login">查询</button>
-        </div>
+  <section id="login-screen" class="admin-login-screen" aria-label="登录">
+    <div class="admin-login-hero">
+      <img src="logo.png" alt="耀毅国标舞" class="admin-login-logo" width="200">
+    </div>
+    <div class="admin-login-sheet">
+      <h1 class="admin-login-title">耀毅国标舞工作室</h1>
+      <p class="admin-login-subtitle">请输入手机号查看课程信息</p>
+      <form id="form-login" class="admin-login-form">
+        <input type="tel" id="login-phone" required placeholder="手机号" autocomplete="tel" inputmode="tel">
+        <button type="submit" class="btn btn-primary" id="btn-login">确认</button>
       </form>
-      <div id="login-error" class="login-error" role="alert">暂未找到学员信息，请联系工作室</div>
+      <div id="login-error" class="admin-login-error" role="alert">暂未找到学员信息，请联系工作室</div>
     </div>
   </section>
 
@@ -1623,7 +1693,7 @@
 
       const btn = document.getElementById('btn-login');
       btn.disabled = true;
-      btn.textContent = '查询中...';
+      btn.textContent = '确认中...';
 
       try {
         const db = getSupabase();
@@ -1643,7 +1713,7 @@
         showToast(err.message || '查询失败，请稍后重试');
       } finally {
         btn.disabled = false;
-        btn.textContent = '查询';
+        btn.textContent = '确认';
       }
     }
 
