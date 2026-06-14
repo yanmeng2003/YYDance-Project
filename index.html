@@ -670,7 +670,7 @@
 
     .lesson-record-item {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
       padding: 12px 0;
@@ -682,6 +682,21 @@
       border-bottom: none;
     }
 
+    .lesson-record-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lesson-record-meta-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .lesson-record-main {
       display: inline-flex;
       align-items: center;
@@ -691,7 +706,8 @@
     }
 
     .lesson-record-date {
-      color: var(--text);
+      color: var(--text-muted);
+      font-size: 0.8125rem;
     }
 
     .lesson-record-status {
@@ -725,39 +741,7 @@
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
-    }
-
-    .student-course-block {
-      padding: 14px 0;
-      border-bottom: 0.5px solid var(--border);
-    }
-
-    .student-course-block:last-child {
-      border-bottom: none;
-    }
-
-    .student-course-records {
-      margin-top: 12px;
-      padding-left: 2px;
-    }
-
-    .student-course-records-title {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 8px;
-    }
-
-    .student-course-records-list {
-      list-style: none;
-    }
-
-    .student-course-records-empty {
-      color: var(--text-muted);
-      font-size: 0.8125rem;
-      padding: 4px 0 2px;
+      padding-top: 2px;
     }
 
     .bulk-consume-students-list {
@@ -825,11 +809,6 @@
       padding: 14px 0;
       border-bottom: 0.5px solid var(--border);
       font-size: 0.9375rem;
-    }
-
-    .detail-section-list li.student-course-block {
-      padding: 0;
-      border-bottom: none;
     }
 
     .student-course-item {
@@ -2439,8 +2418,37 @@
         consumedAt: row.consumed_at,
         status: normalizeLessonRecordStatus(row.status),
         courseType: course ? (course.course_type || '') : '',
-        courseName: course ? (course.name || '') : ''
+        courseName: course ? (course.name || '') : '',
+        classSize: course ? (course.class_size || '大课') : '大课',
+        season: course ? (course.season || '') : ''
       };
+    }
+
+    function getLeaveRecordIdsWithMakeup(records) {
+      const pairedLeaveIds = new Set();
+      const byCourse = new Map();
+
+      (records || []).forEach(record => {
+        if (!record.courseId) return;
+        if (!byCourse.has(record.courseId)) {
+          byCourse.set(record.courseId, { leaves: [], makeups: [] });
+        }
+
+        const status = normalizeLessonRecordStatus(record.status);
+        if (status === '请假') byCourse.get(record.courseId).leaves.push(record);
+        if (status === '补课') byCourse.get(record.courseId).makeups.push(record);
+      });
+
+      byCourse.forEach(({ leaves, makeups }) => {
+        leaves.sort((a, b) => formatConsumedAt(a.consumedAt).localeCompare(formatConsumedAt(b.consumedAt)));
+        makeups.sort((a, b) => formatConsumedAt(a.consumedAt).localeCompare(formatConsumedAt(b.consumedAt)));
+        const pairCount = Math.min(leaves.length, makeups.length);
+        for (let i = 0; i < pairCount; i++) {
+          pairedLeaveIds.add(leaves[i].id);
+        }
+      });
+
+      return pairedLeaveIds;
     }
 
     function normalizeLessonRecordStatus(status) {
@@ -2453,9 +2461,10 @@
       return `<span class="lesson-record-status lesson-record-status--${classMap[value]}">${escapeHtml(value)}</span>`;
     }
 
-    function renderLessonRecordItemHtml(record, student, enrollmentId) {
+    function renderLessonRecordItemHtml(record, student, enrollmentId, leaveIdsWithMakeup) {
       const status = normalizeLessonRecordStatus(record.status);
-      const makeupBtn = status === '请假'
+      const hasMakeup = leaveIdsWithMakeup && leaveIdsWithMakeup.has(record.id);
+      const makeupBtn = status === '请假' && !hasMakeup
         ? `<button type="button" class="btn btn-outline btn-sm btn-makeup-record"
             data-student-id="${escapeHtml(student.id)}"
             data-course-id="${escapeHtml(record.courseId || '')}"
@@ -2464,10 +2473,15 @@
 
       return `
         <li class="lesson-record-item">
-          <span class="lesson-record-main">
-            <span class="lesson-record-date">${escapeHtml(formatConsumedAt(record.consumedAt))}</span>
-            ${lessonRecordStatusBadgeHtml(status)}
-          </span>
+          <div class="lesson-record-content">
+            <div class="student-course-line">
+              <span class="student-course-name">${escapeHtml(record.courseType || '摩登舞')} · ${escapeHtml(record.courseName || '—')}${courseSeasonBadgeHtml(record.classSize, record.season)}</span>
+            </div>
+            <div class="lesson-record-meta-line">
+              <span class="lesson-record-date">${escapeHtml(formatConsumedAt(record.consumedAt))}</span>
+              ${lessonRecordStatusBadgeHtml(status)}
+            </div>
+          </div>
           <div class="lesson-record-actions">
             ${makeupBtn}
             <button type="button" class="btn btn-outline btn-sm btn-delete-record"
@@ -2485,7 +2499,7 @@
 
       const { data, error } = await db
         .from('lesson_records')
-        .select('id, student_id, course_id, consumed_at, status, courses(course_type, name)')
+        .select('id, student_id, course_id, consumed_at, status, courses(course_type, name, class_size, season)')
         .eq('student_id', studentId)
         .order('consumed_at', { ascending: false });
 
@@ -3511,47 +3525,41 @@
       document.getElementById('student-detail-title').innerHTML =
         `<span class="detail-page-title-name-row"><span class="detail-page-title-name">${escapeHtml(student.name)}</span>${renewalBadgeHtml(studentNeedsRenewalFromCourses(courses))}</span>`;
 
+      const enrollmentByCourseId = new Map((courses || []).map(c => [c.courseId, c.enrollmentId]));
+      const leaveIdsWithMakeup = getLeaveRecordIdsWithMakeup(records || []);
+
       const coursesListHtml = !courses || courses.length === 0
         ? '<div class="detail-section-empty">暂未加入任何课程</div>'
-        : '<ul class="detail-section-list">' + courses.map(c => {
-          const courseRecords = (records || []).filter(r => r.courseId === c.courseId);
-          const recordsHtml = courseRecords.length === 0
-            ? '<div class="student-course-records-empty">暂无上课记录</div>'
-            : '<ul class="student-course-records-list">' + courseRecords.map(r =>
-                renderLessonRecordItemHtml(r, student, c.enrollmentId)
-              ).join('') + '</ul>';
-
-          return `
-            <li class="student-course-block">
-              <div class="student-course-item">
-                <div class="student-course-info student-course-info-clickable" role="button" tabindex="0"
-                  data-enrollment-id="${escapeHtml(c.enrollmentId)}"
-                  data-course-id="${escapeHtml(c.courseId)}"
-                  data-course-type="${escapeHtml(c.courseType)}"
-                  data-course-name="${escapeHtml(c.name)}"
-                  data-remaining="${c.remainingLessons}"
-                  aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
-                  <div class="student-course-line">
-                    <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span>
-                    <span class="student-course-hours">剩余 <span class="student-course-hours-num">${c.remainingLessons}</span> 课时</span>
-                  </div>
-                  <span class="student-course-schedule">${escapeHtml(formatStudentCourseSchedule(c))}</span>
+        : '<ul class="detail-section-list">' + courses.map(c => `
+            <li class="student-course-item">
+              <div class="student-course-info student-course-info-clickable" role="button" tabindex="0"
+                data-enrollment-id="${escapeHtml(c.enrollmentId)}"
+                data-course-id="${escapeHtml(c.courseId)}"
+                data-course-type="${escapeHtml(c.courseType)}"
+                data-course-name="${escapeHtml(c.name)}"
+                data-remaining="${c.remainingLessons}"
+                aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
+                <div class="student-course-line">
+                  <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span>
+                  <span class="student-course-hours">剩余 <span class="student-course-hours-num">${c.remainingLessons}</span> 课时</span>
                 </div>
-                <button type="button" class="btn btn-outline btn-sm btn-consume-course"
-                  data-student-id="${escapeHtml(student.id)}"
-                  data-enrollment-id="${escapeHtml(c.enrollmentId)}"
-                  data-course-id="${escapeHtml(c.courseId)}"
-                  data-course-type="${escapeHtml(c.courseType)}"
-                  data-course-name="${escapeHtml(c.name)}"
-                  data-remaining="${c.remainingLessons}">消课</button>
+                <span class="student-course-schedule">${escapeHtml(formatStudentCourseSchedule(c))}</span>
               </div>
-              <div class="student-course-records">
-                <h5 class="student-course-records-title">上课记录</h5>
-                ${recordsHtml}
-              </div>
+              <button type="button" class="btn btn-outline btn-sm btn-consume-course"
+                data-student-id="${escapeHtml(student.id)}"
+                data-enrollment-id="${escapeHtml(c.enrollmentId)}"
+                data-course-id="${escapeHtml(c.courseId)}"
+                data-course-type="${escapeHtml(c.courseType)}"
+                data-course-name="${escapeHtml(c.name)}"
+                data-remaining="${c.remainingLessons}">消课</button>
             </li>
-          `;
-        }).join('') + '</ul>';
+          `).join('') + '</ul>';
+
+      const recordsHtml = !records || records.length === 0
+        ? '<div class="lesson-records-empty">暂无上课记录</div>'
+        : '<ul class="lesson-records-list">' + records.map(r =>
+            renderLessonRecordItemHtml(r, student, enrollmentByCourseId.get(r.courseId), leaveIdsWithMakeup)
+          ).join('') + '</ul>';
 
       body.innerHTML = `
         <div class="student-detail-info">
@@ -3564,6 +3572,10 @@
             <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
           </div>
           ${coursesListHtml}
+        </div>
+        <div class="lesson-records-section">
+          <h4>上课记录</h4>
+          ${recordsHtml}
         </div>
       `;
 
