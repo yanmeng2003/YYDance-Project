@@ -3869,13 +3869,9 @@
       }
     }
 
-    function formatCourseListLabel(course) {
+    function formatCourseShortLabel(course) {
       const type = course.courseType || '摩登舞';
       const name = course.name || '';
-      const season = (course.season || '').trim();
-      if (isLargeClassCourse(course.classSize) && season) {
-        return type + '·' + season + '·' + name;
-      }
       return type + '·' + name;
     }
 
@@ -3913,7 +3909,10 @@
       listEl.innerHTML = sortedCourses.map(c => `
         <li class="student-list-item${isActiveCourse(c) ? '' : ' course-list-item-inactive'}">
           <div class="course-meta student-info-clickable" data-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="查看课程详情">
-            <span class="student-name">${escapeHtml(formatCourseListLabel(c))}</span>
+            <span class="student-name-row">
+              <span class="student-name">${escapeHtml(formatCourseShortLabel(c))}</span>
+              ${courseSeasonBadgeHtml(c.classSize, c.season)}
+            </span>
             <span class="sub">${escapeHtml(formatTimeRange(c.startTime, c.endTime))}</span>
             <span class="sub">上课日期：${escapeHtml(formatCourseListWeekdays(c.weekdays))}</span>
             ${c.teacherName ? `<span class="sub">负责老师：${escapeHtml(c.teacherName)}</span>` : ''}
