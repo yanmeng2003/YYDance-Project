@@ -672,14 +672,131 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 14px 0;
+      gap: 12px;
+      padding: 12px 0;
       border-bottom: 0.5px solid var(--border);
       font-size: 0.9375rem;
     }
 
     .lesson-record-item:last-child {
       border-bottom: none;
+    }
+
+    .lesson-record-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .lesson-record-date {
+      color: var(--text);
+    }
+
+    .lesson-record-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1.35;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .lesson-record-status--attend {
+      color: var(--primary-dark);
+      background: var(--primary-light);
+    }
+
+    .lesson-record-status--leave {
+      color: #e67e22;
+      background: rgba(230, 126, 34, 0.12);
+    }
+
+    .lesson-record-status--makeup {
+      color: #1a5276;
+      background: rgba(52, 152, 219, 0.12);
+    }
+
+    .lesson-record-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .student-course-block {
+      padding: 14px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .student-course-block:last-child {
+      border-bottom: none;
+    }
+
+    .student-course-records {
+      margin-top: 12px;
+      padding-left: 2px;
+    }
+
+    .student-course-records-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+
+    .student-course-records-list {
+      list-style: none;
+    }
+
+    .student-course-records-empty {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      padding: 4px 0 2px;
+    }
+
+    .bulk-consume-students-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    .bulk-consume-student-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--secondary-bg);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.9375rem;
+      color: var(--text);
+    }
+
+    .bulk-consume-student-row input {
+      width: auto;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .bulk-consume-student-name {
+      flex: 1;
+      min-width: 0;
+      font-weight: 500;
+    }
+
+    .bulk-consume-student-hours {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
     }
 
     .lesson-records-empty {
@@ -708,6 +825,11 @@
       padding: 14px 0;
       border-bottom: 0.5px solid var(--border);
       font-size: 0.9375rem;
+    }
+
+    .detail-section-list li.student-course-block {
+      padding: 0;
+      border-bottom: none;
     }
 
     .student-course-item {
@@ -1193,7 +1315,8 @@
     #modal-add-course-student,
     #modal-edit-student-course,
     #modal-consume,
-    #modal-bulk-consume {
+    #modal-bulk-consume,
+    #modal-makeup-lesson {
       z-index: 400;
     }
 
@@ -2088,7 +2211,8 @@
       <div class="modal-body">
         <form id="form-bulk-consume">
           <input type="hidden" id="bulk-consume-course-id">
-          <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;">将为本课程所有学员消去1课时</p>
+          <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px;">勾选到场学员扣减课时，未勾选记为请假</p>
+          <div id="bulk-consume-students-list" class="bulk-consume-students-list"></div>
           <div class="form-grid">
             <div class="form-group">
               <label for="bulk-consume-date">日期 *</label>
@@ -2098,6 +2222,33 @@
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">确认</button>
             <button type="button" class="btn btn-outline" data-close="modal-bulk-consume">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 补课弹窗 -->
+  <div class="modal-overlay" id="modal-makeup-lesson" role="dialog" aria-modal="true" aria-labelledby="modal-makeup-lesson-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-makeup-lesson-title">补课</h3>
+        <button type="button" class="modal-close" data-close="modal-makeup-lesson" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-makeup-lesson">
+          <input type="hidden" id="makeup-student-id">
+          <input type="hidden" id="makeup-course-id">
+          <input type="hidden" id="makeup-enrollment-id">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="makeup-date">补课日期 *</label>
+              <input type="date" id="makeup-date" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">确认补课</button>
+            <button type="button" class="btn btn-outline" data-close="modal-makeup-lesson">取消</button>
           </div>
         </form>
       </div>
@@ -2207,6 +2358,7 @@
 
     const COURSE_TYPES = ['摩登舞', '拉丁舞'];
     const COURSE_STATUSES = ['待开课', '开课中', '已结课'];
+    const LESSON_RECORD_STATUSES = ['上课', '请假', '补课'];
 
     let coursesViewTab = 'week';
 
@@ -2285,9 +2437,46 @@
         studentId: row.student_id,
         courseId: row.course_id || null,
         consumedAt: row.consumed_at,
+        status: normalizeLessonRecordStatus(row.status),
         courseType: course ? (course.course_type || '') : '',
         courseName: course ? (course.name || '') : ''
       };
+    }
+
+    function normalizeLessonRecordStatus(status) {
+      return LESSON_RECORD_STATUSES.includes(status) ? status : '上课';
+    }
+
+    function lessonRecordStatusBadgeHtml(status) {
+      const value = normalizeLessonRecordStatus(status);
+      const classMap = { '上课': 'attend', '请假': 'leave', '补课': 'makeup' };
+      return `<span class="lesson-record-status lesson-record-status--${classMap[value]}">${escapeHtml(value)}</span>`;
+    }
+
+    function renderLessonRecordItemHtml(record, student, enrollmentId) {
+      const status = normalizeLessonRecordStatus(record.status);
+      const makeupBtn = status === '请假'
+        ? `<button type="button" class="btn btn-outline btn-sm btn-makeup-record"
+            data-student-id="${escapeHtml(student.id)}"
+            data-course-id="${escapeHtml(record.courseId || '')}"
+            data-enrollment-id="${escapeHtml(enrollmentId || '')}">补课</button>`
+        : '';
+
+      return `
+        <li class="lesson-record-item">
+          <span class="lesson-record-main">
+            <span class="lesson-record-date">${escapeHtml(formatConsumedAt(record.consumedAt))}</span>
+            ${lessonRecordStatusBadgeHtml(status)}
+          </span>
+          <div class="lesson-record-actions">
+            ${makeupBtn}
+            <button type="button" class="btn btn-outline btn-sm btn-delete-record"
+              data-id="${escapeHtml(record.id)}"
+              data-student-id="${escapeHtml(student.id)}"
+              data-status="${escapeHtml(status)}">删除</button>
+          </div>
+        </li>
+      `;
     }
 
     async function fetchLessonRecords(studentId) {
@@ -2296,7 +2485,7 @@
 
       const { data, error } = await db
         .from('lesson_records')
-        .select('id, student_id, course_id, consumed_at, courses(course_type, name)')
+        .select('id, student_id, course_id, consumed_at, status, courses(course_type, name)')
         .eq('student_id', studentId)
         .order('consumed_at', { ascending: false });
 
@@ -3322,41 +3511,47 @@
       document.getElementById('student-detail-title').innerHTML =
         `<span class="detail-page-title-name-row"><span class="detail-page-title-name">${escapeHtml(student.name)}</span>${renewalBadgeHtml(studentNeedsRenewalFromCourses(courses))}</span>`;
 
-      const recordsHtml = records.length === 0
-        ? '<div class="lesson-records-empty">暂无消课记录</div>'
-        : '<ul class="lesson-records-list">' + records.map(r => `
-            <li class="lesson-record-item">
-              <span>${escapeHtml(formatLessonRecordText(r))}</span>
-              <button type="button" class="btn btn-outline btn-sm btn-delete-record" data-id="${escapeHtml(r.id)}" data-student-id="${escapeHtml(student.id)}">删除</button>
-            </li>
-          `).join('') + '</ul>';
-
       const coursesListHtml = !courses || courses.length === 0
         ? '<div class="detail-section-empty">暂未加入任何课程</div>'
-        : '<ul class="detail-section-list">' + courses.map(c => `
-            <li class="student-course-item">
-              <div class="student-course-info student-course-info-clickable" role="button" tabindex="0"
-                data-enrollment-id="${escapeHtml(c.enrollmentId)}"
-                data-course-id="${escapeHtml(c.courseId)}"
-                data-course-type="${escapeHtml(c.courseType)}"
-                data-course-name="${escapeHtml(c.name)}"
-                data-remaining="${c.remainingLessons}"
-                aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
-                <div class="student-course-line">
-                  <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span>
-                  <span class="student-course-hours">剩余 <span class="student-course-hours-num">${c.remainingLessons}</span> 课时</span>
+        : '<ul class="detail-section-list">' + courses.map(c => {
+          const courseRecords = (records || []).filter(r => r.courseId === c.courseId);
+          const recordsHtml = courseRecords.length === 0
+            ? '<div class="student-course-records-empty">暂无上课记录</div>'
+            : '<ul class="student-course-records-list">' + courseRecords.map(r =>
+                renderLessonRecordItemHtml(r, student, c.enrollmentId)
+              ).join('') + '</ul>';
+
+          return `
+            <li class="student-course-block">
+              <div class="student-course-item">
+                <div class="student-course-info student-course-info-clickable" role="button" tabindex="0"
+                  data-enrollment-id="${escapeHtml(c.enrollmentId)}"
+                  data-course-id="${escapeHtml(c.courseId)}"
+                  data-course-type="${escapeHtml(c.courseType)}"
+                  data-course-name="${escapeHtml(c.name)}"
+                  data-remaining="${c.remainingLessons}"
+                  aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
+                  <div class="student-course-line">
+                    <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span>
+                    <span class="student-course-hours">剩余 <span class="student-course-hours-num">${c.remainingLessons}</span> 课时</span>
+                  </div>
+                  <span class="student-course-schedule">${escapeHtml(formatStudentCourseSchedule(c))}</span>
                 </div>
-                <span class="student-course-schedule">${escapeHtml(formatStudentCourseSchedule(c))}</span>
+                <button type="button" class="btn btn-outline btn-sm btn-consume-course"
+                  data-student-id="${escapeHtml(student.id)}"
+                  data-enrollment-id="${escapeHtml(c.enrollmentId)}"
+                  data-course-id="${escapeHtml(c.courseId)}"
+                  data-course-type="${escapeHtml(c.courseType)}"
+                  data-course-name="${escapeHtml(c.name)}"
+                  data-remaining="${c.remainingLessons}">消课</button>
               </div>
-              <button type="button" class="btn btn-outline btn-sm btn-consume-course"
-                data-student-id="${escapeHtml(student.id)}"
-                data-enrollment-id="${escapeHtml(c.enrollmentId)}"
-                data-course-id="${escapeHtml(c.courseId)}"
-                data-course-type="${escapeHtml(c.courseType)}"
-                data-course-name="${escapeHtml(c.name)}"
-                data-remaining="${c.remainingLessons}">消课</button>
+              <div class="student-course-records">
+                <h5 class="student-course-records-title">上课记录</h5>
+                ${recordsHtml}
+              </div>
             </li>
-          `).join('') + '</ul>';
+          `;
+        }).join('') + '</ul>';
 
       body.innerHTML = `
         <div class="student-detail-info">
@@ -3369,10 +3564,6 @@
             <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
           </div>
           ${coursesListHtml}
-        </div>
-        <div class="lesson-records-section">
-          <h4>消课记录</h4>
-          ${recordsHtml}
         </div>
       `;
 
@@ -3414,7 +3605,15 @@
       });
 
       body.querySelectorAll('.btn-delete-record').forEach(btn => {
-        btn.addEventListener('click', () => deleteLessonRecord(btn.dataset.id, btn.dataset.studentId));
+        btn.addEventListener('click', () => deleteLessonRecord(btn.dataset.id, btn.dataset.studentId, btn.dataset.status));
+      });
+
+      body.querySelectorAll('.btn-makeup-record').forEach(btn => {
+        btn.addEventListener('click', () => openMakeupLessonModal(
+          btn.dataset.studentId,
+          btn.dataset.courseId,
+          btn.dataset.enrollmentId
+        ));
       });
     }
 
@@ -3463,10 +3662,48 @@
       }
     }
 
-    function openBulkConsumeModal(courseId) {
+    async function openBulkConsumeModal(courseId) {
       document.getElementById('bulk-consume-course-id').value = courseId;
       document.getElementById('bulk-consume-date').value = getTodayDateString();
+
+      const listEl = document.getElementById('bulk-consume-students-list');
+      listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:12px 0;">加载中...</p>';
       openModal('modal-bulk-consume');
+
+      try {
+        const enrollments = await fetchCourseStudents(courseId);
+        if (!enrollments.length) {
+          listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:12px 0;">暂无学员</p>';
+          return;
+        }
+
+        listEl.innerHTML = enrollments.map(e => `
+          <label class="bulk-consume-student-row">
+            <input type="checkbox" name="bulk-consume-student" value="${escapeHtml(e.id)}"
+              data-student-id="${escapeHtml(e.studentId)}"
+              data-remaining="${e.remainingLessons}" checked>
+            <span class="bulk-consume-student-name">${escapeHtml(e.studentName)}</span>
+            <span class="bulk-consume-student-hours">剩余 ${e.remainingLessons} 课时</span>
+          </label>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:12px 0;">加载失败</p>';
+        showToast('加载学员列表失败');
+      }
+    }
+
+    function openMakeupLessonModal(studentId, courseId, enrollmentId) {
+      if (!studentId || !courseId || !enrollmentId) {
+        showToast('补课信息不完整');
+        return;
+      }
+
+      document.getElementById('makeup-student-id').value = studentId;
+      document.getElementById('makeup-course-id').value = courseId;
+      document.getElementById('makeup-enrollment-id').value = enrollmentId;
+      document.getElementById('makeup-date').value = getTodayDateString();
+      openModal('modal-makeup-lesson');
     }
 
     async function openAddCourseStudentModal(courseId, enrollments) {
@@ -3854,6 +4091,7 @@
       document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
       document.getElementById('form-consume-lesson').addEventListener('submit', onConsumeLesson);
       document.getElementById('form-bulk-consume').addEventListener('submit', onBulkConsumeCourse);
+      document.getElementById('form-makeup-lesson').addEventListener('submit', onMakeupLesson);
       document.getElementById('form-add-course-student').addEventListener('submit', onAddCourseStudentToCourse);
       document.getElementById('form-edit-student-course').addEventListener('submit', onEditStudentCourse);
       document.getElementById('btn-remove-student-course').addEventListener('click', onRemoveStudentCourseFromEdit);
@@ -4222,11 +4460,17 @@
 
       const courseId = document.getElementById('bulk-consume-course-id').value;
       const dateStr = document.getElementById('bulk-consume-date').value;
+      const checkboxes = Array.from(document.querySelectorAll('#bulk-consume-students-list input[name="bulk-consume-student"]'));
 
       if (!courseId) return;
 
       if (!dateStr) {
         showToast('请选择日期');
+        return;
+      }
+
+      if (!checkboxes.length) {
+        showToast('本课程暂无学员');
         return;
       }
 
@@ -4237,39 +4481,48 @@
           return;
         }
 
-        const enrollments = await fetchCourseStudents(courseId);
-        const eligible = enrollments.filter(en => en.remainingLessons >= 1);
-        const skipped = enrollments.length - eligible.length;
+        let skippedAttend = 0;
 
-        if (eligible.length === 0) {
-          closeModal('modal-bulk-consume');
-          if (skipped > 0) {
-            showToast('已跳过' + skipped + '名课时不足的学员');
+        for (const checkbox of checkboxes) {
+          const enrollmentId = checkbox.value;
+          const studentId = checkbox.dataset.studentId;
+          const remaining = parseInt(checkbox.dataset.remaining, 10) || 0;
+          const isPresent = checkbox.checked;
+
+          if (isPresent) {
+            if (remaining < 1) {
+              skippedAttend++;
+              continue;
+            }
+
+            const { error: recordError } = await db.from('lesson_records').insert({
+              student_id: studentId,
+              course_id: courseId,
+              consumed_at: dateStr,
+              status: '上课'
+            });
+            if (recordError) throw recordError;
+
+            const { error: updateError } = await db.from('course_students').update({
+              remaining_lessons: remaining - 1
+            }).eq('id', enrollmentId);
+            if (updateError) throw updateError;
           } else {
-            showToast('本课程暂无学员');
+            const { error: recordError } = await db.from('lesson_records').insert({
+              student_id: studentId,
+              course_id: courseId,
+              consumed_at: dateStr,
+              status: '请假'
+            });
+            if (recordError) throw recordError;
           }
-          return;
-        }
-
-        for (const enrollment of eligible) {
-          const { error: recordError } = await db.from('lesson_records').insert({
-            student_id: enrollment.studentId,
-            course_id: courseId,
-            consumed_at: dateStr
-          });
-          if (recordError) throw recordError;
-
-          const { error: updateError } = await db.from('course_students').update({
-            remaining_lessons: enrollment.remainingLessons - 1
-          }).eq('id', enrollment.id);
-          if (updateError) throw updateError;
         }
 
         closeModal('modal-bulk-consume');
         await openCourseDetailModal(courseId);
 
-        if (skipped > 0) {
-          showToast('已跳过' + skipped + '名课时不足的学员');
+        if (skippedAttend > 0) {
+          showToast('已跳过' + skippedAttend + '名课时不足的学员');
         } else {
           showToast('批量消课成功');
         }
@@ -4320,7 +4573,8 @@
         const { error: recordError } = await db.from('lesson_records').insert({
           student_id: studentId,
           course_id: courseId,
-          consumed_at: dateStr
+          consumed_at: dateStr,
+          status: '上课'
         });
 
         if (recordError) throw recordError;
@@ -4341,8 +4595,74 @@
       }
     }
 
-    async function deleteLessonRecord(recordId, studentId) {
-      if (!confirm('确定删除这条消课记录吗？删除后该课程剩余课时将加回 1 节。')) {
+    async function onMakeupLesson(e) {
+      e.preventDefault();
+
+      const studentId = document.getElementById('makeup-student-id').value;
+      const courseId = document.getElementById('makeup-course-id').value;
+      const enrollmentId = document.getElementById('makeup-enrollment-id').value;
+      const dateStr = document.getElementById('makeup-date').value;
+
+      if (!studentId || !courseId || !enrollmentId) {
+        showToast('补课信息不完整');
+        return;
+      }
+
+      if (!dateStr) {
+        showToast('请选择补课日期');
+        return;
+      }
+
+      try {
+        const db = getSupabase();
+        if (!db) {
+          showToast('Supabase 库未加载，请刷新页面');
+          return;
+        }
+
+        const { data: enrollment, error: fetchError } = await db
+          .from('course_students')
+          .select('remaining_lessons')
+          .eq('id', enrollmentId)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        if (!enrollment || enrollment.remaining_lessons < 1) {
+          showToast('该课程剩余课时不足，无法补课');
+          return;
+        }
+
+        const { error: recordError } = await db.from('lesson_records').insert({
+          student_id: studentId,
+          course_id: courseId,
+          consumed_at: dateStr,
+          status: '补课'
+        });
+        if (recordError) throw recordError;
+
+        const { error: updateError } = await db.from('course_students').update({
+          remaining_lessons: enrollment.remaining_lessons - 1
+        }).eq('id', enrollmentId);
+        if (updateError) throw updateError;
+
+        closeModal('modal-makeup-lesson');
+        await loadAndRenderStudents();
+        await refreshStudentDetailModal(studentId);
+        showToast('补课成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '补课失败');
+      }
+    }
+
+    async function deleteLessonRecord(recordId, studentId, status) {
+      const normalizedStatus = normalizeLessonRecordStatus(status);
+      const confirmMessage = normalizedStatus === '请假'
+        ? '确定删除这条请假记录吗？'
+        : '确定删除这条记录吗？删除后该课程剩余课时将加回 1 节。';
+
+      if (!confirm(confirmMessage)) {
         return;
       }
 
@@ -4355,16 +4675,18 @@
 
         const { data: record, error: fetchError } = await db
           .from('lesson_records')
-          .select('course_id')
+          .select('course_id, status')
           .eq('id', recordId)
           .single();
 
         if (fetchError) throw fetchError;
 
+        const recordStatus = normalizeLessonRecordStatus(record?.status || normalizedStatus);
+
         const { error: delError } = await db.from('lesson_records').delete().eq('id', recordId);
         if (delError) throw delError;
 
-        if (record && record.course_id) {
+        if (record && record.course_id && (recordStatus === '上课' || recordStatus === '补课')) {
           const { data: enrollment, error: enrollmentError } = await db
             .from('course_students')
             .select('id, remaining_lessons')
