@@ -720,6 +720,9 @@
     .student-course-info {
       flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .student-course-info-clickable {
@@ -745,6 +748,12 @@
       color: var(--text-muted);
       font-weight: 400;
       margin-left: 6px;
+    }
+
+    .student-course-schedule {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.35;
     }
 
     .detail-section-header {
@@ -2415,6 +2424,9 @@
         name: course ? course.name : '—',
         classSize: course ? (course.class_size || '大课') : '大课',
         season: course ? (course.season || '') : '',
+        weekdays: course ? (course.weekdays || []) : [],
+        startTime: course ? course.start_time : null,
+        endTime: course ? course.end_time : null,
         remainingLessons: row.remaining_lessons ?? 0
       };
     }
@@ -2425,7 +2437,7 @@
 
       const { data, error } = await db
         .from('course_students')
-        .select('id, course_id, remaining_lessons, courses(id, course_type, name, class_size, season)')
+        .select('id, course_id, remaining_lessons, courses(id, course_type, name, class_size, season, weekdays, start_time, end_time)')
         .eq('student_id', studentId);
 
       if (error) throw error;
@@ -2737,6 +2749,18 @@
       }
 
       return sorted.join('、');
+    }
+
+    function formatStudentCourseSchedule(enrollment) {
+      const days = formatCourseListWeekdays(enrollment.weekdays);
+      const start = formatTime(enrollment.startTime);
+      const end = formatTime(enrollment.endTime);
+      const time = start && end ? start + '-' + end : '';
+
+      if (days === '—' && !time) return '—';
+      if (days === '—') return time;
+      if (!time) return days;
+      return days + ' ' + time;
     }
 
     function getSelectedWeekdays(containerId) {
@@ -3308,6 +3332,7 @@
                 data-remaining="${c.remainingLessons}"
                 aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
                 <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span><span class="student-course-hours">剩余 ${c.remainingLessons} 课时</span>
+                <span class="student-course-schedule">${escapeHtml(formatStudentCourseSchedule(c))}</span>
               </div>
               <button type="button" class="btn btn-outline btn-sm btn-consume-course"
                 data-student-id="${escapeHtml(student.id)}"
