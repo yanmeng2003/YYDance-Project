@@ -730,7 +730,14 @@
     }
 
     .student-course-info-clickable:hover .student-course-name {
-      color: #2d2438;
+      color: var(--text);
+    }
+
+    .student-course-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 6px;
     }
 
     .student-course-name {
@@ -738,16 +745,20 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 6px;
-      font-weight: 700;
+      font-weight: 400;
       font-size: 0.9rem;
-      color: #2d2438;
+      color: var(--text-muted);
     }
 
     .student-course-hours {
       font-size: 0.82rem;
       color: var(--text-muted);
       font-weight: 400;
-      margin-left: 6px;
+    }
+
+    .student-course-hours-num {
+      font-weight: 700;
+      color: var(--text);
     }
 
     .student-course-schedule {
@@ -3331,7 +3342,10 @@
                 data-course-name="${escapeHtml(c.name)}"
                 data-remaining="${c.remainingLessons}"
                 aria-label="编辑${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}">
-                <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span><span class="student-course-hours">剩余 ${c.remainingLessons} 课时</span>
+                <div class="student-course-line">
+                  <span class="student-course-name">${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}${courseSeasonBadgeHtml(c.classSize, c.season)}</span>
+                  <span class="student-course-hours">剩余 <span class="student-course-hours-num">${c.remainingLessons}</span> 课时</span>
+                </div>
                 <span class="student-course-schedule">${escapeHtml(formatStudentCourseSchedule(c))}</span>
               </div>
               <button type="button" class="btn btn-outline btn-sm btn-consume-course"
