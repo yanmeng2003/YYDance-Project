@@ -340,27 +340,23 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
     }
 
-    .page-header h2 {
-      font-size: 1.625rem;
-      color: var(--text);
-      flex: 1;
+    .main-page-title {
+      font-size: 1.75rem;
       font-weight: 700;
+      color: var(--text);
       letter-spacing: -0.02em;
+      margin: 0;
     }
 
     .students-page-head {
       margin-bottom: 20px;
     }
 
-    .students-page-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.02em;
+    .students-page-head .main-page-title {
       margin-bottom: 20px;
     }
 
@@ -694,6 +690,33 @@
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
+    }
+
+    .form-actions-add {
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      gap: 10px;
+    }
+
+    .form-actions-add .btn {
+      min-width: 96px;
+    }
+
+    #detail-course-add .form-actions-add {
+      position: sticky;
+      bottom: 0;
+      margin-top: 28px;
+      padding: 16px 0 8px;
+      background: linear-gradient(to top, var(--card-bg) 65%, rgba(255, 255, 255, 0));
+    }
+
+    #modal-add .form-actions-add,
+    #modal-add-teacher .form-actions-add {
+      position: sticky;
+      bottom: 0;
+      margin-top: 28px;
+      padding: 16px 0 4px;
+      background: linear-gradient(to top, var(--card-bg) 65%, rgba(255, 255, 255, 0));
     }
 
     /* Student list */
@@ -1215,7 +1238,7 @@
       display: none;
       position: fixed;
       right: 24px;
-      bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(118px + env(safe-area-inset-bottom, 0px));
       z-index: 110;
       padding: 14px 22px;
       border: none;
@@ -1687,7 +1710,7 @@
     @media (max-width: 640px) {
       .fab {
         right: 16px;
-        bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(114px + env(safe-area-inset-bottom, 0px));
       }
 
       .tab-bar {
@@ -2319,7 +2342,7 @@
     <!-- 学员管理页 -->
     <section id="page-students" class="page">
       <div class="students-page-head">
-        <h2 class="students-page-title">学员管理</h2>
+        <h2 class="main-page-title">学员管理</h2>
 
         <div class="students-search-wrap">
           <i data-lucide="search" class="students-search-icon" aria-hidden="true"></i>
@@ -2343,7 +2366,7 @@
     <!-- 课程管理页 -->
     <section id="page-courses" class="page active">
       <div class="page-header">
-        <h2>课程管理</h2>
+        <h2 class="main-page-title">课程管理</h2>
       </div>
 
       <div class="courses-tabs">
@@ -2373,7 +2396,7 @@
     <!-- 老师管理页 -->
     <section id="page-teachers" class="page">
       <div class="page-header">
-        <h2>老师管理</h2>
+        <h2 class="main-page-title">老师管理</h2>
       </div>
 
       <div class="list-card">
@@ -2428,9 +2451,9 @@
               <input type="tel" id="add-phone" placeholder="选填">
             </div>
           </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">添加学员</button>
+          <div class="form-actions form-actions-add">
             <button type="button" class="btn btn-outline" data-close="modal-add">取消</button>
+            <button type="submit" class="btn btn-primary">添加学员</button>
           </div>
         </form>
       </div>
@@ -2508,9 +2531,9 @@
               </select>
             </div>
           </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">添加课程</button>
+          <div class="form-actions form-actions-add">
             <button type="button" class="btn btn-outline" data-detail-back="detail-course-add">取消</button>
+            <button type="submit" class="btn btn-primary">添加课程</button>
           </div>
         </form>
       </div>
@@ -2630,9 +2653,9 @@
               <textarea id="teacher-notes" placeholder="选填"></textarea>
             </div>
           </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">添加老师</button>
+          <div class="form-actions form-actions-add">
             <button type="button" class="btn btn-outline" data-close="modal-add-teacher">取消</button>
+            <button type="submit" class="btn btn-primary">添加老师</button>
           </div>
         </form>
       </div>
