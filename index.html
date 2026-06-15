@@ -445,6 +445,98 @@
       padding-top: 4px;
     }
 
+    .students-island-wrap {
+      margin-top: 4px;
+    }
+
+    .students-island-count {
+      display: block;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 400;
+    }
+
+    .student-island-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .student-island-item {
+      background: #fff;
+      border-radius: 16px;
+      border: 0.5px solid rgba(60, 60, 67, 0.08);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(45, 36, 56, 0.06);
+      overflow: hidden;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .student-island-item:active {
+      transform: scale(0.985);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 3px 10px rgba(45, 36, 56, 0.05);
+    }
+
+    .student-island-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 16px 18px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .student-island-main {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .student-island-tags {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .student-island-phone {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.01em;
+    }
+
+    .student-island-chevron {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      color: #C7C7CC;
+    }
+
+    .student-island-chevron svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .students-island-wrap .empty-state {
+      background: #fff;
+      border-radius: 16px;
+      border: 0.5px solid rgba(60, 60, 67, 0.08);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(45, 36, 56, 0.06);
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
@@ -2050,13 +2142,13 @@
         </div>
       </div>
 
-      <div class="list-card students-list-card">
-        <span class="student-count" id="student-count" hidden>共 0 人</span>
+      <div class="students-island-wrap">
+        <span class="students-island-count" id="student-count">共 0 人</span>
         <div id="empty-state" class="empty-state">
           <div class="icon">📋</div>
           <p>暂无学员，点击右下角添加</p>
         </div>
-        <ul class="student-list" id="student-list"></ul>
+        <ul class="student-island-list" id="student-list"></ul>
       </div>
     </section>
 
@@ -3925,6 +4017,7 @@
       if (sortedStudents.length === 0) {
         emptyEl.style.display = 'block';
         listEl.style.display = 'none';
+        countEl.style.display = 'none';
         const emptyText = emptyEl.querySelector('p');
         if (emptyText) {
           emptyText.textContent = studentSearchQuery.trim() || studentListFilter === 'renewal'
@@ -3935,25 +4028,32 @@
       }
 
       emptyEl.style.display = 'none';
-      listEl.style.display = 'block';
+      listEl.style.display = 'flex';
+      countEl.style.display = 'block';
 
       listEl.innerHTML = sortedStudents.map(s => {
         const phone = (s.phone || '').trim();
         return `
-        <li class="student-list-item">
-          <div class="course-meta student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
-            <span class="student-name-row">
-              <span class="student-name">${escapeHtml(s.name)}</span>
-              ${seasonBadgesHtml(s.id)}
-              ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
-            </span>
-            ${phone ? `<span class="sub">${escapeHtml(phone)}</span>` : ''}
+        <li class="student-island-item">
+          <div class="student-island-link student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
+            <div class="student-island-main">
+              <span class="student-name-row">
+                <span class="student-name">${escapeHtml(s.name)}</span>
+                ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
+              </span>
+              <span class="student-island-tags">${seasonBadgesHtml(s.id)}</span>
+              ${phone ? `<span class="student-island-phone">${escapeHtml(phone)}</span>` : ''}
+            </div>
+            <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
           </div>
         </li>
       `;
       }).join('');
 
       bindClickableRow(listEl, '.student-info-clickable', openStudentDetailModal);
+      if (window.lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
     }
 
     function openConsumeModalForCourse(studentId, course) {
