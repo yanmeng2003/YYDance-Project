@@ -4424,17 +4424,60 @@
       return type + '·' + name;
     }
 
+    function getCourseStatusListOrder(status) {
+      const normalized = normalizeCourseStatus(status);
+      if (normalized === '开课中') return 0;
+      if (normalized === '已结课') return 1;
+      if (normalized === '待开课') return 2;
+      return 1;
+    }
+
+    function getCourseSeasonSortKey(season) {
+      const parsed = parseSeason(season);
+      return parsed ? parsed.sortKey : Number.MAX_SAFE_INTEGER;
+    }
+
+    function compareCourseTypeForList(a, b) {
+      const typeOrder = { '拉丁舞': 0, '摩登舞': 1 };
+      const aOrder = typeOrder[a.courseType || '摩登舞'] ?? 2;
+      const bOrder = typeOrder[b.courseType || '摩登舞'] ?? 2;
+      return aOrder - bOrder;
+    }
+
+    function getEarliestWeekdayIndex(weekdays) {
+      if (!weekdays || !weekdays.length) return 99;
+      return Math.min(...weekdays.map(day => {
+        const index = WEEKDAY_ORDER.indexOf(day);
+        return index >= 0 ? index : 99;
+      }));
+    }
+
+    function compareCourseScheduleTime(a, b) {
+      const startDiff = timeToMinutes(a.startTime) - timeToMinutes(b.startTime);
+      if (startDiff !== 0) return startDiff;
+
+      const weekdayDiff = getEarliestWeekdayIndex(a.weekdays) - getEarliestWeekdayIndex(b.weekdays);
+      if (weekdayDiff !== 0) return weekdayDiff;
+
+      return timeToMinutes(a.endTime) - timeToMinutes(b.endTime);
+    }
+
     function sortCoursesForList(courses) {
       return [...courses].sort((a, b) => {
-        const aActive = isActiveCourse(a);
-        const bActive = isActiveCourse(b);
-        if (aActive !== bActive) return aActive ? -1 : 1;
-        if (!aActive && !bActive) return 0;
+        const statusDiff = getCourseStatusListOrder(a.status) - getCourseStatusListOrder(b.status);
+        if (statusDiff !== 0) return statusDiff;
 
-        const aLarge = isLargeClassCourse(a.classSize);
-        const bLarge = isLargeClassCourse(b.classSize);
-        if (aLarge === bLarge) return 0;
-        return aLarge ? -1 : 1;
+        if (normalizeCourseStatus(a.status) === '待开课') {
+          return compareCourseScheduleTime(a, b);
+        }
+
+        const seasonDiff = getCourseSeasonSortKey(a.season) - getCourseSeasonSortKey(b.season);
+        if (seasonDiff !== 0) return seasonDiff;
+
+        const typeDiff = compareCourseTypeForList(a, b);
+        if (typeDiff !== 0) return typeDiff;
+
+        return compareCourseScheduleTime(a, b);
       });
     }
 
