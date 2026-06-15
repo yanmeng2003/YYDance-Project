@@ -651,6 +651,23 @@
       border-top: 0.5px solid var(--border);
     }
 
+    .form-actions-edit--inline {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .form-actions-edit--inline .form-actions-delete {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .form-actions-edit--inline .form-actions-row {
+      margin-left: auto;
+      justify-content: flex-end;
+    }
+
     .btn-sm {
       padding: 7px 14px;
       font-size: 0.8125rem;
@@ -1873,31 +1890,8 @@
       min-width: 0;
     }
 
-    .student-detail-edit-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    .detail-page-title-row .btn-outline {
       flex-shrink: 0;
-      padding: 10px 18px;
-      border: none;
-      border-radius: var(--radius-sm);
-      background: var(--secondary-bg);
-      color: #524B63;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      box-shadow: none;
-    }
-
-    .student-detail-edit-btn.is-editing {
-      background: var(--secondary-bg);
-      color: var(--text-muted);
-      box-shadow: none;
-    }
-
-    .student-detail-edit-btn:active {
-      opacity: 0.85;
     }
 
     .course-detail-consume-btn {
@@ -1925,13 +1919,13 @@
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      gap: 10px;
+      gap: 18px;
       width: 100%;
     }
 
     .course-detail-edit-btn {
       align-self: flex-start;
-      margin-left: 2px;
+      margin-top: 4px;
     }
 
     .detail-page-card {
@@ -2553,13 +2547,13 @@
               </select>
             </div>
           </div>
-          <div class="form-actions-edit">
-            <div class="form-actions-row">
-              <button type="submit" class="btn btn-primary">保存</button>
-              <button type="button" class="btn btn-outline" data-detail-back="detail-course-edit">取消</button>
-            </div>
+          <div class="form-actions-edit form-actions-edit--inline">
             <div class="form-actions-delete">
               <button type="button" class="btn btn-danger" id="btn-delete-course">删除课程</button>
+            </div>
+            <div class="form-actions-row">
+              <button type="button" class="btn btn-outline" data-detail-back="detail-course-edit">取消</button>
+              <button type="submit" class="btn btn-primary">保存</button>
             </div>
           </div>
         </form>
@@ -2748,7 +2742,7 @@
     <div class="detail-page-inner">
       <div class="detail-page-title-row">
         <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
-        <button type="button" class="student-detail-edit-btn" id="btn-student-detail-edit">编辑</button>
+        <button type="button" class="btn btn-outline" id="btn-student-detail-edit">编辑</button>
       </div>
       <div class="list-card detail-page-card detail-page-card--student">
         <div class="detail-page-body" id="student-detail-body"></div>
@@ -4100,7 +4094,6 @@
       const btn = document.getElementById('btn-student-detail-edit');
       if (!btn) return;
       btn.textContent = label;
-      btn.classList.toggle('is-editing', label === '取消');
     }
 
     function exitStudentDetailEditMode() {
@@ -4474,7 +4467,7 @@
               ${listHtml}
             </div>
           </div>
-          <button type="button" class="student-detail-edit-btn course-detail-edit-btn" id="btn-course-detail-edit">编辑</button>
+          <button type="button" class="btn btn-outline course-detail-edit-btn" id="btn-course-detail-edit">编辑</button>
         </div>
       `;
     }
