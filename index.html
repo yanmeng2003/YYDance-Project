@@ -1900,6 +1900,38 @@
       opacity: 0.85;
     }
 
+    .course-detail-consume-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 10px 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: #e67e22;
+      color: #fff;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(230, 126, 34, 0.28);
+    }
+
+    .course-detail-consume-btn:active {
+      opacity: 0.85;
+    }
+
+    .course-detail-students-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .course-detail-edit-btn {
+      margin-left: 2px;
+    }
+
     .detail-page-card {
       padding: 20px 24px 24px;
     }
@@ -2736,7 +2768,7 @@
     <div class="detail-page-inner">
       <div class="detail-page-title-row">
         <h2 class="detail-page-title" id="course-detail-title">课程详情</h2>
-        <button type="button" class="student-detail-edit-btn" id="btn-course-detail-edit">编辑</button>
+        <button type="button" class="course-detail-consume-btn" id="btn-course-detail-consume">消课</button>
       </div>
       <div class="detail-page-body detail-page-body--course" id="course-detail-body"></div>
     </div>
@@ -4426,17 +4458,20 @@
           `).join('') + '</ul>';
 
       return `
-        <div class="course-detail-panel course-detail-students">
-          <div class="detail-section">
-            <div class="detail-section-header">
-              <h4>学员名单</h4>
-              <div class="detail-section-actions">
-                <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(courseId)}">批量消课</button>
-                <button type="button" class="btn btn-outline btn-sm" id="btn-add-course-student" data-course-id="${escapeHtml(courseId)}">添加学员</button>
+        <div class="course-detail-students-block">
+          <div class="course-detail-panel course-detail-students">
+            <div class="detail-section">
+              <div class="detail-section-header">
+                <h4>学员名单</h4>
+                <div class="detail-section-actions">
+                  <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(courseId)}">批量消课</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btn-add-course-student" data-course-id="${escapeHtml(courseId)}">添加学员</button>
+                </div>
               </div>
+              ${listHtml}
             </div>
-            ${listHtml}
           </div>
+          <button type="button" class="student-detail-edit-btn course-detail-edit-btn" id="btn-course-detail-edit">编辑</button>
         </div>
       `;
     }
@@ -4456,6 +4491,11 @@
       const addBtn = root.querySelector('#btn-add-course-student');
       if (addBtn) {
         addBtn.addEventListener('click', () => openAddCourseStudentModal(courseId, enrollments));
+      }
+
+      const editBtn = root.querySelector('#btn-course-detail-edit');
+      if (editBtn) {
+        editBtn.addEventListener('click', openCourseEditFromDetail);
       }
     }
 
@@ -4946,7 +4986,9 @@
       document.getElementById('btn-student-detail-save').addEventListener('click', saveStudentDetailEdit);
       document.getElementById('btn-student-detail-delete').addEventListener('click', deleteStudentDetailStudent);
       document.getElementById('btn-student-detail-edit').addEventListener('click', toggleStudentDetailEditMode);
-      document.getElementById('btn-course-detail-edit').addEventListener('click', openCourseEditFromDetail);
+      document.getElementById('btn-course-detail-consume').addEventListener('click', () => {
+        if (currentCourseDetailId) openBulkConsumeModal(currentCourseDetailId);
+      });
 
       document.getElementById('fab-add-course').addEventListener('click', () => {
         openAddCoursePage();
