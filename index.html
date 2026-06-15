@@ -3887,6 +3887,13 @@
       return formatTime(start) + ' - ' + formatTime(end);
     }
 
+    function formatCompactTimeRange(start, end) {
+      const startStr = formatTime(start);
+      const endStr = formatTime(end);
+      if (startStr && endStr) return startStr + '-' + endStr;
+      return startStr || endStr || '';
+    }
+
     function formatWeekdays(days) {
       if (!days || !days.length) return '—';
       return [...days].sort((a, b) => WEEKDAY_ORDER.indexOf(a) - WEEKDAY_ORDER.indexOf(b)).join('、');
@@ -4191,7 +4198,7 @@
         22
       );
       const colors = getCourseColor(course, colorMap);
-      const timeLabel = formatTimeRange(course.startTime, course.endTime);
+      const timeLabel = formatCompactTimeRange(course.startTime, course.endTime);
       const typeLabel = course.courseType || '摩登舞';
       const classLabel = course.name || '';
       const smallClass = course.classSize === '小课' ? ' week-event-small' : '';
