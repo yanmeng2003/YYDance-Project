@@ -1501,7 +1501,7 @@
       font-size: 0.72rem;
       line-height: 1.35;
       overflow: hidden;
-      border: 1px solid;
+      border: none;
       pointer-events: auto;
       cursor: pointer;
       box-shadow: none;
@@ -3945,7 +3945,7 @@
 
       return `
         <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
-          style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};border-color:${colors.text};color:${colors.text}"
+          style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};color:${colors.text}"
           title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(timeLabel)}">
           <span class="week-event-type">${escapeHtml(typeLabel)}</span>
           <span class="week-event-class">${escapeHtml(classLabel)}</span>
