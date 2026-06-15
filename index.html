@@ -1419,6 +1419,62 @@
       opacity: 0.5;
     }
 
+    .week-view-legend {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 14px;
+      margin-top: 12px;
+      padding: 0 2px 4px;
+    }
+
+    .week-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .week-legend-swatch {
+      width: 18px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .week-legend-swatch--small-class {
+      background: #f4f2f6;
+      border-color: #4a3f52;
+    }
+
+    .week-legend-corner {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 8px 8px;
+      border-color: transparent transparent #d4af37 transparent;
+      pointer-events: none;
+    }
+
+    .week-legend-label {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    .week-legend-divider {
+      width: 1px;
+      height: 12px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
     /* Modal */
     .modal-overlay {
       display: none;
@@ -3289,6 +3345,55 @@
       return String(day || '').replace(/^周/, '');
     }
 
+    function getWeekViewLegendTeachers(activeCourses, colorMap) {
+      const teacherMap = new Map();
+
+      WEEKDAY_ORDER.forEach(day => {
+        collectWeekDayEvents(activeCourses, day).forEach(event => {
+          const course = event.course;
+          const id = course.teacherId || '__unassigned__';
+          if (teacherMap.has(id)) return;
+
+          teacherMap.set(id, {
+            id,
+            name: course.teacherName || '未分配',
+            colors: getCourseColor(course, colorMap)
+          });
+        });
+      });
+
+      return Array.from(teacherMap.values()).sort((a, b) => {
+        if (a.id === '__unassigned__') return 1;
+        if (b.id === '__unassigned__') return -1;
+        return a.name.localeCompare(b.name, 'zh-CN');
+      });
+    }
+
+    function renderWeekViewLegendHtml(activeCourses, colorMap) {
+      const teachers = getWeekViewLegendTeachers(activeCourses, colorMap);
+      if (!teachers.length) return '';
+
+      const teacherItems = teachers.map(entry => `
+        <span class="week-legend-item">
+          <span class="week-legend-swatch" style="background:${entry.colors.bg};border-color:${entry.colors.text};"></span>
+          <span class="week-legend-label">${escapeHtml(entry.name)}</span>
+        </span>
+      `).join('');
+
+      return `
+        <div class="week-view-legend" aria-label="周视图图注">
+          ${teacherItems}
+          <span class="week-legend-divider" aria-hidden="true"></span>
+          <span class="week-legend-item">
+            <span class="week-legend-swatch week-legend-swatch--small-class">
+              <span class="week-legend-corner" aria-hidden="true"></span>
+            </span>
+            <span class="week-legend-label">小课</span>
+          </span>
+        </div>
+      `;
+    }
+
     function switchCoursesTab(tab) {
       coursesViewTab = tab;
       document.querySelectorAll('.courses-tab').forEach(btn => {
@@ -3524,6 +3629,8 @@
         `<div class="week-day-head">${formatWeekDayHead(d)}</div>`
       ).join('');
 
+      const legendHtml = renderWeekViewLegendHtml(activeCourses, colorMap);
+
       container.innerHTML = `
         <div class="week-view-scroll">
           <div class="week-view-scaler">
@@ -3539,6 +3646,7 @@
             </div>
           </div>
         </div>
+        ${legendHtml}
       `;
 
       container.querySelectorAll('.week-event').forEach(el => {
