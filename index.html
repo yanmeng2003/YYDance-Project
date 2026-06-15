@@ -2871,6 +2871,8 @@
     let currentCourseDetailId = null;
     let studentDetailData = { records: [], courses: [] };
 
+    const DETAIL_PAGE_BASE_Z_INDEX = 200;
+
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
 
@@ -3896,6 +3898,15 @@
       document.body.classList.toggle('detail-page-open', detailVisible);
     }
 
+    function getTopDetailPageZIndex() {
+      let top = DETAIL_PAGE_BASE_Z_INDEX;
+      document.querySelectorAll('.detail-page.is-visible').forEach(page => {
+        const value = parseInt(page.style.zIndex, 10);
+        if (!Number.isNaN(value) && value > top) top = value;
+      });
+      return top;
+    }
+
     function openDetailPage(pageId) {
       const page = document.getElementById(pageId);
       if (!page) return;
@@ -3903,6 +3914,7 @@
       const inner = page.querySelector('.detail-page-inner');
       if (inner) inner.scrollTop = 0;
 
+      page.style.zIndex = String(getTopDetailPageZIndex() + 1);
       page.classList.add('is-visible');
       page.setAttribute('aria-hidden', 'false');
       updateDetailPageScrollLock();
@@ -3931,6 +3943,7 @@
 
       const finishClose = () => {
         page.classList.remove('is-visible');
+        page.style.zIndex = '';
         updateDetailPageScrollLock();
       };
 
@@ -3954,6 +3967,7 @@
         const page = document.getElementById(id);
         if (!page) return;
         page.classList.remove('is-open', 'is-visible');
+        page.style.zIndex = '';
         page.setAttribute('aria-hidden', 'true');
       });
       exitStudentDetailEditMode();
