@@ -750,15 +750,17 @@
 
     .student-detail-info {
       display: grid;
-      gap: 14px;
-      padding-bottom: 20px;
+      gap: 22px;
+      padding-bottom: 24px;
       border-bottom: 0.5px solid var(--border);
     }
 
     .student-detail-row {
       display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 16px;
+      min-height: 40px;
       font-size: 1rem;
     }
 
@@ -766,6 +768,7 @@
       color: var(--text-muted);
       flex-shrink: 0;
       font-size: 0.9375rem;
+      line-height: 40px;
     }
 
     .student-detail-row .value {
@@ -773,21 +776,27 @@
       text-align: right;
       word-break: break-all;
       font-weight: 500;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
     }
 
     .student-detail-input {
       flex: 1;
       max-width: 220px;
       margin-left: auto;
-      padding: 8px 12px;
+      height: 40px;
+      padding: 0 12px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       background: #fff;
       font-size: 0.9375rem;
       font-family: inherit;
       color: var(--text);
       text-align: right;
       outline: none;
+      box-sizing: border-box;
     }
 
     .student-detail-input:focus {
@@ -1125,26 +1134,6 @@
       font-size: 1.75rem;
       line-height: 1;
       justify-content: center;
-    }
-
-    .fab-student-detail-save,
-    .fab-student-detail-delete {
-      z-index: 520;
-    }
-
-    .fab-student-detail-save {
-      bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-    }
-
-    .fab-student-detail-delete {
-      bottom: calc(160px + env(safe-area-inset-bottom, 0px));
-      background: rgba(255, 59, 48, 0.1);
-      color: #FF3B30;
-      box-shadow: 0 4px 16px rgba(255, 59, 48, 0.15);
-    }
-
-    .fab-student-detail-delete:active {
-      opacity: 0.85;
     }
 
     .weekday-options {
@@ -1530,14 +1519,6 @@
         bottom: calc(92px + env(safe-area-inset-bottom, 0px));
       }
 
-      .fab-student-detail-save {
-        bottom: calc(92px + env(safe-area-inset-bottom, 0px));
-      }
-
-      .fab-student-detail-delete {
-        bottom: calc(156px + env(safe-area-inset-bottom, 0px));
-      }
-
       .tab-bar {
         left: 16px;
         right: 16px;
@@ -1661,35 +1642,89 @@
       min-width: 0;
     }
 
-    .student-detail-edit-island {
+    .student-detail-edit-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      padding: 8px 18px;
+      padding: 10px 18px;
       border: none;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.92);
-      color: var(--primary-dark);
-      font-size: 0.875rem;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.8125rem;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(60, 60, 67, 0.08);
+      box-shadow: 0 4px 14px rgba(155, 89, 182, 0.28);
     }
 
-    .student-detail-edit-island.is-editing {
+    .student-detail-edit-btn.is-editing {
       background: var(--secondary-bg);
       color: var(--text-muted);
       box-shadow: none;
     }
 
-    .student-detail-edit-island:active {
-      opacity: 0.75;
+    .student-detail-edit-btn:active {
+      opacity: 0.85;
     }
 
     .detail-page-card {
       padding: 20px 24px 24px;
+    }
+
+    .detail-page-card--student {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-page-card--student.is-editing {
+      padding-bottom: 84px;
+    }
+
+    .student-detail-edit-actions {
+      display: none;
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .student-detail-edit-actions.is-visible {
+      display: flex;
+    }
+
+    .student-detail-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 22px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .student-detail-action-btn:active {
+      opacity: 0.85;
+    }
+
+    .student-detail-action-btn--primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(155, 89, 182, 0.35);
+    }
+
+    .student-detail-action-btn--danger {
+      background: rgba(255, 59, 48, 0.1);
+      color: #FF3B30;
+      box-shadow: 0 4px 16px rgba(255, 59, 48, 0.12);
     }
 
     .detail-page-body .lesson-records-list,
@@ -2001,8 +2036,6 @@
   </nav>
 
   <button type="button" class="fab" id="fab-add-student" aria-label="添加学员">+ 添加学员</button>
-  <button type="button" class="fab fab-student-detail-save" id="fab-student-detail-save" aria-label="保存学员">保存</button>
-  <button type="button" class="fab fab-student-detail-delete" id="fab-student-detail-delete" aria-label="删除学员">删除学员</button>
   <button type="button" class="fab" id="fab-add-course" aria-label="添加课程">+ 添加课程</button>
   <button type="button" class="fab" id="fab-add-teacher" aria-label="添加老师">+ 添加老师</button>
 
@@ -2369,10 +2402,14 @@
     <div class="detail-page-inner">
       <div class="detail-page-title-row">
         <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
-        <button type="button" class="student-detail-edit-island" id="btn-student-detail-edit">编辑</button>
+        <button type="button" class="student-detail-edit-btn" id="btn-student-detail-edit">编辑</button>
       </div>
-      <div class="list-card detail-page-card">
+      <div class="list-card detail-page-card detail-page-card--student">
         <div class="detail-page-body" id="student-detail-body"></div>
+        <div class="student-detail-edit-actions" id="student-detail-edit-actions">
+          <button type="button" class="student-detail-action-btn student-detail-action-btn--danger" id="btn-student-detail-delete">删除学员</button>
+          <button type="button" class="student-detail-action-btn student-detail-action-btn--primary" id="btn-student-detail-save">保存</button>
+        </div>
       </div>
     </div>
   </section>
@@ -3603,13 +3640,15 @@
       document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen);
       document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
       document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers');
-      updateStudentDetailFabVisibility();
+      updateStudentDetailEditActionsVisibility();
     }
 
-    function updateStudentDetailFabVisibility() {
+    function updateStudentDetailEditActionsVisibility() {
       const editing = studentDetailEditMode && isDetailPageOpen('detail-student');
-      document.getElementById('fab-student-detail-save').classList.toggle('visible', editing);
-      document.getElementById('fab-student-detail-delete').classList.toggle('visible', editing);
+      const actions = document.getElementById('student-detail-edit-actions');
+      const card = document.querySelector('.detail-page-card--student');
+      if (actions) actions.classList.toggle('is-visible', editing);
+      if (card) card.classList.toggle('is-editing', editing);
     }
 
     function setStudentDetailEditButtonLabel(label) {
@@ -3622,7 +3661,7 @@
     function exitStudentDetailEditMode() {
       studentDetailEditMode = false;
       setStudentDetailEditButtonLabel('编辑');
-      updateStudentDetailFabVisibility();
+      updateStudentDetailEditActionsVisibility();
     }
 
     function enterStudentDetailEditMode() {
@@ -3634,7 +3673,7 @@
       studentDetailEditMode = true;
       renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
       setStudentDetailEditButtonLabel('取消');
-      updateStudentDetailFabVisibility();
+      updateStudentDetailEditActionsVisibility();
     }
 
     function cancelStudentDetailEdit() {
@@ -4412,8 +4451,8 @@
         openModal('modal-add');
       });
 
-      document.getElementById('fab-student-detail-save').addEventListener('click', saveStudentDetailEdit);
-      document.getElementById('fab-student-detail-delete').addEventListener('click', deleteStudentDetailStudent);
+      document.getElementById('btn-student-detail-save').addEventListener('click', saveStudentDetailEdit);
+      document.getElementById('btn-student-detail-delete').addEventListener('click', deleteStudentDetailStudent);
       document.getElementById('btn-student-detail-edit').addEventListener('click', toggleStudentDetailEditMode);
 
       document.getElementById('fab-add-course').addEventListener('click', () => {
