@@ -56,7 +56,8 @@
       color: var(--text);
       display: flex;
       align-items: center;
-      padding: 0 20px;
+      gap: 10px;
+      padding: 0 16px 0 14px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.3);
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
       isolation: isolate;
@@ -73,14 +74,35 @@
       pointer-events: none;
     }
 
+    .navbar-menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--primary-dark);
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .navbar-menu-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2.25;
+    }
+
     .navbar-brand {
       font-size: 1.0625rem;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: -0.01em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: var(--text);
+      color: var(--primary-dark);
       flex: 1;
       min-width: 0;
     }
@@ -331,6 +353,99 @@
       flex: 1;
       font-weight: 700;
       letter-spacing: -0.02em;
+    }
+
+    .students-page-head {
+      margin-bottom: 20px;
+    }
+
+    .students-page-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .students-page-subtitle {
+      font-size: 0.9375rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.45;
+    }
+
+    .students-search-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .students-search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .students-search-input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .students-search-input::placeholder {
+      color: #AEAEB2;
+    }
+
+    .students-search-input:focus {
+      border-color: rgba(155, 89, 182, 0.35);
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+    }
+
+    .students-filter-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--secondary-bg);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .students-filter-tab {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+
+    .students-filter-tab.active {
+      background: #fff;
+      color: var(--primary-dark);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .students-list-card {
+      padding-top: 4px;
     }
 
     .btn {
@@ -1687,6 +1802,9 @@
 
   <div id="app-shell" class="app-shell">
   <nav class="navbar">
+    <span class="navbar-menu-btn" aria-hidden="true">
+      <i data-lucide="menu"></i>
+    </span>
     <span class="navbar-brand">耀毅国标舞工作室</span>
     <button type="button" class="navbar-logout-btn" id="btn-logout" aria-label="退出登录">
       <i data-lucide="log-out"></i>
@@ -1696,15 +1814,23 @@
   <main class="container">
     <!-- 学员管理页 -->
     <section id="page-students" class="page">
-      <div class="page-header">
-        <h2>学员管理</h2>
+      <div class="students-page-head">
+        <h2 class="students-page-title">学员管理</h2>
+        <p class="students-page-subtitle">管理您的工作室学员及其课程进度</p>
+
+        <div class="students-search-wrap">
+          <i data-lucide="search" class="students-search-icon" aria-hidden="true"></i>
+          <input type="search" id="student-search-input" class="students-search-input" placeholder="搜索学员姓名、手机号..." autocomplete="off" enterkeyhint="search">
+        </div>
+
+        <div class="students-filter-tabs" role="tablist" aria-label="学员筛选">
+          <button type="button" class="students-filter-tab active" data-student-filter="all" role="tab" aria-selected="true">全部</button>
+          <button type="button" class="students-filter-tab" data-student-filter="renewal" role="tab" aria-selected="false">待续报</button>
+        </div>
       </div>
 
-      <div class="list-card">
-        <h3>
-          学员列表
-          <span class="student-count" id="student-count">共 0 人</span>
-        </h3>
+      <div class="list-card students-list-card">
+        <span class="student-count" id="student-count" hidden>共 0 人</span>
         <div id="empty-state" class="empty-state">
           <div class="icon">📋</div>
           <p>暂无学员，点击右下角添加</p>
@@ -2343,6 +2469,8 @@
     let teachersCache = [];
     let studentsRenewalSet = new Set();
     let studentSeasonsMap = new Map();
+    let studentListFilter = 'all';
+    let studentSearchQuery = '';
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -3391,7 +3519,25 @@
       }
     }
 
-    function renderStudentListUI(students) {
+    function getFilteredStudents() {
+      let list = studentsCache;
+
+      if (studentListFilter === 'renewal') {
+        list = list.filter(s => studentNeedsRenewalById(s.id));
+      }
+
+      const query = studentSearchQuery.trim().toLowerCase();
+      if (!query) return list;
+
+      return list.filter(s => {
+        const name = (s.name || '').toLowerCase();
+        const phone = (s.phone || '').trim();
+        return name.includes(query) || phone.includes(query);
+      });
+    }
+
+    function renderStudentListUI() {
+      const students = getFilteredStudents();
       const countEl = document.getElementById('student-count');
       const emptyEl = document.getElementById('empty-state');
       const listEl = document.getElementById('student-list');
@@ -3402,6 +3548,12 @@
       if (sortedStudents.length === 0) {
         emptyEl.style.display = 'block';
         listEl.style.display = 'none';
+        const emptyText = emptyEl.querySelector('p');
+        if (emptyText) {
+          emptyText.textContent = studentSearchQuery.trim() || studentListFilter === 'renewal'
+            ? '没有匹配的学员'
+            : '暂无学员，点击右下角添加';
+        }
         return;
       }
 
@@ -3475,7 +3627,7 @@
     async function refreshStudentDetailModal(studentId) {
       await refreshStudentTagsData();
       if (document.getElementById('page-students').classList.contains('active')) {
-        renderStudentListUI(studentsCache);
+        renderStudentListUI();
       }
       if (isDetailPageOpen('detail-student')) {
         await openStudentDetailModal(studentId);
@@ -3862,7 +4014,7 @@
       try {
         studentsCache = await fetchStudents();
         await refreshStudentTagsData();
-        renderStudentListUI(studentsCache);
+        renderStudentListUI();
       } catch (err) {
         console.error(err);
         showToast('加载学员失败，请检查网络或数据库配置');
@@ -4063,6 +4215,26 @@
 
       document.querySelectorAll('.tab-bar-item').forEach(tab => {
         tab.addEventListener('click', () => navigateTo(tab.dataset.page));
+      });
+
+      const studentSearchInput = document.getElementById('student-search-input');
+      if (studentSearchInput) {
+        studentSearchInput.addEventListener('input', (e) => {
+          studentSearchQuery = e.target.value;
+          renderStudentListUI();
+        });
+      }
+
+      document.querySelectorAll('.students-filter-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          studentListFilter = btn.dataset.studentFilter || 'all';
+          document.querySelectorAll('.students-filter-tab').forEach(tab => {
+            const isActive = tab === btn;
+            tab.classList.toggle('active', isActive);
+            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+          });
+          renderStudentListUI();
+        });
       });
 
       document.getElementById('fab-add-student').addEventListener('click', () => {
