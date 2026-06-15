@@ -505,17 +505,33 @@
     }
 
     .student-island-phone {
-      display: block;
+      display: flex;
+      align-items: center;
       min-height: 18px;
       line-height: 18px;
       font-size: 0.8125rem;
       color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.01em;
+      font-feature-settings: "tnum" 1;
+      letter-spacing: 0;
     }
 
     .student-island-phone:empty::before {
       content: '\00a0';
+    }
+
+    .phone-digit {
+      display: inline-block;
+      width: 0.62em;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .phone-digit-gap {
+      display: inline-block;
+      width: 0.38em;
+      flex-shrink: 0;
     }
 
     .student-island-chevron {
@@ -4046,7 +4062,7 @@
                 ${seasonBadgesHtml(s.id)}
                 ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
               </span>
-              <span class="student-island-phone">${phone ? escapeHtml(phone) : ''}</span>
+              <span class="student-island-phone">${formatPhoneDigitsHtml(phone)}</span>
             </div>
             <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
           </div>
@@ -4735,6 +4751,21 @@
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
+    }
+
+    function formatPhoneDigitsHtml(phone) {
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (!digits) return '';
+
+      const groups = digits.length === 11
+        ? [digits.slice(0, 3), digits.slice(3, 7), digits.slice(7, 11)]
+        : [digits];
+
+      return groups.map((group, index) => {
+        const gap = index > 0 ? '<span class="phone-digit-gap" aria-hidden="true"></span>' : '';
+        const digitSpans = group.split('').map(digit => `<span class="phone-digit">${escapeHtml(digit)}</span>`).join('');
+        return gap + digitSpans;
+      }).join('');
     }
 
     function bindEvents() {
