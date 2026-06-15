@@ -1973,7 +1973,7 @@
       gap: 12px;
     }
 
-    .student-detail-info-block {
+    .student-detail-records-block {
       display: flex;
       flex-direction: column;
       align-items: stretch;
@@ -1995,7 +1995,7 @@
     }
 
     .student-detail-panel .detail-section-header {
-      margin: 0 0 10px;
+      margin: 0 0 18px;
     }
 
     .student-detail-panel .detail-section-header h4,
@@ -2006,6 +2006,11 @@
       letter-spacing: -0.01em;
       margin: 0;
       font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .student-detail-records-section > h4 {
+      margin-bottom: 18px;
     }
 
     .student-detail-panel .detail-section-empty,
@@ -2058,13 +2063,25 @@
       font-size: 0.9375rem;
     }
 
-    .course-detail-info .student-detail-row:has(.student-detail-input) {
+    .student-detail-info-panel .course-detail-info .student-detail-row {
       min-height: 40px;
-      padding: 8px 0;
+      padding: 10px 0;
     }
 
-    .course-detail-info .student-detail-row:has(.student-detail-input) .label {
+    .student-detail-info-panel .course-detail-info .student-detail-row:first-child {
+      padding-top: 0;
+    }
+
+    .student-detail-info-panel .course-detail-info .student-detail-row:last-child {
+      padding-bottom: 0;
+    }
+
+    .student-detail-info-panel .course-detail-info .student-detail-row .label {
       line-height: 40px;
+    }
+
+    .student-detail-info-panel .course-detail-info .student-detail-row .value {
+      min-height: 40px;
     }
 
     .course-detail-students .detail-section-header {
@@ -4356,14 +4373,26 @@
     }
 
     function renderStudentDetailInfoBlockHtml(student) {
-      const infoHtml = renderStudentDetailInfoHtml(student);
+      return `<div class="course-detail-panel student-detail-info-panel">${renderStudentDetailInfoHtml(student)}</div>`;
+    }
+
+    function renderStudentDetailRecordsBlockHtml(recordsHtml) {
+      const panelHtml = `
+        <div class="course-detail-panel student-detail-panel">
+          <div class="detail-section student-detail-records-section">
+            <h4>上课记录</h4>
+            ${recordsHtml}
+          </div>
+        </div>
+      `;
+
       if (!studentDetailEditMode) {
-        return `<div class="course-detail-panel">${infoHtml}</div>`;
+        return panelHtml;
       }
 
       return `
-        <div class="student-detail-info-block">
-          <div class="course-detail-panel">${infoHtml}</div>
+        <div class="student-detail-records-block">
+          ${panelHtml}
           ${renderStudentDetailEditActionsHtml()}
         </div>
       `;
@@ -4422,12 +4451,7 @@
             ${coursesListHtml}
           </div>
         </div>
-        <div class="course-detail-panel student-detail-panel">
-          <div class="detail-section student-detail-records-section">
-            <h4>上课记录</h4>
-            ${recordsHtml}
-          </div>
-        </div>
+        ${renderStudentDetailRecordsBlockHtml(recordsHtml)}
       `;
 
       const addCourseBtn = document.getElementById('btn-add-student-course');
