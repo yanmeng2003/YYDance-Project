@@ -2012,33 +2012,43 @@
 
     .student-detail-panel .detail-section-header.student-detail-section-head,
     .course-detail-students .detail-section-header.student-detail-section-head {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      column-gap: 12px;
-      align-items: start;
-      margin: 0 0 12px;
-      padding: 8px 0 0;
+      position: relative;
+      margin: 0;
+      padding: 8px 0 12px;
     }
 
     .student-detail-panel .student-detail-section-head h4,
     .course-detail-students .detail-section-header.student-detail-section-head h4 {
-      grid-column: 1;
-      grid-row: 1;
-      align-self: start;
+      margin: 0;
       font-size: 0.8125rem;
       color: var(--text-muted);
       text-transform: none;
       letter-spacing: 0.01em;
-      margin: 0;
       font-weight: 500;
       line-height: 1.45;
     }
 
+    .student-detail-panel .student-detail-section-head:has(.detail-section-actions) h4,
+    .course-detail-students .detail-section-header.student-detail-section-head:has(.detail-section-actions) h4 {
+      padding-right: 88px;
+    }
+
     .student-detail-panel .student-detail-section-head .detail-section-actions,
     .course-detail-students .detail-section-header.student-detail-section-head .detail-section-actions {
-      grid-column: 2;
-      grid-row: 1;
-      align-self: center;
+      position: absolute;
+      top: 8px;
+      right: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .student-detail-panel .detail-section-list li {
+      padding: 12px 0;
+    }
+
+    .student-detail-panel .detail-section-list li:first-child,
+    .student-detail-panel .lesson-records-list .lesson-record-item:first-child {
+      padding-top: 0;
     }
 
     .student-detail-records-section {
@@ -2116,8 +2126,7 @@
     }
 
     .course-detail-students .detail-section-header.student-detail-section-head {
-      margin: 0 0 12px;
-      padding: 8px 0 0;
+      padding: 8px 0 12px;
     }
 
     .course-detail-students .detail-section-empty {
