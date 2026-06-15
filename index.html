@@ -51,25 +51,9 @@
       touch-action: manipulation;
     }
 
+    html.detail-page-open,
     body.detail-page-open {
       overflow: hidden;
-      position: fixed;
-      width: 100%;
-      left: 0;
-      right: 0;
-    }
-
-    body.detail-page-open .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 210;
-      background: rgba(255, 255, 255, 0.96);
-    }
-
-    body.detail-page-open .navbar-logout-btn {
-      display: none;
     }
 
     /* Navigation */
@@ -1645,14 +1629,11 @@
     /* Detail push pages */
     .detail-page {
       position: fixed;
-      top: var(--nav-height);
-      left: 0;
-      right: 0;
-      bottom: calc(var(--tab-bar-height) + 28px + env(safe-area-inset-bottom, 0px));
-      z-index: 115;
+      inset: 0;
+      z-index: 200;
       background: var(--bg);
-      transform: translateX(100%);
-      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      transform: translate3d(100%, 0, 0);
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
       overflow: hidden;
       overscroll-behavior: none;
       display: none;
@@ -1664,7 +1645,49 @@
     }
 
     .detail-page.is-open {
-      transform: translateX(0);
+      transform: translate3d(0, 0, 0);
+    }
+
+    .detail-page-navbar {
+      flex-shrink: 0;
+      height: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
+      padding-top: env(safe-area-inset-top, 0px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 14px;
+      padding-right: 16px;
+      background: #fff;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .detail-page-navbar-menu {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      color: var(--primary-dark);
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .detail-page-navbar-menu svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2.25;
+    }
+
+    .detail-page-navbar-brand {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--primary-dark);
+      flex: 1;
+      min-width: 0;
     }
 
     .detail-page-inner {
@@ -2155,6 +2178,10 @@
 
   <!-- 添加课程页（推入） -->
   <section class="detail-page" id="detail-course-add" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
     <div class="detail-page-nav">
       <button type="button" class="detail-back-btn" data-detail-back="detail-course-add" aria-label="返回">← 返回</button>
     </div>
@@ -2231,6 +2258,10 @@
 
   <!-- 编辑课程页（推入） -->
   <section class="detail-page" id="detail-course-edit" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
     <div class="detail-page-nav">
       <button type="button" class="detail-back-btn" data-detail-back="detail-course-edit" aria-label="返回">← 返回</button>
     </div>
@@ -2482,6 +2513,10 @@
 
   <!-- 学员详情页（推入） -->
   <section class="detail-page" id="detail-student" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
     <div class="detail-page-nav">
       <button type="button" class="detail-back-btn" data-detail-back="detail-student" aria-label="返回学员列表">← 返回</button>
     </div>
@@ -2502,6 +2537,10 @@
 
   <!-- 课程详情页（推入） -->
   <section class="detail-page" id="detail-course" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
     <div class="detail-page-nav">
       <button type="button" class="detail-back-btn" data-detail-back="detail-course" aria-label="返回课程列表">← 返回</button>
     </div>
@@ -2515,6 +2554,10 @@
 
   <!-- 老师详情页（推入） -->
   <section class="detail-page" id="detail-teacher" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
     <div class="detail-page-nav">
       <button type="button" class="detail-back-btn" data-detail-back="detail-teacher" aria-label="返回老师列表">← 返回</button>
     </div>
@@ -2698,7 +2741,6 @@
     let studentDetailEditMode = false;
     let currentStudentDetailId = null;
     let studentDetailData = { records: [], courses: [] };
-    let detailPageScrollLockY = 0;
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -3720,22 +3762,9 @@
     }
 
     function updateDetailPageScrollLock() {
-      const detailOpen = document.querySelector('.detail-page.is-open');
-      if (detailOpen) {
-        if (!document.body.classList.contains('detail-page-open')) {
-          detailPageScrollLockY = window.scrollY || window.pageYOffset || 0;
-          document.body.classList.add('detail-page-open');
-          document.body.style.top = `-${detailPageScrollLockY}px`;
-        }
-        return;
-      }
-
-      if (document.body.classList.contains('detail-page-open')) {
-        document.body.classList.remove('detail-page-open');
-        document.body.style.top = '';
-        window.scrollTo(0, detailPageScrollLockY);
-        detailPageScrollLockY = 0;
-      }
+      const detailVisible = !!document.querySelector('.detail-page.is-visible');
+      document.documentElement.classList.toggle('detail-page-open', detailVisible);
+      document.body.classList.toggle('detail-page-open', detailVisible);
     }
 
     function openDetailPage(pageId) {
@@ -3747,11 +3776,10 @@
 
       page.classList.add('is-visible');
       page.setAttribute('aria-hidden', 'false');
+      updateDetailPageScrollLock();
+
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          page.classList.add('is-open');
-          updateDetailPageScrollLock();
-        });
+        page.classList.add('is-open');
       });
     }
 
@@ -3785,7 +3813,7 @@
           page.removeEventListener('transitionend', onTransitionEnd);
           finishClose();
         }
-      }, 400);
+      }, 320);
     }
 
     function closeAllDetailPages() {
