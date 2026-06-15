@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="耀毅国标舞">
   <link rel="apple-touch-icon" href="logo-icon.png">
@@ -29,6 +29,12 @@
       --tab-bar-height: 64px;
     }
 
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      touch-action: manipulation;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -42,6 +48,7 @@
       min-height: 100vh;
       line-height: 1.47;
       -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
     }
 
     /* Navigation */
@@ -5157,7 +5164,14 @@
       }
     }
 
+    function preventViewportZoom() {
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach(eventName => {
+        document.addEventListener(eventName, (e) => e.preventDefault(), { passive: false });
+      });
+    }
+
     function initApp() {
+      preventViewportZoom();
       bindEvents();
       initLucideIcons();
       runSplashScreen(startAdminApp);
