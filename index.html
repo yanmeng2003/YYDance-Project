@@ -51,6 +51,14 @@
       touch-action: manipulation;
     }
 
+    body.detail-page-open {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      left: 0;
+      right: 0;
+    }
+
     /* Navigation */
     .navbar {
       position: sticky;
@@ -1624,21 +1632,19 @@
     /* Detail push pages */
     .detail-page {
       position: fixed;
-      top: var(--nav-height);
-      left: 0;
-      right: 0;
-      bottom: calc(var(--tab-bar-height) + 28px + env(safe-area-inset-bottom, 0px));
-      z-index: 115;
+      inset: 0;
+      z-index: 200;
       background: var(--bg);
       transform: translateX(100%);
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
+      overscroll-behavior: none;
       display: none;
+      flex-direction: column;
     }
 
     .detail-page.is-visible {
-      display: block;
+      display: flex;
     }
 
     .detail-page.is-open {
@@ -1646,15 +1652,23 @@
     }
 
     .detail-page-inner {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
       max-width: 960px;
+      width: 100%;
       margin: 0 auto;
-      padding: 8px 20px 32px;
+      padding: 8px 20px calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
     .detail-page-nav {
+      flex-shrink: 0;
       max-width: 960px;
+      width: 100%;
       margin: 0 auto;
-      padding: 12px 20px 0;
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 20px 0;
     }
 
     .detail-back-btn {
@@ -2668,6 +2682,7 @@
     let studentDetailEditMode = false;
     let currentStudentDetailId = null;
     let studentDetailData = { records: [], courses: [] };
+    let detailPageScrollLockY = 0;
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -3688,14 +3703,39 @@
       document.body.style.overflow = '';
     }
 
+    function updateDetailPageScrollLock() {
+      const detailOpen = document.querySelector('.detail-page.is-open');
+      if (detailOpen) {
+        if (!document.body.classList.contains('detail-page-open')) {
+          detailPageScrollLockY = window.scrollY || window.pageYOffset || 0;
+          document.body.classList.add('detail-page-open');
+          document.body.style.top = `-${detailPageScrollLockY}px`;
+        }
+        return;
+      }
+
+      if (document.body.classList.contains('detail-page-open')) {
+        document.body.classList.remove('detail-page-open');
+        document.body.style.top = '';
+        window.scrollTo(0, detailPageScrollLockY);
+        detailPageScrollLockY = 0;
+      }
+    }
+
     function openDetailPage(pageId) {
       const page = document.getElementById(pageId);
       if (!page) return;
 
+      const inner = page.querySelector('.detail-page-inner');
+      if (inner) inner.scrollTop = 0;
+
       page.classList.add('is-visible');
       page.setAttribute('aria-hidden', 'false');
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => page.classList.add('is-open'));
+        requestAnimationFrame(() => {
+          page.classList.add('is-open');
+          updateDetailPageScrollLock();
+        });
       });
     }
 
@@ -3714,6 +3754,7 @@
 
       const finishClose = () => {
         page.classList.remove('is-visible');
+        updateDetailPageScrollLock();
       };
 
       const onTransitionEnd = (e) => {
@@ -3738,6 +3779,7 @@
         page.classList.remove('is-open', 'is-visible');
         page.setAttribute('aria-hidden', 'true');
       });
+      updateDetailPageScrollLock();
     }
 
     function isDetailPageOpen(pageId) {
