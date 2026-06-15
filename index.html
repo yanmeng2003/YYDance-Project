@@ -484,34 +484,38 @@
       justify-content: space-between;
       gap: 12px;
       width: 100%;
+      min-height: 78px;
       padding: 16px 18px;
       border: none;
       background: transparent;
       text-align: left;
       font-family: inherit;
       cursor: pointer;
+      box-sizing: border-box;
     }
 
     .student-island-main {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      justify-content: center;
+      gap: 6px;
       flex: 1;
       min-width: 0;
-    }
-
-    .student-island-tags {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 6px;
+      min-height: 44px;
     }
 
     .student-island-phone {
+      display: block;
+      min-height: 18px;
+      line-height: 18px;
       font-size: 0.8125rem;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.01em;
+    }
+
+    .student-island-phone:empty::before {
+      content: '\00a0';
     }
 
     .student-island-chevron {
@@ -4039,10 +4043,10 @@
             <div class="student-island-main">
               <span class="student-name-row">
                 <span class="student-name">${escapeHtml(s.name)}</span>
+                ${seasonBadgesHtml(s.id)}
                 ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
               </span>
-              <span class="student-island-tags">${seasonBadgesHtml(s.id)}</span>
-              ${phone ? `<span class="student-island-phone">${escapeHtml(phone)}</span>` : ''}
+              <span class="student-island-phone">${phone ? escapeHtml(phone) : ''}</span>
             </div>
             <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
           </div>
