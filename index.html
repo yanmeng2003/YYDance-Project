@@ -361,14 +361,7 @@
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.02em;
-      margin-bottom: 6px;
-    }
-
-    .students-page-subtitle {
-      font-size: 0.9375rem;
-      color: var(--text-muted);
       margin-bottom: 20px;
-      line-height: 1.45;
     }
 
     .students-search-wrap {
@@ -409,36 +402,6 @@
     .students-search-input:focus {
       border-color: rgba(155, 89, 182, 0.35);
       box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
-    }
-
-    .students-filter-tabs {
-      display: flex;
-      gap: 4px;
-      padding: 4px;
-      background: var(--secondary-bg);
-      border-radius: 12px;
-      margin-bottom: 20px;
-    }
-
-    .students-filter-tab {
-      flex: 1;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-    }
-
-    .students-filter-tab.active {
-      background: #fff;
-      color: var(--primary-dark);
-      font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     }
 
     .students-list-card {
@@ -2357,16 +2320,10 @@
     <section id="page-students" class="page">
       <div class="students-page-head">
         <h2 class="students-page-title">学员管理</h2>
-        <p class="students-page-subtitle">管理您的工作室学员及其课程进度</p>
 
         <div class="students-search-wrap">
           <i data-lucide="search" class="students-search-icon" aria-hidden="true"></i>
           <input type="search" id="student-search-input" class="students-search-input" placeholder="搜索学员姓名、手机号..." autocomplete="off" enterkeyhint="search">
-        </div>
-
-        <div class="students-filter-tabs" role="tablist" aria-label="学员筛选">
-          <button type="button" class="students-filter-tab active" data-student-filter="all" role="tab" aria-selected="true">全部</button>
-          <button type="button" class="students-filter-tab" data-student-filter="renewal" role="tab" aria-selected="false">待续报</button>
         </div>
       </div>
 
@@ -3035,7 +2992,6 @@
     let teachersCache = [];
     let studentsRenewalSet = new Set();
     let studentSeasonsMap = new Map();
-    let studentListFilter = 'all';
     let studentSearchQuery = '';
     let studentDetailEditMode = false;
     let currentStudentDetailId = null;
@@ -4226,16 +4182,10 @@
     }
 
     function getFilteredStudents() {
-      let list = studentsCache;
-
-      if (studentListFilter === 'renewal') {
-        list = list.filter(s => studentNeedsRenewalById(s.id));
-      }
-
       const query = studentSearchQuery.trim().toLowerCase();
-      if (!query) return list;
+      if (!query) return studentsCache;
 
-      return list.filter(s => {
+      return studentsCache.filter(s => {
         const name = (s.name || '').toLowerCase();
         const phone = (s.phone || '').trim();
         return name.includes(query) || phone.includes(query);
@@ -4256,7 +4206,7 @@
         listEl.style.display = 'none';
         const emptyText = emptyEl.querySelector('p');
         if (emptyText) {
-          emptyText.textContent = studentSearchQuery.trim() || studentListFilter === 'renewal'
+          emptyText.textContent = studentSearchQuery.trim()
             ? '没有匹配的学员'
             : '暂无学员，点击右下角添加';
         }
@@ -5066,18 +5016,6 @@
           renderStudentListUI();
         });
       }
-
-      document.querySelectorAll('.students-filter-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-          studentListFilter = btn.dataset.studentFilter || 'all';
-          document.querySelectorAll('.students-filter-tab').forEach(tab => {
-            const isActive = tab === btn;
-            tab.classList.toggle('active', isActive);
-            tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
-          });
-          renderStudentListUI();
-        });
-      });
 
       document.getElementById('fab-add-student').addEventListener('click', () => {
         document.getElementById('form-add-student').reset();
