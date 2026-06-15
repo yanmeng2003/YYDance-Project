@@ -1970,7 +1970,7 @@
     .detail-page-body--student {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     .student-detail-records-block {
@@ -1994,12 +1994,24 @@
       display: flex;
     }
 
-    .student-detail-panel .detail-section-header {
-      margin: 0 0 18px;
+    .student-detail-panel {
+      padding: 22px 18px 24px;
     }
 
-    .student-detail-panel .detail-section-header h4,
-    .student-detail-panel .detail-section > h4 {
+    .student-detail-panel .detail-section {
+      margin: 0;
+    }
+
+    .student-detail-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 22px;
+      padding: 4px 0 8px;
+    }
+
+    .student-detail-section-head h4 {
       font-size: 0.9375rem;
       color: #524B63;
       text-transform: none;
@@ -2009,17 +2021,16 @@
       line-height: 1.5;
     }
 
-    .student-detail-records-section > h4 {
-      margin-bottom: 18px;
-    }
-
-    .student-detail-panel .detail-section-empty,
-    .student-detail-panel .lesson-records-empty {
-      padding: 8px 0 2px;
-    }
-
     .student-detail-records-section {
       margin: 0;
+    }
+
+    .student-detail-empty {
+      text-align: center;
+      padding: 28px 16px 32px;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      line-height: 1.5;
     }
 
     .course-detail-panel {
@@ -4380,7 +4391,9 @@
       const panelHtml = `
         <div class="course-detail-panel student-detail-panel">
           <div class="detail-section student-detail-records-section">
-            <h4>上课记录</h4>
+            <div class="detail-section-header student-detail-section-head">
+              <h4>上课记录</h4>
+            </div>
             ${recordsHtml}
           </div>
         </div>
@@ -4408,7 +4421,7 @@
       const leaveIdsWithMakeup = getLeaveRecordIdsWithMakeup(records || []);
 
       const coursesListHtml = !courses || courses.length === 0
-        ? '<div class="detail-section-empty">暂未加入任何课程</div>'
+        ? '<div class="student-detail-empty">暂未加入任何课程</div>'
         : '<ul class="detail-section-list">' + courses.map(c => `
             <li class="student-course-item">
               <div class="student-course-info student-course-info-clickable" role="button" tabindex="0"
@@ -4435,7 +4448,7 @@
           `).join('') + '</ul>';
 
       const recordsHtml = !records || records.length === 0
-        ? '<div class="lesson-records-empty">暂无上课记录</div>'
+        ? '<div class="student-detail-empty">暂无上课记录</div>'
         : '<ul class="lesson-records-list">' + records.map(r =>
             renderLessonRecordItemHtml(r, student, enrollmentByCourseId.get(r.courseId), leaveIdsWithMakeup)
           ).join('') + '</ul>';
@@ -4444,7 +4457,7 @@
         ${renderStudentDetailInfoBlockHtml(student)}
         <div class="course-detail-panel student-detail-panel">
           <div class="detail-section">
-            <div class="detail-section-header">
+            <div class="detail-section-header student-detail-section-head">
               <h4>所在课程</h4>
               <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
             </div>
