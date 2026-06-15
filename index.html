@@ -3545,9 +3545,37 @@
       return [...students].sort((a, b) => {
         const aRenewal = studentNeedsRenewalById(a.id);
         const bRenewal = studentNeedsRenewalById(b.id);
-        if (aRenewal === bRenewal) return 0;
-        return aRenewal ? -1 : 1;
+        if (aRenewal !== bRenewal) return aRenewal ? -1 : 1;
+        return compareBySurnamePinyin(a.name, b.name);
       });
+    }
+
+    const PINNED_TEACHER_NAME = '陈毅';
+
+    function compareBySurnamePinyin(aName, bName) {
+      const a = (aName || '').trim();
+      const b = (bName || '').trim();
+      const surnameCompare = getSurnameSortKey(a).localeCompare(getSurnameSortKey(b), 'zh-CN');
+      if (surnameCompare !== 0) return surnameCompare;
+      return a.localeCompare(b, 'zh-CN');
+    }
+
+    function getSurnameSortKey(name) {
+      const trimmed = (name || '').trim();
+      return trimmed ? trimmed.charAt(0) : '';
+    }
+
+    function sortTeachersForList(teachers) {
+      return [...teachers].sort((a, b) => {
+        const aPinned = (a.name || '').trim() === PINNED_TEACHER_NAME;
+        const bPinned = (b.name || '').trim() === PINNED_TEACHER_NAME;
+        if (aPinned !== bPinned) return aPinned ? -1 : 1;
+        return compareBySurnamePinyin(a.name, b.name);
+      });
+    }
+
+    function sortEnrollmentsByStudentName(enrollments) {
+      return [...enrollments].sort((a, b) => compareBySurnamePinyin(a.studentName, b.studentName));
     }
 
     async function addCourseStudent(courseId, studentId, remainingLessons) {
@@ -3603,8 +3631,9 @@
       }
 
       select.disabled = false;
+      const sorted = sortStudentsBySurname(available);
       select.innerHTML = '<option value="">选择学员</option>' +
-        available.map(s => `
+        sorted.map(s => `
           <option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>
         `).join('');
       return true;
@@ -3631,13 +3660,18 @@
       return true;
     }
 
+    function sortStudentsBySurname(students) {
+      return [...students].sort((a, b) => compareBySurnamePinyin(a.name, b.name));
+    }
+
     function populateTeacherSelect(selectId, selectedId) {
       const select = document.getElementById(selectId);
       if (!select) return;
 
       const current = selectedId || '';
+      const sorted = sortTeachersForList(teachersCache);
       select.innerHTML = '<option value="">请选择（可选）</option>' +
-        teachersCache.map(t => `
+        sorted.map(t => `
           <option value="${escapeHtml(t.id)}"${t.id === current ? ' selected' : ''}>${escapeHtml(t.name)}</option>
         `).join('');
     }
@@ -3759,7 +3793,10 @@
       return Array.from(teacherMap.values()).sort((a, b) => {
         if (a.id === '__unassigned__') return 1;
         if (b.id === '__unassigned__') return -1;
-        return a.name.localeCompare(b.name, 'zh-CN');
+        const aPinned = (a.name || '').trim() === PINNED_TEACHER_NAME;
+        const bPinned = (b.name || '').trim() === PINNED_TEACHER_NAME;
+        if (aPinned !== bPinned) return aPinned ? -1 : 1;
+        return compareBySurnamePinyin(a.name, b.name);
       });
     }
 
@@ -4623,9 +4660,10 @@
     }
 
     function renderCourseStudentsSection(courseId, enrollments) {
-      const listHtml = !enrollments || enrollments.length === 0
+      const sortedEnrollments = sortEnrollmentsByStudentName(enrollments || []);
+      const listHtml = !sortedEnrollments.length
         ? '<div class="detail-section-empty">暂无学员</div>'
-        : '<ul class="course-students-list">' + enrollments.map(e => `
+        : '<ul class="course-students-list">' + sortedEnrollments.map(e => `
             <li class="course-student-row">
               <span class="course-student-name">
                 <span>${escapeHtml(e.studentName)}</span>
@@ -4680,7 +4718,7 @@
       openModal('modal-bulk-consume');
 
       try {
-        const enrollments = await fetchCourseStudents(courseId);
+        const enrollments = sortEnrollmentsByStudentName(await fetchCourseStudents(courseId));
         if (!enrollments.length) {
           listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:12px 0;">暂无学员</p>';
           return;
@@ -5108,7 +5146,9 @@
       emptyEl.style.display = 'none';
       listEl.style.display = 'flex';
 
-      listEl.innerHTML = teachers.map(t => {
+      const sortedTeachers = sortTeachersForList(teachers);
+
+      listEl.innerHTML = sortedTeachers.map(t => {
         const phone = (t.phone || '').trim();
         return `
         <li class="student-island-item">
