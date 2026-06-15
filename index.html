@@ -4588,7 +4588,7 @@
               <div class="student-detail-row"><span class="label">课程规模</span><span class="value">${escapeHtml(course.classSize || '大课')}</span></div>
               ${isLargeClassCourse(course.classSize) ? `<div class="student-detail-row"><span class="label">课程季度</span><span class="value">${escapeHtml(course.season || '—')}</span></div>` : ''}
               <div class="student-detail-row"><span class="label">课程状态</span><span class="value">${escapeHtml(normalizeCourseStatus(course.status))}</span></div>
-              <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
+              <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatCourseListWeekdays(course.weekdays))}</span></div>
               <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
               <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
             </div>
