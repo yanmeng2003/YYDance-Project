@@ -2006,53 +2006,58 @@
       padding: 26px 18px 20px;
     }
 
-    .student-detail-panel .detail-section {
+    .student-detail-panel .detail-section,
+    .student-detail-section {
       margin: 0;
     }
 
-    .student-detail-panel .detail-section-header.student-detail-section-head,
-    .course-detail-students .detail-section-header.student-detail-section-head {
-      position: relative;
+    .student-detail-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 32px;
       margin: 0;
-      padding: 8px 0 12px;
+      padding: 0;
     }
 
-    .student-detail-panel .student-detail-section-head h4,
-    .course-detail-students .detail-section-header.student-detail-section-head h4 {
+    h4.student-detail-section-title {
       margin: 0;
+      padding: 0;
       font-size: 0.8125rem;
       color: var(--text-muted);
-      text-transform: none;
-      letter-spacing: 0.01em;
       font-weight: 500;
       line-height: 1.45;
+      letter-spacing: 0.01em;
+      text-transform: none;
     }
 
-    .student-detail-panel .student-detail-section-head:has(.detail-section-actions) h4,
-    .course-detail-students .detail-section-header.student-detail-section-head:has(.detail-section-actions) h4 {
-      padding-right: 88px;
-    }
-
-    .student-detail-panel .student-detail-section-head .detail-section-actions,
-    .course-detail-students .detail-section-header.student-detail-section-head .detail-section-actions {
-      position: absolute;
-      top: 8px;
-      right: 0;
+    .student-detail-section-actions {
+      flex-shrink: 0;
       display: flex;
       align-items: center;
     }
 
-    .student-detail-panel .detail-section-list li {
+    .student-detail-section-body {
+      padding-top: 12px;
+    }
+
+    .student-detail-panel .detail-section-list,
+    .student-detail-panel .lesson-records-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-height: none;
+    }
+
+    .student-detail-panel .detail-section-list li,
+    .student-detail-panel .lesson-record-item {
       padding: 12px 0;
     }
 
     .student-detail-panel .detail-section-list li:first-child,
-    .student-detail-panel .lesson-records-list .lesson-record-item:first-child {
+    .student-detail-panel .lesson-record-item:first-child {
       padding-top: 0;
-    }
-
-    .student-detail-records-section {
-      margin: 0;
     }
 
     .student-detail-empty {
@@ -4413,11 +4418,13 @@
     function renderStudentDetailRecordsBlockHtml(recordsHtml) {
       const panelHtml = `
         <div class="course-detail-panel student-detail-panel">
-          <div class="detail-section student-detail-records-section">
-            <div class="detail-section-header student-detail-section-head">
-              <h4>上课记录</h4>
+          <div class="student-detail-section">
+            <div class="student-detail-section-head">
+              <h4 class="student-detail-section-title">上课记录</h4>
             </div>
-            ${recordsHtml}
+            <div class="student-detail-section-body">
+              ${recordsHtml}
+            </div>
           </div>
         </div>
       `;
@@ -4479,12 +4486,16 @@
       body.innerHTML = `
         ${renderStudentDetailInfoBlockHtml(student)}
         <div class="course-detail-panel student-detail-panel">
-          <div class="detail-section">
-            <div class="detail-section-header student-detail-section-head">
-              <h4>所在课程</h4>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
+          <div class="student-detail-section">
+            <div class="student-detail-section-head">
+              <h4 class="student-detail-section-title">所在课程</h4>
+              <div class="student-detail-section-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
+              </div>
             </div>
-            ${coursesListHtml}
+            <div class="student-detail-section-body">
+              ${coursesListHtml}
+            </div>
           </div>
         </div>
         ${renderStudentDetailRecordsBlockHtml(recordsHtml)}
