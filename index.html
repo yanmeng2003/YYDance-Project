@@ -1963,6 +1963,63 @@
       max-height: none;
     }
 
+    .detail-page-body--course {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .course-detail-panel {
+      background: #fff;
+      border-radius: 16px;
+      border: 0.5px solid rgba(60, 60, 67, 0.08);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 6px 20px rgba(45, 36, 56, 0.06);
+      padding: 16px 18px;
+    }
+
+    .course-detail-info {
+      display: grid;
+      gap: 0;
+    }
+
+    .course-detail-info .student-detail-row {
+      min-height: 32px;
+      padding: 7px 0;
+      font-size: 0.9375rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .course-detail-info .student-detail-row:first-child {
+      padding-top: 0;
+    }
+
+    .course-detail-info .student-detail-row:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .course-detail-info .student-detail-row .label {
+      font-size: 0.875rem;
+      line-height: 32px;
+    }
+
+    .course-detail-info .student-detail-row .value {
+      min-height: 32px;
+      font-size: 0.9375rem;
+    }
+
+    .course-detail-students .detail-section-header {
+      margin: 0 0 10px;
+    }
+
+    .course-detail-students .detail-section-empty {
+      padding: 8px 0 2px;
+    }
+
+    .course-detail-students .course-student-row {
+      padding: 11px 0;
+    }
+
     /* Splash screen */
     .splash-screen {
       position: fixed;
@@ -2674,9 +2731,7 @@
         <h2 class="detail-page-title" id="course-detail-title">课程详情</h2>
         <button type="button" class="student-detail-edit-btn" id="btn-course-detail-edit">编辑</button>
       </div>
-      <div class="list-card detail-page-card">
-        <div class="detail-page-body" id="course-detail-body"></div>
-      </div>
+      <div class="detail-page-body detail-page-body--course" id="course-detail-body"></div>
     </div>
   </section>
 
@@ -4364,15 +4419,17 @@
           `).join('') + '</ul>';
 
       return `
-        <div class="detail-section">
-          <div class="detail-section-header">
-            <h4>学员名单</h4>
-            <div class="detail-section-actions">
-              <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(courseId)}">批量消课</button>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-add-course-student" data-course-id="${escapeHtml(courseId)}">添加学员</button>
+        <div class="course-detail-panel course-detail-students">
+          <div class="detail-section">
+            <div class="detail-section-header">
+              <h4>学员名单</h4>
+              <div class="detail-section-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btn-bulk-consume-course" data-course-id="${escapeHtml(courseId)}">批量消课</button>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-add-course-student" data-course-id="${escapeHtml(courseId)}">添加学员</button>
+              </div>
             </div>
+            ${listHtml}
           </div>
-          ${listHtml}
         </div>
       `;
     }
@@ -4524,15 +4581,17 @@
         }
         const enrollments = await fetchCourseStudents(id);
         body.innerHTML = `
-          <div class="student-detail-info" style="border-bottom:none;padding-bottom:0;">
-            <div class="student-detail-row"><span class="label">课程类型</span><span class="value">${escapeHtml(course.courseType || '—')}</span></div>
-            <div class="student-detail-row"><span class="label">课程班级</span><span class="value">${escapeHtml(course.name || '—')}</span></div>
-            <div class="student-detail-row"><span class="label">课程规模</span><span class="value">${escapeHtml(course.classSize || '大课')}</span></div>
-            ${isLargeClassCourse(course.classSize) ? `<div class="student-detail-row"><span class="label">课程季度</span><span class="value">${escapeHtml(course.season || '—')}</span></div>` : ''}
-            <div class="student-detail-row"><span class="label">课程状态</span><span class="value">${escapeHtml(normalizeCourseStatus(course.status))}</span></div>
-            <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
-            <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
-            <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
+          <div class="course-detail-panel">
+            <div class="course-detail-info">
+              <div class="student-detail-row"><span class="label">课程类型</span><span class="value">${escapeHtml(course.courseType || '—')}</span></div>
+              <div class="student-detail-row"><span class="label">课程班级</span><span class="value">${escapeHtml(course.name || '—')}</span></div>
+              <div class="student-detail-row"><span class="label">课程规模</span><span class="value">${escapeHtml(course.classSize || '大课')}</span></div>
+              ${isLargeClassCourse(course.classSize) ? `<div class="student-detail-row"><span class="label">课程季度</span><span class="value">${escapeHtml(course.season || '—')}</span></div>` : ''}
+              <div class="student-detail-row"><span class="label">课程状态</span><span class="value">${escapeHtml(normalizeCourseStatus(course.status))}</span></div>
+              <div class="student-detail-row"><span class="label">上课日期</span><span class="value">${escapeHtml(formatWeekdays(course.weekdays))}</span></div>
+              <div class="student-detail-row"><span class="label">上课时间</span><span class="value">${escapeHtml(formatTimeRange(course.startTime, course.endTime))}</span></div>
+              <div class="student-detail-row"><span class="label">负责老师</span><span class="value">${escapeHtml(course.teacherName || '未分配')}</span></div>
+            </div>
           </div>
           ${renderCourseStudentsSection(id, enrollments)}
         `;
