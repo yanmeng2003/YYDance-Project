@@ -775,6 +775,26 @@
       font-weight: 500;
     }
 
+    .student-detail-input {
+      flex: 1;
+      max-width: 220px;
+      margin-left: auto;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      color: var(--text);
+      text-align: right;
+      outline: none;
+    }
+
+    .student-detail-input:focus {
+      border-color: rgba(155, 89, 182, 0.35);
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+    }
+
     .lesson-records-section h4 {
       font-size: 0.8125rem;
       color: var(--text-muted);
@@ -1105,6 +1125,21 @@
       font-size: 1.75rem;
       line-height: 1;
       justify-content: center;
+    }
+
+    .fab-student-detail-save {
+      bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .fab-student-detail-delete {
+      bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+      background: rgba(255, 59, 48, 0.1);
+      color: #FF3B30;
+      box-shadow: 0 4px 16px rgba(255, 59, 48, 0.15);
+    }
+
+    .fab-student-detail-delete:active {
+      opacity: 0.85;
     }
 
     .weekday-options {
@@ -1490,6 +1525,14 @@
         bottom: calc(92px + env(safe-area-inset-bottom, 0px));
       }
 
+      .fab-student-detail-save {
+        bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+      }
+
+      .fab-student-detail-delete {
+        bottom: calc(156px + env(safe-area-inset-bottom, 0px));
+      }
+
       .tab-bar {
         left: 16px;
         right: 16px;
@@ -1570,6 +1613,31 @@
       max-width: 960px;
       margin: 0 auto;
       padding: 12px 20px 0;
+    }
+
+    .detail-page-nav--with-action {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .detail-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 0;
+      border: none;
+      background: transparent;
+      color: var(--primary);
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .detail-edit-btn:active {
+      opacity: 0.6;
     }
 
     .detail-back-btn {
@@ -1912,6 +1980,8 @@
   </nav>
 
   <button type="button" class="fab" id="fab-add-student" aria-label="添加学员">+ 添加学员</button>
+  <button type="button" class="fab fab-student-detail-save" id="fab-student-detail-save" aria-label="保存学员">保存</button>
+  <button type="button" class="fab fab-student-detail-delete" id="fab-student-detail-delete" aria-label="删除学员">删除学员</button>
   <button type="button" class="fab" id="fab-add-course" aria-label="添加课程">+ 添加课程</button>
   <button type="button" class="fab" id="fab-add-teacher" aria-label="添加老师">+ 添加老师</button>
 
@@ -2272,8 +2342,9 @@
 
   <!-- 学员详情页（推入） -->
   <section class="detail-page" id="detail-student" aria-hidden="true">
-    <div class="detail-page-nav">
+    <div class="detail-page-nav detail-page-nav--with-action">
       <button type="button" class="detail-back-btn" data-detail-back="detail-student" aria-label="返回学员列表">← 返回</button>
+      <button type="button" class="detail-edit-btn" id="btn-student-detail-edit">编辑</button>
     </div>
     <div class="detail-page-inner">
       <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
@@ -2478,6 +2549,9 @@
     let studentSeasonsMap = new Map();
     let studentListFilter = 'all';
     let studentSearchQuery = '';
+    let studentDetailEditMode = false;
+    let currentStudentDetailId = null;
+    let studentDetailData = { records: [], courses: [] };
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -3459,6 +3533,12 @@
       const page = document.getElementById(pageId);
       if (!page || !page.classList.contains('is-open')) return;
 
+      if (pageId === 'detail-student') {
+        exitStudentDetailEditMode();
+        currentStudentDetailId = null;
+        studentDetailData = { records: [], courses: [] };
+      }
+
       page.classList.remove('is-open');
       page.setAttribute('aria-hidden', 'true');
 
@@ -3496,9 +3576,58 @@
     }
 
     function updateFabVisibility(page) {
-      document.getElementById('fab-add-student').classList.toggle('visible', page === 'students');
+      const studentDetailOpen = isDetailPageOpen('detail-student');
+      document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen);
       document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
       document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers');
+      updateStudentDetailFabVisibility();
+    }
+
+    function updateStudentDetailFabVisibility() {
+      const editing = studentDetailEditMode && isDetailPageOpen('detail-student');
+      document.getElementById('fab-student-detail-save').classList.toggle('visible', editing);
+      document.getElementById('fab-student-detail-delete').classList.toggle('visible', editing);
+    }
+
+    function setStudentDetailEditButtonLabel(label) {
+      const btn = document.getElementById('btn-student-detail-edit');
+      if (btn) btn.textContent = label;
+    }
+
+    function exitStudentDetailEditMode() {
+      studentDetailEditMode = false;
+      setStudentDetailEditButtonLabel('编辑');
+      updateStudentDetailFabVisibility();
+    }
+
+    function enterStudentDetailEditMode() {
+      if (!currentStudentDetailId) return;
+
+      const student = studentsCache.find(s => s.id === currentStudentDetailId);
+      if (!student) return;
+
+      studentDetailEditMode = true;
+      renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
+      setStudentDetailEditButtonLabel('取消');
+      updateStudentDetailFabVisibility();
+    }
+
+    function cancelStudentDetailEdit() {
+      if (!currentStudentDetailId) return;
+
+      const student = studentsCache.find(s => s.id === currentStudentDetailId);
+      if (!student) return;
+
+      exitStudentDetailEditMode();
+      renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
+    }
+
+    function toggleStudentDetailEditMode() {
+      if (studentDetailEditMode) {
+        cancelStudentDetailEdit();
+      } else {
+        enterStudentDetailEditMode();
+      }
     }
 
     function navigateTo(page) {
@@ -3579,18 +3708,11 @@
             </span>
             ${phone ? `<span class="sub">${escapeHtml(phone)}</span>` : ''}
           </div>
-          <div class="student-actions">
-            <button type="button" class="btn btn-outline btn-sm btn-edit" data-id="${escapeHtml(s.id)}">编辑</button>
-          </div>
         </li>
       `;
       }).join('');
 
       bindClickableRow(listEl, '.student-info-clickable', openStudentDetailModal);
-
-      listEl.querySelectorAll('.btn-edit').forEach(btn => {
-        btn.addEventListener('click', () => openEditModal(btn.dataset.id));
-      });
     }
 
     function openConsumeModalForCourse(studentId, course) {
@@ -3657,21 +3779,51 @@
       const student = studentsCache.find(s => s.id === id);
       if (!student) return;
 
+      currentStudentDetailId = id;
+      exitStudentDetailEditMode();
+      studentDetailData = { records: [], courses: [] };
+
       const body = document.getElementById('student-detail-body');
       body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
       document.getElementById('student-detail-title').innerHTML =
         `<span class="detail-page-title-name-row"><span class="detail-page-title-name">${escapeHtml(student.name)}</span></span>`;
       openDetailPage('detail-student');
+      updateFabVisibility('students');
 
       try {
         const records = await fetchLessonRecords(id);
         const courses = await fetchStudentCourses(id);
+        studentDetailData = { records, courses };
         renderStudentDetailUI(student, records, courses);
       } catch (err) {
         console.error(err);
         body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
         showToast('加载消课记录失败');
       }
+    }
+
+    function renderStudentDetailInfoHtml(student) {
+      if (studentDetailEditMode) {
+        return `
+          <div class="student-detail-info">
+            <div class="student-detail-row">
+              <span class="label">姓名</span>
+              <input type="text" class="student-detail-input" id="student-detail-edit-name" value="${escapeHtml(student.name)}" required placeholder="请输入姓名">
+            </div>
+            <div class="student-detail-row">
+              <span class="label">电话</span>
+              <input type="tel" class="student-detail-input" id="student-detail-edit-phone" value="${escapeHtml(student.phone || '')}" placeholder="选填">
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="student-detail-info">
+          <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
+          <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone || '—')}</span></div>
+        </div>
+      `;
     }
 
     function renderStudentDetailUI(student, records, courses) {
@@ -3717,10 +3869,7 @@
           ).join('') + '</ul>';
 
       body.innerHTML = `
-        <div class="student-detail-info">
-          <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
-          <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone || '—')}</span></div>
-        </div>
+        ${renderStudentDetailInfoHtml(student)}
         <div class="detail-section">
           <div class="detail-section-header">
             <h4>所在课程</h4>
@@ -4194,17 +4343,6 @@
       openDetailPage('detail-course-edit');
     }
 
-    function openEditModal(id) {
-      const student = studentsCache.find(s => s.id === id);
-      if (!student) return;
-
-      document.getElementById('edit-id').value = student.id;
-      document.getElementById('edit-name').value = student.name;
-      document.getElementById('edit-phone').value = student.phone || '';
-
-      openModal('modal-edit');
-    }
-
     function escapeHtml(str) {
       const div = document.createElement('div');
       div.textContent = str;
@@ -4248,6 +4386,10 @@
         document.getElementById('form-add-student').reset();
         openModal('modal-add');
       });
+
+      document.getElementById('fab-student-detail-save').addEventListener('click', saveStudentDetailEdit);
+      document.getElementById('fab-student-detail-delete').addEventListener('click', deleteStudentDetailStudent);
+      document.getElementById('btn-student-detail-edit').addEventListener('click', toggleStudentDetailEditMode);
 
       document.getElementById('fab-add-course').addEventListener('click', () => {
         openAddCoursePage();
@@ -4941,42 +5083,112 @@
       }
     }
 
+    async function saveStudentProfile(id, name, phone) {
+      if (!id) {
+        showToast('学员不存在');
+        return false;
+      }
+
+      if (!name) {
+        showToast('请填写姓名');
+        return false;
+      }
+
+      if (phone && await isPhoneTaken(phone, id)) {
+        showToast('该联系电话已被其他学员使用');
+        return false;
+      }
+
+      const db = getSupabase();
+      if (!db) {
+        showToast('Supabase 库未加载，请刷新页面');
+        return false;
+      }
+
+      const { error } = await db.from('students').update({
+        name,
+        phone: phone || null
+      }).eq('id', id);
+
+      if (error) throw error;
+      return true;
+    }
+
+    async function saveStudentDetailEdit() {
+      if (!currentStudentDetailId) return;
+
+      const nameInput = document.getElementById('student-detail-edit-name');
+      const phoneInput = document.getElementById('student-detail-edit-phone');
+      if (!nameInput || !phoneInput) return;
+
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+
+      try {
+        const saved = await saveStudentProfile(currentStudentDetailId, name, phone);
+        if (!saved) return;
+
+        await loadAndRenderStudents();
+        const student = studentsCache.find(s => s.id === currentStudentDetailId);
+        if (!student) return;
+
+        exitStudentDetailEditMode();
+        renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
+        showToast('保存成功');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '保存失败');
+      }
+    }
+
+    async function deleteStudentProfile(id, name) {
+      if (!id) return false;
+
+      if (!confirm('确定要删除「' + (name || '该学员') + '」吗？此操作不可恢复。')) {
+        return false;
+      }
+
+      const db = getSupabase();
+      if (!db) {
+        showToast('Supabase 库未加载，请刷新页面');
+        return false;
+      }
+
+      const { error } = await db.from('students').delete().eq('id', id);
+      if (error) throw error;
+      return true;
+    }
+
+    async function deleteStudentDetailStudent() {
+      if (!currentStudentDetailId) return;
+
+      const nameInput = document.getElementById('student-detail-edit-name');
+      const student = studentsCache.find(s => s.id === currentStudentDetailId);
+      const name = nameInput ? nameInput.value.trim() : (student ? student.name : '该学员');
+
+      try {
+        const deleted = await deleteStudentProfile(currentStudentDetailId, name);
+        if (!deleted) return;
+
+        closeDetailPage('detail-student');
+        await loadAndRenderStudents();
+        showToast('学员已删除');
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || '删除失败');
+      }
+    }
+
     async function onEditStudent(e) {
       e.preventDefault();
 
       const id = document.getElementById('edit-id').value;
-      const student = studentsCache.find(s => s.id === id);
-      if (!student) {
-        showToast('学员不存在');
-        return;
-      }
-
       const name = document.getElementById('edit-name').value.trim();
       const phone = document.getElementById('edit-phone').value.trim();
 
-      if (!name) {
-        showToast('请填写姓名');
-        return;
-      }
-
       try {
-        if (phone && await isPhoneTaken(phone, id)) {
-          showToast('该联系电话已被其他学员使用');
-          return;
-        }
-
-        const db = getSupabase();
-        if (!db) {
-          showToast('Supabase 库未加载，请刷新页面');
-          return;
-        }
-
-        const { error } = await db.from('students').update({
-          name,
-          phone: phone || null
-        }).eq('id', id);
-
-        if (error) throw error;
+        const saved = await saveStudentProfile(id, name, phone);
+        if (!saved) return;
 
         closeModal('modal-edit');
         await loadAndRenderStudents();
@@ -4991,21 +5203,9 @@
       const id = document.getElementById('edit-id').value;
       const name = document.getElementById('edit-name').value.trim() || '该学员';
 
-      if (!id) return;
-
-      if (!confirm('确定要删除「' + name + '」吗？此操作不可恢复。')) {
-        return;
-      }
-
       try {
-        const db = getSupabase();
-        if (!db) {
-          showToast('Supabase 库未加载，请刷新页面');
-          return;
-        }
-
-        const { error } = await db.from('students').delete().eq('id', id);
-        if (error) throw error;
+        const deleted = await deleteStudentProfile(id, name);
+        if (!deleted) return;
 
         closeModal('modal-edit');
         await loadAndRenderStudents();
