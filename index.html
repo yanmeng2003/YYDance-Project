@@ -62,28 +62,13 @@
       top: 0;
       z-index: 100;
       height: var(--nav-height);
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: var(--glass-blur-strong);
-      -webkit-backdrop-filter: var(--glass-blur-strong);
+      background: #fff;
       color: var(--text);
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 0 16px 0 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-      isolation: isolate;
-    }
-
-    .navbar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
-      pointer-events: none;
+      border-bottom: 0.5px solid var(--border);
     }
 
     .navbar-menu-btn {
@@ -1571,10 +1556,6 @@
     }
 
     @media (max-width: 640px) {
-      .navbar-brand {
-        font-size: 0.9rem;
-      }
-
       .fab {
         right: 16px;
         bottom: calc(92px + env(safe-area-inset-bottom, 0px));
