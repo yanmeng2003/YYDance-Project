@@ -1127,6 +1127,11 @@
       justify-content: center;
     }
 
+    .fab-student-detail-save,
+    .fab-student-detail-delete {
+      z-index: 520;
+    }
+
     .fab-student-detail-save {
       bottom: calc(96px + env(safe-area-inset-bottom, 0px));
     }
@@ -1615,31 +1620,6 @@
       padding: 12px 20px 0;
     }
 
-    .detail-page-nav--with-action {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .detail-edit-btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 8px 0;
-      border: none;
-      background: transparent;
-      color: var(--primary);
-      font-size: 1rem;
-      font-weight: 500;
-      font-family: inherit;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .detail-edit-btn:active {
-      opacity: 0.6;
-    }
-
     .detail-back-btn {
       display: inline-flex;
       align-items: center;
@@ -1665,6 +1645,47 @@
       font-weight: 700;
       letter-spacing: -0.02em;
       margin-bottom: 20px;
+    }
+
+    .detail-page-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .detail-page-title-row .detail-page-title {
+      margin-bottom: 0;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .student-detail-edit-island {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--primary-dark);
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(60, 60, 67, 0.08);
+    }
+
+    .student-detail-edit-island.is-editing {
+      background: var(--secondary-bg);
+      color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .student-detail-edit-island:active {
+      opacity: 0.75;
     }
 
     .detail-page-card {
@@ -2342,12 +2363,14 @@
 
   <!-- 学员详情页（推入） -->
   <section class="detail-page" id="detail-student" aria-hidden="true">
-    <div class="detail-page-nav detail-page-nav--with-action">
+    <div class="detail-page-nav">
       <button type="button" class="detail-back-btn" data-detail-back="detail-student" aria-label="返回学员列表">← 返回</button>
-      <button type="button" class="detail-edit-btn" id="btn-student-detail-edit">编辑</button>
     </div>
     <div class="detail-page-inner">
-      <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
+      <div class="detail-page-title-row">
+        <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
+        <button type="button" class="student-detail-edit-island" id="btn-student-detail-edit">编辑</button>
+      </div>
       <div class="list-card detail-page-card">
         <div class="detail-page-body" id="student-detail-body"></div>
       </div>
@@ -3591,7 +3614,9 @@
 
     function setStudentDetailEditButtonLabel(label) {
       const btn = document.getElementById('btn-student-detail-edit');
-      if (btn) btn.textContent = label;
+      if (!btn) return;
+      btn.textContent = label;
+      btn.classList.toggle('is-editing', label === '取消');
     }
 
     function exitStudentDetailEditMode() {
