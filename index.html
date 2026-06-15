@@ -5077,7 +5077,7 @@
         if (!coursesCache.length) {
           coursesCache = await fetchCourses();
         }
-        const teacherCourses = coursesCache.filter(c => c.teacherId === id);
+        const teacherCourses = sortTeacherDetailCourses(coursesCache.filter(c => c.teacherId === id));
         teacherDetailData = { courses: teacherCourses };
         renderTeacherDetailUI(teacher, teacherCourses);
       } catch (err) {
@@ -5134,9 +5134,10 @@
     }
 
     function renderTeacherDetailCoursesBlockHtml(courses) {
-      const coursesListHtml = !courses || courses.length === 0
+      const sortedCourses = sortTeacherDetailCourses(courses || []);
+      const coursesListHtml = !sortedCourses.length
         ? '<div class="student-detail-empty">暂无负责课程</div>'
-        : '<ul class="detail-section-list">' + courses.map(c => `
+        : '<ul class="detail-section-list">' + sortedCourses.map(c => `
             <li>
               <div class="teacher-course-info teacher-course-info-clickable" role="button" tabindex="0" data-id="${escapeHtml(c.id)}" aria-label="查看${escapeHtml(c.courseType)} · ${escapeHtml(c.name)}详情">
                 <div class="student-course-line">
@@ -5211,10 +5212,30 @@
     }
 
     function formatCourseListSubline(course) {
-      const time = formatTimeRange(course.startTime, course.endTime);
       const days = formatCourseListWeekdays(course.weekdays);
-      if (time && days) return time + ' · ' + days;
-      return time || days || '';
+      const start = formatTime(course.startTime);
+      const end = formatTime(course.endTime);
+      const time = start && end ? start + '-' + end : (start || end || '');
+      if (days && time) return days + '·' + time;
+      return days || time || '';
+    }
+
+    function sortTeacherDetailCourses(courses) {
+      return [...courses].sort((a, b) => {
+        const aLarge = isLargeClassCourse(a.classSize);
+        const bLarge = isLargeClassCourse(b.classSize);
+        if (aLarge !== bLarge) return aLarge ? -1 : 1;
+
+        if (aLarge && bLarge) {
+          const seasonDiff = getCourseSeasonSortKey(a.season) - getCourseSeasonSortKey(b.season);
+          if (seasonDiff !== 0) return seasonDiff;
+        }
+
+        const typeDiff = compareCourseTypeForList(a, b);
+        if (typeDiff !== 0) return typeDiff;
+
+        return compareCourseScheduleTime(a, b);
+      });
     }
 
     function getCourseStatusListOrder(status) {
