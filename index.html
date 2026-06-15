@@ -3562,7 +3562,6 @@
         22
       );
       const colors = getCourseColor(course, colorMap);
-      const teacherLabel = course.teacherName || '未分配';
       const timeLabel = formatTimeRange(course.startTime, course.endTime);
       const typeLabel = course.courseType || '摩登舞';
       const classLabel = course.name || '';
@@ -3572,10 +3571,9 @@
       return `
         <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
           style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};border-color:${colors.text};color:${colors.text}"
-          title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
+          title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(timeLabel)}">
           <span class="week-event-type">${escapeHtml(typeLabel)}</span>
           <span class="week-event-class">${escapeHtml(classLabel)}</span>
-          <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
           <span class="week-event-time">${escapeHtml(timeLabel)}</span>
         </div>
       `;
@@ -3650,7 +3648,7 @@
       `;
 
       container.querySelectorAll('.week-event').forEach(el => {
-        const open = () => openEditCourseModal(el.dataset.courseId);
+        const open = () => openCourseDetailModal(el.dataset.courseId);
         el.addEventListener('click', open);
         el.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
