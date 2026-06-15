@@ -1244,7 +1244,7 @@
 
     .week-schedule {
       --week-pad-y: 10px;
-      --week-grid-height: 728px;
+      --week-grid-height: 672px;
       --week-time-col: 52px;
       --week-day-col-min: 80px;
       width: 100%;
@@ -1340,15 +1340,15 @@
 
     .week-event {
       position: absolute;
-      border-radius: 10px;
+      border-radius: 8px;
       padding: 4px 6px;
       font-size: 0.72rem;
       line-height: 1.35;
       overflow: hidden;
-      border-left: 3px solid;
+      border: 1px solid;
       pointer-events: auto;
       cursor: pointer;
-      box-shadow: var(--shadow);
+      box-shadow: none;
       z-index: 1;
       box-sizing: border-box;
     }
@@ -2573,7 +2573,7 @@
 
     const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
     const WEEK_GRID_START_MIN = 8 * 60;
-    const WEEK_GRID_END_MIN = 21 * 60;
+    const WEEK_GRID_END_MIN = 20 * 60;
     const WEEK_SLOT_MINUTES = 30;
     const WEEK_SLOT_HEIGHT = 28;
     const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES;
@@ -3285,6 +3285,10 @@
       return DEFAULT_COURSE_COLOR;
     }
 
+    function formatWeekDayHead(day) {
+      return String(day || '').replace(/^周/, '');
+    }
+
     function switchCoursesTab(tab) {
       coursesViewTab = tab;
       document.querySelectorAll('.courses-tab').forEach(btn => {
@@ -3462,7 +3466,7 @@
 
       return `
         <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
-          style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};border-left-color:${colors.border};color:${colors.text}"
+          style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};border-color:${colors.text};color:${colors.text}"
           title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(teacherLabel)} · ${escapeHtml(timeLabel)}">
           <span class="week-event-type">${escapeHtml(typeLabel)}</span>
           <span class="week-event-class">${escapeHtml(classLabel)}</span>
@@ -3517,7 +3521,7 @@
       }).join('');
 
       const dayHeadsHtml = WEEKDAY_ORDER.map(d =>
-        `<div class="week-day-head">${d}</div>`
+        `<div class="week-day-head">${formatWeekDayHead(d)}</div>`
       ).join('');
 
       container.innerHTML = `
