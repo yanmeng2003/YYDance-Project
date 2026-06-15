@@ -1932,31 +1932,6 @@
       padding: 20px 24px 24px;
     }
 
-    .detail-page-card--student {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .detail-page-card--student.is-editing {
-      padding-bottom: 84px;
-    }
-
-    .student-detail-edit-actions {
-      display: none;
-      position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 20px;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .student-detail-edit-actions.is-visible {
-      display: flex;
-    }
-
     .student-detail-action-btn {
       display: inline-flex;
       align-items: center;
@@ -1991,10 +1966,55 @@
       max-height: none;
     }
 
-    .detail-page-body--course {
+    .detail-page-body--course,
+    .detail-page-body--student {
       display: flex;
       flex-direction: column;
       gap: 12px;
+    }
+
+    .student-detail-info-block {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 18px;
+      width: 100%;
+    }
+
+    .student-detail-edit-actions {
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .student-detail-edit-actions.is-visible {
+      display: flex;
+    }
+
+    .student-detail-panel .detail-section-header {
+      margin: 0 0 10px;
+    }
+
+    .student-detail-panel .detail-section-header h4,
+    .student-detail-panel .detail-section > h4 {
+      font-size: 0.9375rem;
+      color: #524B63;
+      text-transform: none;
+      letter-spacing: -0.01em;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .student-detail-panel .detail-section-empty,
+    .student-detail-panel .lesson-records-empty {
+      padding: 8px 0 2px;
+    }
+
+    .student-detail-records-section {
+      margin: 0;
     }
 
     .course-detail-panel {
@@ -2036,6 +2056,15 @@
     .course-detail-info .student-detail-row .value {
       min-height: 32px;
       font-size: 0.9375rem;
+    }
+
+    .course-detail-info .student-detail-row:has(.student-detail-input) {
+      min-height: 40px;
+      padding: 8px 0;
+    }
+
+    .course-detail-info .student-detail-row:has(.student-detail-input) .label {
+      line-height: 40px;
     }
 
     .course-detail-students .detail-section-header {
@@ -2744,13 +2773,7 @@
         <h2 class="detail-page-title" id="student-detail-title">学员详情</h2>
         <button type="button" class="btn btn-outline" id="btn-student-detail-edit">编辑</button>
       </div>
-      <div class="list-card detail-page-card detail-page-card--student">
-        <div class="detail-page-body" id="student-detail-body"></div>
-        <div class="student-detail-edit-actions" id="student-detail-edit-actions">
-          <button type="button" class="student-detail-action-btn student-detail-action-btn--danger" id="btn-student-detail-delete">删除学员</button>
-          <button type="button" class="student-detail-action-btn student-detail-action-btn--primary" id="btn-student-detail-save">保存</button>
-        </div>
-      </div>
+      <div class="detail-page-body detail-page-body--student" id="student-detail-body"></div>
     </div>
   </section>
 
@@ -4079,15 +4102,6 @@
       document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen);
       document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
       document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers');
-      updateStudentDetailEditActionsVisibility();
-    }
-
-    function updateStudentDetailEditActionsVisibility() {
-      const editing = studentDetailEditMode && isDetailPageOpen('detail-student');
-      const actions = document.getElementById('student-detail-edit-actions');
-      const card = document.querySelector('.detail-page-card--student');
-      if (actions) actions.classList.toggle('is-visible', editing);
-      if (card) card.classList.toggle('is-editing', editing);
     }
 
     function setStudentDetailEditButtonLabel(label) {
@@ -4099,7 +4113,6 @@
     function exitStudentDetailEditMode() {
       studentDetailEditMode = false;
       setStudentDetailEditButtonLabel('编辑');
-      updateStudentDetailEditActionsVisibility();
     }
 
     function enterStudentDetailEditMode() {
@@ -4111,7 +4124,6 @@
       studentDetailEditMode = true;
       renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
       setStudentDetailEditButtonLabel('取消');
-      updateStudentDetailEditActionsVisibility();
     }
 
     function cancelStudentDetailEdit() {
@@ -4313,7 +4325,7 @@
     function renderStudentDetailInfoHtml(student) {
       if (studentDetailEditMode) {
         return `
-          <div class="student-detail-info">
+          <div class="course-detail-info">
             <div class="student-detail-row">
               <span class="label">姓名</span>
               <input type="text" class="student-detail-input" id="student-detail-edit-name" value="${escapeHtml(student.name)}" required placeholder="请输入姓名">
@@ -4327,9 +4339,32 @@
       }
 
       return `
-        <div class="student-detail-info">
+        <div class="course-detail-info">
           <div class="student-detail-row"><span class="label">姓名</span><span class="value">${escapeHtml(student.name)}</span></div>
           <div class="student-detail-row"><span class="label">电话</span><span class="value">${escapeHtml(student.phone || '—')}</span></div>
+        </div>
+      `;
+    }
+
+    function renderStudentDetailEditActionsHtml() {
+      return `
+        <div class="student-detail-edit-actions is-visible">
+          <button type="button" class="student-detail-action-btn student-detail-action-btn--danger" id="btn-student-detail-delete">删除学员</button>
+          <button type="button" class="student-detail-action-btn student-detail-action-btn--primary" id="btn-student-detail-save">保存</button>
+        </div>
+      `;
+    }
+
+    function renderStudentDetailInfoBlockHtml(student) {
+      const infoHtml = renderStudentDetailInfoHtml(student);
+      if (!studentDetailEditMode) {
+        return `<div class="course-detail-panel">${infoHtml}</div>`;
+      }
+
+      return `
+        <div class="student-detail-info-block">
+          <div class="course-detail-panel">${infoHtml}</div>
+          ${renderStudentDetailEditActionsHtml()}
         </div>
       `;
     }
@@ -4377,17 +4412,21 @@
           ).join('') + '</ul>';
 
       body.innerHTML = `
-        ${renderStudentDetailInfoHtml(student)}
-        <div class="detail-section">
-          <div class="detail-section-header">
-            <h4>所在课程</h4>
-            <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
+        ${renderStudentDetailInfoBlockHtml(student)}
+        <div class="course-detail-panel student-detail-panel">
+          <div class="detail-section">
+            <div class="detail-section-header">
+              <h4>所在课程</h4>
+              <button type="button" class="btn btn-outline btn-sm" id="btn-add-student-course" data-student-id="${escapeHtml(student.id)}">添加课程</button>
+            </div>
+            ${coursesListHtml}
           </div>
-          ${coursesListHtml}
         </div>
-        <div class="lesson-records-section">
-          <h4>上课记录</h4>
-          ${recordsHtml}
+        <div class="course-detail-panel student-detail-panel">
+          <div class="detail-section student-detail-records-section">
+            <h4>上课记录</h4>
+            ${recordsHtml}
+          </div>
         </div>
       `;
 
@@ -4974,8 +5013,13 @@
         openModal('modal-add');
       });
 
-      document.getElementById('btn-student-detail-save').addEventListener('click', saveStudentDetailEdit);
-      document.getElementById('btn-student-detail-delete').addEventListener('click', deleteStudentDetailStudent);
+      document.getElementById('detail-student').addEventListener('click', (e) => {
+        const target = e.target.closest('#btn-student-detail-save, #btn-student-detail-delete');
+        if (!target) return;
+        if (target.id === 'btn-student-detail-save') saveStudentDetailEdit();
+        if (target.id === 'btn-student-detail-delete') deleteStudentDetailStudent();
+      });
+
       document.getElementById('btn-student-detail-edit').addEventListener('click', toggleStudentDetailEditMode);
       document.getElementById('btn-course-detail-consume').addEventListener('click', () => {
         if (currentCourseDetailId) openBulkConsumeModal(currentCourseDetailId);
