@@ -2420,10 +2420,6 @@
       padding: 8px 0 12px;
     }
 
-    .course-detail-students .detail-section-empty {
-      padding: 8px 0 2px;
-    }
-
     .course-detail-students .course-student-row {
       padding: 11px 0;
     }
@@ -5367,7 +5363,7 @@
     function renderCourseStudentsSection(courseId, enrollments) {
       const sortedEnrollments = sortEnrollmentsByStudentName(enrollments || []);
       const listHtml = !sortedEnrollments.length
-        ? '<div class="detail-section-empty">暂无学员</div>'
+        ? '<div class="student-detail-empty">暂无学员</div>'
         : '<ul class="course-students-list">' + sortedEnrollments.map(e => `
             <li class="course-student-row">
               <span class="course-student-name">
