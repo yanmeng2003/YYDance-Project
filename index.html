@@ -3339,9 +3339,14 @@
     let coursesViewTab = 'week';
 
     let supabaseClient = null;
-    let studentsCache = [];
-    let coursesCache = [];
-    let teachersCache = [];
+    const coreDataCache = {
+      students: [],
+      courses: [],
+      teachers: [],
+      courseStudents: [],
+      loaded: false,
+      loading: null
+    };
     let studentsRenewalSet = new Set();
     let studentSeasonsMap = new Map();
     let studentSearchQuery = '';
@@ -3565,7 +3570,7 @@
     function getOperatorNameByPhone(phone) {
       const normalized = normalizePhone(phone);
       if (!normalized) return '';
-      const teacher = teachersCache.find(t => normalizePhone(t.phone) === normalized);
+      const teacher = coreDataCache.teachers.find(t => normalizePhone(t.phone) === normalized);
       return teacher ? teacher.name : normalized;
     }
 
@@ -3709,12 +3714,12 @@
     }
 
     function getStudentNameById(studentId) {
-      const student = studentsCache.find(s => s.id === studentId);
+      const student = coreDataCache.students.find(s => s.id === studentId);
       return student ? student.name : (studentId || '未知学员');
     }
 
     function getCourseLabelById(courseId) {
-      const course = coursesCache.find(c => c.id === courseId);
+      const course = coreDataCache.courses.find(c => c.id === courseId);
       return course ? formatCourseShortLabel(course) : (courseId || '未知课程');
     }
 
@@ -3801,7 +3806,198 @@
       };
     }
 
+    async function fetchAllCourseStudents() {
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('course_students')
+        .select('id, course_id, student_id, remaining_lessons, students(id, name), courses(id, course_type, name, class_size, season, weekdays, start_time, end_time)');
+
+      if (error) throw error;
+      return (data || []).map(mapCoreEnrollment);
+    }
+
+    function mapCoreEnrollment(row) {
+      const student = row.students;
+      const course = row.courses;
+      return {
+        id: row.id,
+        courseId: row.course_id,
+        studentId: row.student_id,
+        studentName: student ? student.name : '未知学员',
+        remainingLessons: row.remaining_lessons ?? 0,
+        courseType: course ? (course.course_type || '摩登舞') : '摩登舞',
+        courseName: course ? course.name : '—',
+        classSize: course ? (course.class_size || '大课') : '大课',
+        season: course ? (course.season || '') : '',
+        weekdays: course ? (course.weekdays || []) : [],
+        startTime: course ? course.start_time : null,
+        endTime: course ? course.end_time : null
+      };
+    }
+
+    function getCourseStudentsFromCache(courseId) {
+      return sortEnrollmentsByStudentName(
+        coreDataCache.courseStudents
+          .filter(item => item.courseId === courseId)
+          .map(item => ({
+            id: item.id,
+            courseId: item.courseId,
+            studentId: item.studentId,
+            studentName: item.studentName,
+            remainingLessons: item.remainingLessons
+          }))
+      );
+    }
+
+    function getStudentCoursesFromCache(studentId) {
+      return coreDataCache.courseStudents
+        .filter(item => item.studentId === studentId)
+        .map(item => ({
+          enrollmentId: item.id,
+          courseId: item.courseId,
+          courseType: item.courseType,
+          name: item.courseName,
+          classSize: item.classSize,
+          season: item.season,
+          weekdays: item.weekdays,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          remainingLessons: item.remainingLessons
+        }));
+    }
+
+    function rebuildStudentTagsFromCache() {
+      const temp = new Map();
+      coreDataCache.courseStudents.forEach(row => {
+        if (!isLargeClassCourse(row.classSize)) return;
+        const season = (row.season || '').trim();
+        if (!season) return;
+        if (!temp.has(row.studentId)) temp.set(row.studentId, new Set());
+        temp.get(row.studentId).add(season);
+      });
+
+      const nextSeasons = new Map();
+      temp.forEach((seasons, studentId) => {
+        nextSeasons.set(studentId, Array.from(seasons).sort(compareSeason));
+      });
+      studentSeasonsMap = nextSeasons;
+
+      const byStudent = new Map();
+      coreDataCache.courseStudents.forEach(row => {
+        if (!isLargeClassCourse(row.classSize)) return;
+        if (!byStudent.has(row.studentId)) byStudent.set(row.studentId, []);
+        byStudent.get(row.studentId).push({
+          remaining_lessons: row.remainingLessons,
+          courses: { class_size: row.classSize, season: row.season }
+        });
+      });
+
+      const nextRenewal = new Set();
+      byStudent.forEach((rows, studentId) => {
+        if (rows.some(row => enrollmentRowNeedsRenewal(row, rows))) {
+          nextRenewal.add(studentId);
+        }
+      });
+      studentsRenewalSet = nextRenewal;
+    }
+
+    async function preloadCoreData() {
+      if (coreDataCache.loaded) return true;
+      if (coreDataCache.loading) return coreDataCache.loading;
+      if (!getSupabase()) return false;
+
+      coreDataCache.loading = (async () => {
+        const [students, courses, teachers, courseStudents] = await Promise.all([
+          fetchStudents(),
+          fetchCourses(),
+          fetchTeachers(),
+          fetchAllCourseStudents()
+        ]);
+
+        coreDataCache.students = students;
+        coreDataCache.courses = courses;
+        coreDataCache.teachers = teachers;
+        coreDataCache.courseStudents = courseStudents;
+        rebuildStudentTagsFromCache();
+        coreDataCache.loaded = true;
+        return true;
+      })().catch(err => {
+        coreDataCache.loading = null;
+        throw err;
+      });
+
+      return coreDataCache.loading;
+    }
+
+    async function refreshStudentsCacheData() {
+      coreDataCache.students = await fetchStudents();
+      if (document.getElementById('page-students').classList.contains('active')) {
+        renderStudentListUI();
+      }
+    }
+
+    async function refreshCoursesCacheData() {
+      coreDataCache.courses = await fetchCourses();
+      if (document.getElementById('page-courses').classList.contains('active')) {
+        renderCourseListUI(coreDataCache.courses);
+        renderWeekViewUI(coreDataCache.courses);
+      }
+    }
+
+    async function refreshTeachersCacheData() {
+      coreDataCache.teachers = await fetchTeachers();
+      if (document.getElementById('page-teachers').classList.contains('active')) {
+        renderTeacherListUI(coreDataCache.teachers);
+      }
+    }
+
+    async function refreshCourseStudentsCacheData() {
+      coreDataCache.courseStudents = await fetchAllCourseStudents();
+      rebuildStudentTagsFromCache();
+      if (document.getElementById('page-students').classList.contains('active')) {
+        renderStudentListUI();
+      }
+      if (document.getElementById('page-courses').classList.contains('active')) {
+        renderCourseListUI(coreDataCache.courses);
+        renderWeekViewUI(coreDataCache.courses);
+      }
+    }
+
+    function renderStudentsPage() {
+      renderStudentListUI();
+    }
+
+    function renderCoursesPage() {
+      renderCourseListUI(coreDataCache.courses);
+      renderWeekViewUI(coreDataCache.courses);
+    }
+
+    function renderTeachersPage() {
+      renderTeacherListUI(coreDataCache.teachers);
+    }
+
+    async function refreshAfterTeacherChanged() {
+      await refreshTeachersCacheData();
+      await refreshCoursesCacheData();
+    }
+
+    async function refreshAfterCourseChanged() {
+      await refreshCoursesCacheData();
+      await refreshCourseStudentsCacheData();
+    }
+
+    async function refreshAfterStudentChanged() {
+      await refreshStudentsCacheData();
+      await refreshCourseStudentsCacheData();
+    }
+
     async function fetchCourseStudents(courseId) {
+      if (coreDataCache.loaded) {
+        return getCourseStudentsFromCache(courseId);
+      }
+
       const db = getSupabase();
       if (!db) throw new Error('Supabase 库未加载');
 
@@ -3812,6 +4008,23 @@
 
       if (error) throw error;
       return (data || []).map(mapCourseStudent);
+    }
+
+    async function fetchStudentCourses(studentId) {
+      if (coreDataCache.loaded) {
+        return getStudentCoursesFromCache(studentId);
+      }
+
+      const db = getSupabase();
+      if (!db) throw new Error('Supabase 库未加载');
+
+      const { data, error } = await db
+        .from('course_students')
+        .select('id, course_id, remaining_lessons, courses(id, course_type, name, class_size, season, weekdays, start_time, end_time)')
+        .eq('student_id', studentId);
+
+      if (error) throw error;
+      return (data || []).map(mapStudentCourseEnrollment);
     }
 
     function mapStudentCourseEnrollment(row) {
@@ -3828,19 +4041,6 @@
         endTime: course ? course.end_time : null,
         remainingLessons: row.remaining_lessons ?? 0
       };
-    }
-
-    async function fetchStudentCourses(studentId) {
-      const db = getSupabase();
-      if (!db) throw new Error('Supabase 库未加载');
-
-      const { data, error } = await db
-        .from('course_students')
-        .select('id, course_id, remaining_lessons, courses(id, course_type, name, class_size, season, weekdays, start_time, end_time)')
-        .eq('student_id', studentId);
-
-      if (error) throw error;
-      return (data || []).map(mapStudentCourseEnrollment);
     }
 
     function isLargeClassCourse(classSize) {
@@ -3966,6 +4166,10 @@
     }
 
     async function refreshStudentTagsData() {
+      if (coreDataCache.loaded) {
+        rebuildStudentTagsFromCache();
+        return;
+      }
       await refreshStudentSeasonsMap();
       await refreshStudentsRenewalSet();
     }
@@ -4081,10 +4285,8 @@
     }
 
     async function ensureCoursesCache() {
-      if (!coursesCache.length) {
-        await refreshTeachersCache();
-        coursesCache = await fetchCourses();
-      }
+      if (coreDataCache.loaded) return;
+      await preloadCoreData();
     }
 
     function populateCourseStudentSelect(selectId, enrolledStudentIds) {
@@ -4092,7 +4294,7 @@
       if (!select) return false;
 
       const enrolled = new Set(enrolledStudentIds || []);
-      const available = studentsCache.filter(s => !enrolled.has(s.id));
+      const available = coreDataCache.students.filter(s => !enrolled.has(s.id));
 
       if (!available.length) {
         select.innerHTML = '<option value="">暂无可添加学员</option>';
@@ -4114,7 +4316,7 @@
       if (!select) return false;
 
       const enrolled = new Set(enrolledCourseIds || []);
-      const available = coursesCache.filter(c => !enrolled.has(c.id));
+      const available = coreDataCache.courses.filter(c => !enrolled.has(c.id));
 
       if (!available.length) {
         select.innerHTML = '<option value="">暂无可添加课程</option>';
@@ -4139,7 +4341,7 @@
       if (!select) return;
 
       const current = selectedId || '';
-      const sorted = sortTeachersForList(teachersCache);
+      const sorted = sortTeachersForList(coreDataCache.teachers);
       select.innerHTML = '<option value="">请选择（可选）</option>' +
         sorted.map(t => `
           <option value="${escapeHtml(t.id)}"${t.id === current ? ' selected' : ''}>${escapeHtml(t.name)}</option>
@@ -4147,7 +4349,7 @@
     }
 
     async function refreshTeachersCache() {
-      teachersCache = await fetchTeachers();
+      coreDataCache.teachers = await fetchTeachers();
     }
 
     function formatTime(timeStr) {
@@ -4227,7 +4429,7 @@
     }
 
     function buildTeacherColorMap() {
-      const sorted = [...teachersCache].sort((a, b) => {
+      const sorted = [...coreDataCache.teachers].sort((a, b) => {
         const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return ta - tb;
@@ -4949,7 +5151,7 @@
     function enterStudentDetailEditMode() {
       if (!currentStudentDetailId) return;
 
-      const student = studentsCache.find(s => s.id === currentStudentDetailId);
+      const student = coreDataCache.students.find(s => s.id === currentStudentDetailId);
       if (!student) return;
 
       studentDetailEditMode = true;
@@ -4960,7 +5162,7 @@
     function cancelStudentDetailEdit() {
       if (!currentStudentDetailId) return;
 
-      const student = studentsCache.find(s => s.id === currentStudentDetailId);
+      const student = coreDataCache.students.find(s => s.id === currentStudentDetailId);
       if (!student) return;
 
       exitStudentDetailEditMode();
@@ -4989,7 +5191,7 @@
     function enterTeacherDetailEditMode() {
       if (!currentTeacherDetailId) return;
 
-      const teacher = teachersCache.find(t => t.id === currentTeacherDetailId);
+      const teacher = coreDataCache.teachers.find(t => t.id === currentTeacherDetailId);
       if (!teacher) return;
 
       teacherDetailEditMode = true;
@@ -5000,7 +5202,7 @@
     function cancelTeacherDetailEdit() {
       if (!currentTeacherDetailId) return;
 
-      const teacher = teachersCache.find(t => t.id === currentTeacherDetailId);
+      const teacher = coreDataCache.teachers.find(t => t.id === currentTeacherDetailId);
       if (!teacher) return;
 
       exitTeacherDetailEditMode();
@@ -5029,22 +5231,22 @@
       });
       updateFabVisibility(page);
       if (page === 'students') {
-        loadAndRenderStudents();
+        renderStudentsPage();
       }
       if (page === 'courses') {
         switchCoursesTab(coursesViewTab);
-        loadAndRenderCourses();
+        renderCoursesPage();
       }
       if (page === 'teachers') {
-        loadAndRenderTeachers();
+        renderTeachersPage();
       }
     }
 
     function getFilteredStudents() {
       const query = studentSearchQuery.trim().toLowerCase();
-      if (!query) return studentsCache;
+      if (!query) return coreDataCache.students;
 
-      return studentsCache.filter(s => {
+      return coreDataCache.students.filter(s => {
         const name = (s.name || '').toLowerCase();
         const phone = (s.phone || '').trim();
         return name.includes(query) || phone.includes(query);
@@ -5101,7 +5303,7 @@
     }
 
     function openConsumeModalForCourse(studentId, course) {
-      const student = studentsCache.find(s => s.id === studentId);
+      const student = coreDataCache.students.find(s => s.id === studentId);
       if (!student || !course) return;
 
       document.getElementById('consume-student-id').value = studentId;
@@ -5139,7 +5341,6 @@
     }
 
     async function refreshStudentDetailModal(studentId) {
-      await refreshStudentTagsData();
       if (document.getElementById('page-students').classList.contains('active')) {
         renderStudentListUI();
       }
@@ -5161,7 +5362,7 @@
     }
 
     async function openStudentDetailModal(id) {
-      const student = studentsCache.find(s => s.id === id);
+      const student = coreDataCache.students.find(s => s.id === id);
       if (!student) return;
 
       currentStudentDetailId = id;
@@ -5419,7 +5620,8 @@
       openModal('modal-bulk-consume');
 
       try {
-        const enrollments = sortEnrollmentsByStudentName(await fetchCourseStudents(courseId));
+        if (!coreDataCache.loaded) await preloadCoreData();
+        const enrollments = getCourseStudentsFromCache(courseId);
         if (!enrollments.length) {
           listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:12px 0;">暂无学员</p>';
           return;
@@ -5456,9 +5658,7 @@
 
     async function openAddCourseStudentModal(courseId, enrollments) {
       try {
-        if (!studentsCache.length) {
-          studentsCache = await fetchStudents();
-        }
+        if (!coreDataCache.loaded) await preloadCoreData();
         const enrolledIds = (enrollments || []).map(e => e.studentId);
         const hasAvailable = populateCourseStudentSelect('add-course-student-select', enrolledIds);
         document.getElementById('add-course-student-course-id').value = courseId;
@@ -5501,6 +5701,7 @@
       try {
         await addCourseStudent(courseId, studentId, hours);
         closeModal('modal-add-course-student');
+        await refreshCourseStudentsCacheData();
         await openCourseDetailModal(courseId);
         showToast('学员已加入课程');
       } catch (err) {
@@ -5514,6 +5715,7 @@
 
       try {
         await removeCourseStudent(enrollmentId);
+        await refreshCourseStudentsCacheData();
         await openCourseDetailModal(courseId);
         showToast('已移出课程');
       } catch (err) {
@@ -5523,7 +5725,7 @@
     }
 
     async function openCourseDetailModal(id) {
-      const course = coursesCache.find(c => c.id === id);
+      const course = coreDataCache.courses.find(c => c.id === id);
       if (!course) return;
 
       currentCourseDetailId = id;
@@ -5533,11 +5735,7 @@
       openDetailPage('detail-course');
 
       try {
-        await refreshStudentTagsData();
-        if (!studentsCache.length) {
-          studentsCache = await fetchStudents();
-        }
-        const enrollments = await fetchCourseStudents(id);
+        const enrollments = getCourseStudentsFromCache(id);
         body.innerHTML = `
           <div class="course-detail-panel">
             <div class="course-detail-info">
@@ -5562,7 +5760,7 @@
     }
 
     async function openTeacherDetailModal(id) {
-      const teacher = teachersCache.find(t => t.id === id);
+      const teacher = coreDataCache.teachers.find(t => t.id === id);
       if (!teacher) return;
 
       currentTeacherDetailId = id;
@@ -5577,10 +5775,7 @@
       updateFabVisibility('teachers');
 
       try {
-        if (!coursesCache.length) {
-          coursesCache = await fetchCourses();
-        }
-        const teacherCourses = sortTeacherDetailCourses(coursesCache.filter(c => c.teacherId === id));
+        const teacherCourses = sortTeacherDetailCourses(coreDataCache.courses.filter(c => c.teacherId === id));
         teacherDetailData = { courses: teacherCourses };
         renderTeacherDetailUI(teacher, teacherCourses);
       } catch (err) {
@@ -5691,7 +5886,6 @@
     }
 
     async function refreshTeacherDetailModal(teacherId) {
-      await loadAndRenderTeachers();
       if (isDetailPageOpen('detail-teacher')) {
         await openTeacherDetailModal(teacherId);
       }
@@ -5699,9 +5893,7 @@
 
     async function loadAndRenderStudents() {
       try {
-        studentsCache = await fetchStudents();
-        await refreshStudentTagsData();
-        renderStudentListUI();
+        await refreshStudentsCacheData();
       } catch (err) {
         console.error(err);
         showToast('加载学员失败，请检查网络或数据库配置');
@@ -5841,11 +6033,7 @@
 
     async function loadAndRenderCourses() {
       try {
-        await refreshTeachersCache();
-        await refreshStudentTagsData();
-        coursesCache = await fetchCourses();
-        renderCourseListUI(coursesCache);
-        renderWeekViewUI(coursesCache);
+        await refreshCoursesCacheData();
       } catch (err) {
         console.error(err);
         showToast('加载课程失败，请检查网络或数据库配置');
@@ -5895,8 +6083,7 @@
 
     async function loadAndRenderTeachers() {
       try {
-        teachersCache = await fetchTeachers();
-        renderTeacherListUI(teachersCache);
+        await refreshTeachersCacheData();
       } catch (err) {
         console.error(err);
         showToast('加载老师失败，请检查网络或数据库配置');
@@ -5916,7 +6103,7 @@
     async function openAddCoursePage() {
       document.getElementById('form-add-course').reset();
       try {
-        await refreshTeachersCache();
+        if (!coreDataCache.loaded) await preloadCoreData();
         populateTeacherSelect('course-teacher', '');
       } catch (err) {
         console.error(err);
@@ -5927,10 +6114,10 @@
     }
 
     async function openEditCourseModal(id) {
-      const course = coursesCache.find(c => c.id === id);
+      const course = coreDataCache.courses.find(c => c.id === id);
       if (!course) return;
 
-      await refreshTeachersCache();
+      if (!coreDataCache.loaded) await preloadCoreData();
       document.getElementById('edit-course-id').value = course.id;
       document.getElementById('edit-course-type').value = COURSE_TYPES.includes(course.courseType) ? course.courseType : '摩登舞';
       document.getElementById('edit-course-class').value = course.name;
@@ -6305,7 +6492,7 @@
         await logOperation('编辑课程', courseType + '·' + courseClass);
 
         finishCourseFormSave('detail-course-edit');
-        await loadAndRenderCourses();
+        await refreshAfterCourseChanged();
         showToast('保存成功');
       } catch (err) {
         console.error(err);
@@ -6339,7 +6526,7 @@
 
         closeDetailPage('detail-course-edit');
         switchCoursesTab('list');
-        await loadAndRenderCourses();
+        await refreshAfterCourseChanged();
         showToast('课程已删除');
       } catch (err) {
         console.error(err);
@@ -6449,12 +6636,15 @@
         const saved = await saveTeacherProfile(currentTeacherDetailId, name, phone, wechat, notes);
         if (!saved) return;
 
-        await loadAndRenderTeachers();
-        const teacher = teachersCache.find(t => t.id === currentTeacherDetailId);
+        await refreshAfterTeacherChanged();
+        const teacher = coreDataCache.teachers.find(t => t.id === currentTeacherDetailId);
         if (!teacher) return;
 
+        const teacherCourses = sortTeacherDetailCourses(coreDataCache.courses.filter(c => c.teacherId === currentTeacherDetailId));
+        teacherDetailData = { courses: teacherCourses };
+
         exitTeacherDetailEditMode();
-        renderTeacherDetailUI(teacher, teacherDetailData.courses);
+        renderTeacherDetailUI(teacher, teacherCourses);
         await logOperation('编辑老师', name);
         showToast('保存成功');
       } catch (err) {
@@ -6467,7 +6657,7 @@
       if (!currentTeacherDetailId) return;
 
       const nameInput = document.getElementById('teacher-detail-edit-name');
-      const teacher = teachersCache.find(t => t.id === currentTeacherDetailId);
+      const teacher = coreDataCache.teachers.find(t => t.id === currentTeacherDetailId);
       const name = nameInput ? nameInput.value.trim() : (teacher ? teacher.name : '该老师');
 
       try {
@@ -6475,7 +6665,7 @@
         if (!deleted) return;
 
         closeDetailPage('detail-teacher');
-        await loadAndRenderTeachers();
+        await refreshAfterTeacherChanged();
         await logOperation('删除老师', name);
         showToast('老师已删除');
       } catch (err) {
@@ -6517,7 +6707,7 @@
         await logOperation('编辑老师', name);
 
         closeModal('modal-edit-teacher');
-        await loadAndRenderTeachers();
+        await refreshAfterTeacherChanged();
         showToast('保存成功');
       } catch (err) {
         console.error(err);
@@ -6537,7 +6727,7 @@
         if (error) throw error;
         await logOperation('删除老师', name);
         closeModal('modal-edit-teacher');
-        await loadAndRenderTeachers();
+        await refreshAfterTeacherChanged();
         showToast('老师已删除');
       } catch (err) {
         console.error(err);
@@ -6562,6 +6752,7 @@
       try {
         await updateCourseStudentRemaining(enrollmentId, hours);
         closeModal('modal-edit-student-course');
+        await refreshCourseStudentsCacheData();
         await refreshStudentDetailModal(studentId);
         showToast('保存成功');
       } catch (err) {
@@ -6582,6 +6773,7 @@
       try {
         await removeCourseStudent(enrollmentId);
         closeModal('modal-edit-student-course');
+        await refreshCourseStudentsCacheData();
         await refreshStudentDetailModal(studentId);
         showToast('已移出课程');
       } catch (err) {
@@ -6612,6 +6804,7 @@
       try {
         await addCourseStudent(courseId, studentId, hours);
         closeModal('modal-add-student-course');
+        await refreshCourseStudentsCacheData();
         await refreshStudentDetailModal(studentId);
         showToast('课程添加成功');
       } catch (err) {
@@ -6693,6 +6886,7 @@
         await logOperation('批量消课', courseLabel + ' · ' + dateStr + ' · 到场' + presentCount + '人/请假' + absentCount + '人');
 
         closeModal('modal-bulk-consume');
+        await refreshCourseStudentsCacheData();
         await openCourseDetailModal(courseId);
 
         if (skippedAttend > 0) {
@@ -6764,7 +6958,7 @@
         await logOperation('消课', studentName + ' · ' + courseLabel + ' · ' + dateStr);
 
         closeModal('modal-consume');
-        await loadAndRenderStudents();
+        await refreshCourseStudentsCacheData();
         await refreshStudentDetailModal(studentId);
         showToast('消课成功');
       } catch (err) {
@@ -6829,7 +7023,7 @@
         await logOperation('补课', studentName + ' · ' + courseLabel + ' · ' + dateStr);
 
         closeModal('modal-makeup-lesson');
-        await loadAndRenderStudents();
+        await refreshCourseStudentsCacheData();
         await refreshStudentDetailModal(studentId);
         showToast('补课成功');
       } catch (err) {
@@ -6886,7 +7080,7 @@
           }
         }
 
-        await loadAndRenderStudents();
+        await refreshCourseStudentsCacheData();
         await refreshStudentDetailModal(studentId);
         showToast('记录已删除');
       } catch (err) {
@@ -6984,12 +7178,15 @@
         const saved = await saveStudentProfile(currentStudentDetailId, name, phone);
         if (!saved) return;
 
-        await loadAndRenderStudents();
-        const student = studentsCache.find(s => s.id === currentStudentDetailId);
+        await refreshAfterStudentChanged();
+        const student = coreDataCache.students.find(s => s.id === currentStudentDetailId);
         if (!student) return;
 
+        const courses = getStudentCoursesFromCache(currentStudentDetailId);
+        studentDetailData.courses = courses;
+
         exitStudentDetailEditMode();
-        renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
+        renderStudentDetailUI(student, studentDetailData.records, courses);
         await logOperation('编辑学员', name);
         showToast('保存成功');
       } catch (err) {
@@ -7020,7 +7217,7 @@
       if (!currentStudentDetailId) return;
 
       const nameInput = document.getElementById('student-detail-edit-name');
-      const student = studentsCache.find(s => s.id === currentStudentDetailId);
+      const student = coreDataCache.students.find(s => s.id === currentStudentDetailId);
       const name = nameInput ? nameInput.value.trim() : (student ? student.name : '该学员');
 
       try {
@@ -7028,7 +7225,7 @@
         if (!deleted) return;
 
         closeDetailPage('detail-student');
-        await loadAndRenderStudents();
+        await refreshAfterStudentChanged();
         await logOperation('删除学员', name);
         showToast('学员已删除');
       } catch (err) {
@@ -7049,7 +7246,7 @@
         if (!saved) return;
 
         closeModal('modal-edit');
-        await loadAndRenderStudents();
+        await refreshAfterStudentChanged();
         await logOperation('编辑学员', name);
         showToast('保存成功');
       } catch (err) {
@@ -7067,7 +7264,7 @@
         if (!deleted) return;
 
         closeModal('modal-edit');
-        await loadAndRenderStudents();
+        await refreshAfterStudentChanged();
         await logOperation('删除学员', name);
         showToast('学员已删除');
       } catch (err) {
@@ -7142,6 +7339,12 @@
     }
 
     async function fetchAllowedTeacherPhones() {
+      if (coreDataCache.loaded) {
+        return coreDataCache.teachers
+          .map(t => normalizePhone(t.phone))
+          .filter(Boolean);
+      }
+
       const teachers = await fetchTeachers();
       return teachers
         .map(t => normalizePhone(t.phone))
@@ -7157,24 +7360,30 @@
       return teacherPhones.includes(normalized);
     }
 
-    function enterAdminApp(phone) {
+    async function enterAdminApp(phone, preloadPromise) {
       saveAdminSession(phone);
       hideAdminLoginError();
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-shell').classList.add('visible');
       initLucideIcons();
       updateNavbarMenuVisibility();
-      navigateTo('courses');
-      if (getSupabase()) {
-        refreshTeachersCache().catch(() => {});
-      } else {
-        console.warn('Supabase JS 未就绪，页面导航仍可用，数据功能需刷新后重试');
+
+      try {
+        if (preloadPromise) {
+          await preloadPromise;
+        } else if (!coreDataCache.loaded && getSupabase()) {
+          await preloadCoreData();
+        }
+      } catch (err) {
+        console.error(err);
       }
+
+      navigateTo('courses');
     }
 
-    function startAdminApp() {
+    function startAdminApp(preloadPromise) {
       if (hasAdminSession()) {
-        enterAdminApp(localStorage.getItem(ADMIN_AUTH_STORAGE_KEY));
+        enterAdminApp(localStorage.getItem(ADMIN_AUTH_STORAGE_KEY), preloadPromise);
         return;
       }
 
@@ -7204,6 +7413,7 @@
 
         const allowed = await isPhoneAllowedForAdmin(phone);
         if (allowed) {
+          await preloadCoreData().catch(err => console.error(err));
           enterAdminApp(phone);
         } else {
           showAdminLoginError();
@@ -7235,7 +7445,13 @@
       preventViewportZoom();
       bindEvents();
       initLucideIcons();
-      runSplashScreen(startAdminApp);
+      const preloadPromise = hasAdminSession() && getSupabase()
+        ? preloadCoreData().catch(err => {
+            console.error('预加载核心数据失败', err);
+            return false;
+          })
+        : null;
+      runSplashScreen(() => startAdminApp(preloadPromise));
     }
 
     if (document.readyState === 'loading') {
