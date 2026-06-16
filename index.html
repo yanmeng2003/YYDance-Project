@@ -2027,6 +2027,15 @@
       transform: translate3d(0, 0, 0);
     }
 
+    .detail-page.is-swipe-dragging {
+      transition: none !important;
+      touch-action: none;
+    }
+
+    .detail-page.is-swipe-rebound {
+      transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    }
+
     .detail-page-navbar {
       flex-shrink: 0;
       height: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
@@ -2618,7 +2627,10 @@
           <span>深色模式</span>
           <span class="navbar-menu-check" id="theme-toggle-indicator" aria-hidden="true"></span>
         </button>
-        <button type="button" class="navbar-menu-item" id="btn-operation-logs" role="menuitem" hidden>操作日志</button>
+        <button type="button" class="navbar-menu-item" id="btn-operation-logs" role="menuitem" hidden>
+          <span>操作日志</span>
+          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="scroll-text"></i></span>
+        </button>
         <button type="button" class="navbar-menu-item navbar-menu-item--danger" id="btn-logout" role="menuitem">
           <span>退出登录</span>
           <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="log-out"></i></span>
@@ -3335,6 +3347,9 @@
     let teacherDetailData = { courses: [] };
 
     const DETAIL_PAGE_BASE_Z_INDEX = 200;
+    const DETAIL_SWIPE_EDGE_WIDTH = 28;
+    const DETAIL_SWIPE_TRIGGER_RATIO = 0.28;
+    const DETAIL_SWIPE_TRIGGER_MIN = 72;
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -4586,6 +4601,139 @@
       return top;
     }
 
+    function getTopOpenDetailPage() {
+      let topPage = null;
+      let topZ = -1;
+
+      document.querySelectorAll('.detail-page.is-open').forEach(page => {
+        const z = parseInt(page.style.zIndex, 10) || DETAIL_PAGE_BASE_Z_INDEX;
+        if (z >= topZ) {
+          topZ = z;
+          topPage = page;
+        }
+      });
+
+      return topPage;
+    }
+
+    function isDetailSwipeBlocked() {
+      return !!document.querySelector('.modal-overlay.open');
+    }
+
+    function bindDetailPageEdgeSwipe() {
+      let swipeState = null;
+
+      function resetSwipeState() {
+        swipeState = null;
+      }
+
+      function onSwipeStart(clientX, clientY, pointerId) {
+        if (swipeState || isDetailSwipeBlocked()) return;
+
+        const page = getTopOpenDetailPage();
+        if (!page || clientX > DETAIL_SWIPE_EDGE_WIDTH) return;
+
+        swipeState = {
+          page,
+          pointerId,
+          startX: clientX,
+          startY: clientY,
+          dragging: false,
+          width: window.innerWidth
+        };
+      }
+
+      function onSwipeMove(clientX, clientY, pointerId) {
+        if (!swipeState || swipeState.pointerId !== pointerId) return;
+
+        const { page, startX, startY, width } = swipeState;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        if (!swipeState.dragging) {
+          if (dx <= 0 || Math.abs(dx) < 8) return;
+          if (Math.abs(dy) > Math.abs(dx)) {
+            resetSwipeState();
+            return;
+          }
+
+          swipeState.dragging = true;
+          page.classList.add('is-swipe-dragging');
+          if (page.setPointerCapture) {
+            try {
+              page.setPointerCapture(pointerId);
+            } catch (err) {
+              /* ignore */
+            }
+          }
+        }
+
+        const offset = Math.max(0, Math.min(dx, width));
+        page.style.transform = 'translate3d(' + offset + 'px, 0, 0)';
+      }
+
+      function onSwipeEnd(clientX, pointerId) {
+        if (!swipeState || swipeState.pointerId !== pointerId) return;
+
+        const { page, pageId, dragging, startX, width } = swipeState;
+        resetSwipeState();
+
+        if (!dragging) return;
+
+        page.classList.remove('is-swipe-dragging');
+
+        const dx = clientX - startX;
+        const threshold = Math.max(DETAIL_SWIPE_TRIGGER_MIN, width * DETAIL_SWIPE_TRIGGER_RATIO);
+
+        if (dx >= threshold) {
+          closeDetailPage(pageId, { fromSwipeOffset: dx });
+          return;
+        }
+
+        page.classList.add('is-swipe-rebound');
+        page.style.transform = 'translate3d(0, 0, 0)';
+
+        const onReboundEnd = (e) => {
+          if (e.target !== page || e.propertyName !== 'transform') return;
+          page.removeEventListener('transitionend', onReboundEnd);
+          page.classList.remove('is-swipe-rebound');
+          page.style.transform = '';
+        };
+
+        page.addEventListener('transitionend', onReboundEnd);
+        setTimeout(() => {
+          page.removeEventListener('transitionend', onReboundEnd);
+          page.classList.remove('is-swipe-rebound');
+          if (page.classList.contains('is-open')) page.style.transform = '';
+        }, 260);
+      }
+
+      document.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        onSwipeStart(e.clientX, e.clientY, e.pointerId);
+      });
+
+      document.addEventListener('pointermove', (e) => {
+        if (!swipeState || swipeState.pointerId !== e.pointerId) return;
+        onSwipeMove(e.clientX, e.clientY, e.pointerId);
+        if (swipeState && swipeState.dragging) e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('pointerup', (e) => {
+        if (!swipeState || swipeState.pointerId !== e.pointerId) return;
+        onSwipeEnd(e.clientX, e.pointerId);
+      });
+
+      document.addEventListener('pointercancel', (e) => {
+        if (!swipeState || swipeState.pointerId !== e.pointerId) return;
+        const page = swipeState.page;
+        resetSwipeState();
+        if (!page || !page.classList.contains('is-open')) return;
+        page.classList.remove('is-swipe-dragging');
+        page.style.transform = '';
+      });
+    }
+
     function openDetailPage(pageId) {
       const page = document.getElementById(pageId);
       if (!page) return;
@@ -4603,7 +4751,8 @@
       });
     }
 
-    function closeDetailPage(pageId) {
+    function closeDetailPage(pageId, options = {}) {
+      const { fromSwipeOffset = 0 } = options;
       const page = document.getElementById(pageId);
       if (!page || !page.classList.contains('is-open')) return;
 
@@ -4623,11 +4772,12 @@
         teacherDetailData = { courses: [] };
       }
 
-      page.classList.remove('is-open');
+      page.classList.remove('is-open', 'is-swipe-dragging');
       page.setAttribute('aria-hidden', 'true');
 
       const finishClose = () => {
-        page.classList.remove('is-visible');
+        page.classList.remove('is-visible', 'is-swipe-rebound');
+        page.style.transform = '';
         page.style.zIndex = '';
         updateDetailPageScrollLock();
       };
@@ -4639,6 +4789,15 @@
       };
 
       page.addEventListener('transitionend', onTransitionEnd);
+
+      if (fromSwipeOffset > 0) {
+        page.classList.add('is-swipe-rebound');
+        page.style.transform = 'translate3d(' + fromSwipeOffset + 'px, 0, 0)';
+        requestAnimationFrame(() => {
+          page.style.transform = 'translate3d(100%, 0, 0)';
+        });
+      }
+
       setTimeout(() => {
         if (page.classList.contains('is-visible') && !page.classList.contains('is-open')) {
           page.removeEventListener('transitionend', onTransitionEnd);
@@ -5810,6 +5969,7 @@
       document.getElementById('form-admin-login').addEventListener('submit', onAdminLoginSubmit);
       document.getElementById('admin-login-phone').addEventListener('input', hideAdminLoginError);
       bindNavbarMenu();
+      bindDetailPageEdgeSwipe();
 
       document.querySelectorAll('.courses-tab').forEach(btn => {
         btn.addEventListener('click', () => switchCoursesTab(btn.dataset.coursesTab));
