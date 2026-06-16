@@ -289,10 +289,29 @@
       color: var(--danger);
     }
 
+    .navbar-menu-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+    }
+
+    .navbar-menu-item--danger .navbar-menu-icon {
+      color: var(--danger);
+    }
+
+    .navbar-menu-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
     .navbar-menu-check {
       width: 18px;
       height: 18px;
-      border-radius: 999px;
+      border-radius: 5px;
       border: 1.5px solid var(--border);
       flex-shrink: 0;
       position: relative;
@@ -2565,7 +2584,10 @@
           <span>深色模式</span>
           <span class="navbar-menu-check" id="theme-toggle-indicator" aria-hidden="true"></span>
         </button>
-        <button type="button" class="navbar-menu-item navbar-menu-item--danger" id="btn-logout" role="menuitem">退出登录</button>
+        <button type="button" class="navbar-menu-item navbar-menu-item--danger" id="btn-logout" role="menuitem">
+          <span>退出登录</span>
+          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="log-out"></i></span>
+        </button>
       </div>
     </div>
     <span class="navbar-brand">耀毅国标舞工作室</span>
