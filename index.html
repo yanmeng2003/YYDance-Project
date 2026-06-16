@@ -2040,7 +2040,11 @@
     }
 
     .detail-page.is-swipe-rebound {
-      transition: transform 0.22s cubic-bezier(0.32, 0.72, 0, 1) !important;
+      transition: transform 0.42s cubic-bezier(0.32, 0.84, 0.45, 1) !important;
+    }
+
+    .detail-page.is-swipe-dismiss {
+      transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
 
     .detail-page-navbar {
@@ -2631,8 +2635,8 @@
       </button>
       <div class="navbar-menu-panel" id="navbar-menu-panel" role="menu" aria-label="导航菜单">
         <button type="button" class="navbar-menu-item" id="btn-theme-toggle" role="menuitem">
-          <span>深色模式</span>
-          <span class="navbar-menu-check" id="theme-toggle-indicator" aria-hidden="true"></span>
+          <span id="theme-toggle-label">深色模式</span>
+          <span class="navbar-menu-icon" id="theme-toggle-indicator" aria-hidden="true"><i data-lucide="moon"></i></span>
         </button>
         <button type="button" class="navbar-menu-item" id="btn-operation-logs" role="menuitem" hidden>
           <span>操作日志</span>
@@ -3357,6 +3361,9 @@
     const DETAIL_SWIPE_EDGE_WIDTH = 28;
     const DETAIL_SWIPE_TRIGGER_RATIO = 0.16;
     const DETAIL_SWIPE_TRIGGER_MIN = 44;
+    const DETAIL_SWIPE_VELOCITY_MIN = 0.32;
+    const DETAIL_SWIPE_RUBBER_BAND_START = 0.72;
+    const DETAIL_SWIPE_RUBBER_BAND_FACTOR = 0.28;
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -4656,6 +4663,18 @@
       delete inner.dataset.swipeScrollTop;
     }
 
+    function applySwipeDragOffset(dx, width) {
+      const safeDx = Math.max(0, dx);
+      const freeLimit = width * DETAIL_SWIPE_RUBBER_BAND_START;
+      if (safeDx <= freeLimit) return safeDx;
+      return freeLimit + (safeDx - freeLimit) * DETAIL_SWIPE_RUBBER_BAND_FACTOR;
+    }
+
+    function getSwipeDismissDuration(fromOffset, width) {
+      const remainingRatio = Math.max(0, Math.min(1, (width - fromOffset) / width));
+      return Math.round(260 + remainingRatio * 180);
+    }
+
     function bindDetailPageEdgeSwipe() {
       let swipeState = null;
 
@@ -4678,6 +4697,9 @@
           pointerId,
           startX: clientX,
           startY: clientY,
+          startTime: Date.now(),
+          lastX: clientX,
+          lastTime: Date.now(),
           dragging: false,
           scrollLock: null,
           width: window.innerWidth
@@ -4712,25 +4734,40 @@
 
         pinDetailPageScroll(swipeState.scrollLock);
 
-        const offset = Math.max(0, Math.min(dx, width));
+        swipeState.lastX = clientX;
+        swipeState.lastTime = Date.now();
+
+        const offset = applySwipeDragOffset(dx, width);
         page.style.transform = 'translate3d(' + offset + 'px, 0, 0)';
+      }
+
+      function shouldDismissSwipe(dx, width, startTime, startX, clientX, lastX, lastTime) {
+        const threshold = Math.max(DETAIL_SWIPE_TRIGGER_MIN, width * DETAIL_SWIPE_TRIGGER_RATIO);
+        if (dx >= threshold) return true;
+
+        const flickDt = Math.max(1, Date.now() - lastTime);
+        const flickVelocity = (clientX - lastX) / flickDt;
+        const overallVelocity = dx / Math.max(1, Date.now() - startTime);
+
+        return Math.max(flickVelocity, overallVelocity) >= DETAIL_SWIPE_VELOCITY_MIN
+          && dx >= DETAIL_SWIPE_TRIGGER_MIN * 0.55;
       }
 
       function onSwipeEnd(clientX, pointerId) {
         if (!swipeState || swipeState.pointerId !== pointerId) return;
 
-        const { page, dragging, startX, width } = swipeState;
+        const { page, dragging, startX, startTime, lastX, lastTime, width } = swipeState;
         const dx = clientX - startX;
+        const dismiss = dragging && shouldDismissSwipe(dx, width, startTime, startX, clientX, lastX, lastTime);
+        const dragOffset = applySwipeDragOffset(dx, width);
         resetSwipeState();
 
         if (!dragging) return;
 
         page.classList.remove('is-swipe-dragging');
 
-        const threshold = Math.max(DETAIL_SWIPE_TRIGGER_MIN, width * DETAIL_SWIPE_TRIGGER_RATIO);
-
-        if (dx >= threshold) {
-          closeDetailPage(page.id, { fromSwipeOffset: dx });
+        if (dismiss) {
+          closeDetailPage(page.id, { fromSwipeOffset: dragOffset });
           return;
         }
 
@@ -4742,14 +4779,16 @@
           page.removeEventListener('transitionend', onReboundEnd);
           page.classList.remove('is-swipe-rebound');
           page.style.transform = '';
+          page.style.transitionDuration = '';
         };
 
         page.addEventListener('transitionend', onReboundEnd);
         setTimeout(() => {
           page.removeEventListener('transitionend', onReboundEnd);
           page.classList.remove('is-swipe-rebound');
+          page.style.transitionDuration = '';
           if (page.classList.contains('is-open')) page.style.transform = '';
-        }, 260);
+        }, 460);
       }
 
       document.addEventListener('pointerdown', (e) => {
@@ -4826,8 +4865,9 @@
       page.setAttribute('aria-hidden', 'true');
 
       const finishClose = () => {
-        page.classList.remove('is-visible', 'is-swipe-rebound');
+        page.classList.remove('is-visible', 'is-swipe-rebound', 'is-swipe-dismiss');
         page.style.transform = '';
+        page.style.transitionDuration = '';
         page.style.zIndex = '';
         updateDetailPageScrollLock();
       };
@@ -4840,10 +4880,11 @@
 
       page.addEventListener('transitionend', onTransitionEnd);
 
-      page.classList.add('is-swipe-rebound');
-      page.style.transform = fromSwipeOffset > 0
-        ? 'translate3d(' + fromSwipeOffset + 'px, 0, 0)'
-        : 'translate3d(0, 0, 0)';
+      const width = window.innerWidth;
+      const startOffset = fromSwipeOffset > 0 ? fromSwipeOffset : 0;
+      page.classList.add('is-swipe-dismiss');
+      page.style.transitionDuration = getSwipeDismissDuration(startOffset, width) + 'ms';
+      page.style.transform = 'translate3d(' + startOffset + 'px, 0, 0)';
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -4856,7 +4897,7 @@
           page.removeEventListener('transitionend', onTransitionEnd);
           finishClose();
         }
-      }, 320);
+      }, getSwipeDismissDuration(startOffset, width) + 80);
 
       updateFabVisibility(getActiveMainPage());
     }
@@ -5938,9 +5979,20 @@
     }
 
     function updateThemeMenuUI() {
+      const label = document.getElementById('theme-toggle-label');
       const indicator = document.getElementById('theme-toggle-indicator');
-      if (!indicator) return;
-      indicator.classList.toggle('is-on', isDarkModeActive());
+      const dark = isDarkModeActive();
+
+      if (label) {
+        label.textContent = dark ? '浅色模式' : '深色模式';
+      }
+
+      if (indicator) {
+        indicator.innerHTML = dark
+          ? '<i data-lucide="sun"></i>'
+          : '<i data-lucide="moon"></i>';
+        initLucideIcons();
+      }
     }
 
     function setThemePreference(theme) {
@@ -5987,6 +6039,7 @@
         themeBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           toggleThemePreference();
+          closeNavbarMenu();
         });
       }
 
