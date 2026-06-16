@@ -2030,6 +2030,13 @@
     .detail-page.is-swipe-dragging {
       transition: none !important;
       touch-action: none;
+      overflow: hidden !important;
+    }
+
+    .detail-page.is-swipe-dragging .detail-page-inner {
+      overflow: hidden !important;
+      touch-action: none;
+      overscroll-behavior: none;
     }
 
     .detail-page.is-swipe-rebound {
@@ -3348,8 +3355,8 @@
 
     const DETAIL_PAGE_BASE_Z_INDEX = 200;
     const DETAIL_SWIPE_EDGE_WIDTH = 28;
-    const DETAIL_SWIPE_TRIGGER_RATIO = 0.28;
-    const DETAIL_SWIPE_TRIGGER_MIN = 72;
+    const DETAIL_SWIPE_TRIGGER_RATIO = 0.16;
+    const DETAIL_SWIPE_TRIGGER_MIN = 44;
 
     const RENEWAL_LESSONS_THRESHOLD = 3;
     const SEASON_TERM_ORDER = { '春季': 0, '暑期': 1, '秋季': 2 };
@@ -4620,10 +4627,42 @@
       return !!document.querySelector('.modal-overlay.open');
     }
 
+    function lockDetailPageScroll(page) {
+      const inner = page.querySelector('.detail-page-inner');
+      if (!inner) return null;
+
+      const scrollTop = inner.scrollTop;
+      inner.classList.add('is-swipe-scroll-locked');
+      inner.dataset.swipeScrollTop = String(scrollTop);
+      return { inner, scrollTop };
+    }
+
+    function pinDetailPageScroll(scrollLock) {
+      if (!scrollLock) return;
+      scrollLock.inner.scrollTop = scrollLock.scrollTop;
+    }
+
+    function releaseDetailPageScrollLock(page) {
+      if (!page) return;
+
+      page.classList.remove('is-swipe-scroll-locked');
+
+      const inner = page.querySelector('.detail-page-inner.is-swipe-scroll-locked');
+      if (!inner) return;
+
+      const scrollTop = parseInt(inner.dataset.swipeScrollTop || '0', 10);
+      inner.classList.remove('is-swipe-scroll-locked');
+      inner.scrollTop = scrollTop;
+      delete inner.dataset.swipeScrollTop;
+    }
+
     function bindDetailPageEdgeSwipe() {
       let swipeState = null;
 
       function resetSwipeState() {
+        if (swipeState && swipeState.page) {
+          releaseDetailPageScrollLock(swipeState.page);
+        }
         swipeState = null;
       }
 
@@ -4640,6 +4679,7 @@
           startX: clientX,
           startY: clientY,
           dragging: false,
+          scrollLock: null,
           width: window.innerWidth
         };
       }
@@ -4652,14 +4692,15 @@
         const dy = clientY - startY;
 
         if (!swipeState.dragging) {
-          if (dx <= 0 || Math.abs(dx) < 8) return;
+          if (dx <= 0 || Math.abs(dx) < 6) return;
           if (Math.abs(dy) > Math.abs(dx)) {
             resetSwipeState();
             return;
           }
 
           swipeState.dragging = true;
-          page.classList.add('is-swipe-dragging');
+          swipeState.scrollLock = lockDetailPageScroll(page);
+          page.classList.add('is-swipe-dragging', 'is-swipe-scroll-locked');
           if (page.setPointerCapture) {
             try {
               page.setPointerCapture(pointerId);
@@ -4669,6 +4710,8 @@
           }
         }
 
+        pinDetailPageScroll(swipeState.scrollLock);
+
         const offset = Math.max(0, Math.min(dx, width));
         page.style.transform = 'translate3d(' + offset + 'px, 0, 0)';
       }
@@ -4677,13 +4720,13 @@
         if (!swipeState || swipeState.pointerId !== pointerId) return;
 
         const { page, dragging, startX, width } = swipeState;
+        const dx = clientX - startX;
         resetSwipeState();
 
         if (!dragging) return;
 
         page.classList.remove('is-swipe-dragging');
 
-        const dx = clientX - startX;
         const threshold = Math.max(DETAIL_SWIPE_TRIGGER_MIN, width * DETAIL_SWIPE_TRIGGER_RATIO);
 
         if (dx >= threshold) {
@@ -4716,8 +4759,14 @@
 
       document.addEventListener('pointermove', (e) => {
         if (!swipeState || swipeState.pointerId !== e.pointerId) return;
+
+        const dx = e.clientX - swipeState.startX;
+        const dy = Math.abs(e.clientY - swipeState.startY);
+        if (swipeState.dragging || (dx > 0 && dx >= dy)) {
+          e.preventDefault();
+        }
+
         onSwipeMove(e.clientX, e.clientY, e.pointerId);
-        if (swipeState && swipeState.dragging) e.preventDefault();
       }, { passive: false });
 
       document.addEventListener('pointerup', (e) => {
