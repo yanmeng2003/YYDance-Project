@@ -4635,6 +4635,7 @@
 
         swipeState = {
           page,
+          pageId: page.id,
           pointerId,
           startX: clientX,
           startY: clientY,
@@ -4675,7 +4676,7 @@
       function onSwipeEnd(clientX, pointerId) {
         if (!swipeState || swipeState.pointerId !== pointerId) return;
 
-        const { page, pageId, dragging, startX, width } = swipeState;
+        const { page, dragging, startX, width } = swipeState;
         resetSwipeState();
 
         if (!dragging) return;
@@ -4686,7 +4687,7 @@
         const threshold = Math.max(DETAIL_SWIPE_TRIGGER_MIN, width * DETAIL_SWIPE_TRIGGER_RATIO);
 
         if (dx >= threshold) {
-          closeDetailPage(pageId, { fromSwipeOffset: dx });
+          closeDetailPage(page.id, { fromSwipeOffset: dx });
           return;
         }
 
@@ -4790,13 +4791,16 @@
 
       page.addEventListener('transitionend', onTransitionEnd);
 
-      if (fromSwipeOffset > 0) {
-        page.classList.add('is-swipe-rebound');
-        page.style.transform = 'translate3d(' + fromSwipeOffset + 'px, 0, 0)';
+      page.classList.add('is-swipe-rebound');
+      page.style.transform = fromSwipeOffset > 0
+        ? 'translate3d(' + fromSwipeOffset + 'px, 0, 0)'
+        : 'translate3d(0, 0, 0)';
+
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           page.style.transform = 'translate3d(100%, 0, 0)';
         });
-      }
+      });
 
       setTimeout(() => {
         if (page.classList.contains('is-visible') && !page.classList.contains('is-open')) {
