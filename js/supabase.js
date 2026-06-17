@@ -883,7 +883,7 @@ async function logOperation(action, target) {
   try {
     const db = getSupabase();
     if (!db) return;
-    const operator = getCurrentOperatorName();
+    const operator = getCurrentOperatorPhone();
     if (!operator) return;
     const { error } = await db.from('operation_logs').insert({
       operator,

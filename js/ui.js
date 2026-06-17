@@ -760,19 +760,6 @@ function getCurrentOperatorPhone() {
 }
 
 
-function getOperatorNameByPhone(phone) {
-  const normalized = normalizePhone(phone);
-  if (!normalized) return '';
-  const teacher = coreDataCache.teachers.find(t => normalizePhone(t.phone) === normalized);
-  return teacher ? teacher.name : normalized;
-}
-
-
-function getCurrentOperatorName() {
-  return getOperatorNameByPhone(getCurrentOperatorPhone());
-}
-
-
 function canViewOperationLogs() {
   return getCurrentOperatorPhone() === ADMIN_EXTRA_ALLOWED_PHONE;
 }
