@@ -101,7 +101,7 @@ async function fetchStudents() {
 
   const { data, error } = await db
     .from('students')
-    .select('id, name, phone, wechat')
+    .select('id, name, phone')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
@@ -349,19 +349,50 @@ async function preloadCoreData() {
   if (!getSupabase()) return false;
 
   coreDataCache.loading = (async () => {
-    const [students, courses, teachers, courseStudents] = await Promise.all([
+    const results = await Promise.allSettled([
       fetchStudents(),
       fetchCourses(),
       fetchTeachers(),
       fetchAllCourseStudents()
     ]);
 
-    coreDataCache.students = students;
-    coreDataCache.courses = courses;
-    coreDataCache.teachers = teachers;
-    coreDataCache.courseStudents = courseStudents;
+    const errors = [];
+    if (results[0].status === 'fulfilled') {
+      coreDataCache.students = results[0].value;
+    } else {
+      errors.push('学员');
+      console.error('加载学员失败', results[0].reason);
+    }
+    if (results[1].status === 'fulfilled') {
+      coreDataCache.courses = results[1].value;
+    } else {
+      errors.push('课程');
+      console.error('加载课程失败', results[1].reason);
+    }
+    if (results[2].status === 'fulfilled') {
+      coreDataCache.teachers = results[2].value;
+    } else {
+      errors.push('教师');
+      console.error('加载教师失败', results[2].reason);
+    }
+    if (results[3].status === 'fulfilled') {
+      coreDataCache.courseStudents = results[3].value;
+    } else {
+      errors.push('课程学员关联');
+      console.error('加载课程学员关联失败', results[3].reason);
+    }
+
+    if (errors.length === 4) {
+      throw new Error('数据加载失败，请检查网络或数据库配置');
+    }
+
     rebuildStudentTagsFromCache();
     coreDataCache.loaded = true;
+
+    if (errors.length > 0) {
+      showToast('部分数据加载失败：' + errors.join('、'));
+    }
+
     return true;
   })().catch(err => {
     coreDataCache.loading = null;

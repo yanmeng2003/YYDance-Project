@@ -181,6 +181,7 @@ async function enterAdminApp(phone, preloadPromise) {
     }
   } catch (err) {
     console.error(err);
+    showToast(err.message || '数据加载失败，请刷新页面重试');
   }
 
   navigateTo('courses');
