@@ -71,8 +71,6 @@ function bindEvents() {
   });
 
   document.getElementById('form-add-student').addEventListener('submit', onAddStudent);
-  document.getElementById('form-edit-student').addEventListener('submit', onEditStudent);
-  document.getElementById('btn-delete-student').addEventListener('click', onDeleteStudent);
   document.getElementById('form-consume-lesson').addEventListener('submit', onConsumeLesson);
   document.getElementById('form-bulk-consume').addEventListener('submit', onBulkConsumeCourse);
   document.getElementById('form-makeup-lesson').addEventListener('submit', onMakeupLesson);
@@ -86,8 +84,6 @@ function bindEvents() {
   bindCourseClassSizeToggle('course-class-size', 'course-season-group', 'course-season');
   bindCourseClassSizeToggle('edit-course-class-size', 'edit-course-season-group', 'edit-course-season');
   document.getElementById('form-add-teacher').addEventListener('submit', onAddTeacher);
-  document.getElementById('form-edit-teacher').addEventListener('submit', onEditTeacher);
-  document.getElementById('btn-delete-teacher').addEventListener('click', onDeleteTeacher);
 
   const exportDataBtn = document.getElementById('btn-export-data');
   if (exportDataBtn) {

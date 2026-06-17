@@ -385,47 +385,6 @@
     </div>
   </div>
 
-  <!-- 编辑老师弹窗 -->
-  <div class="modal-overlay" id="modal-edit-teacher" role="dialog" aria-modal="true" aria-labelledby="modal-edit-teacher-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-edit-teacher-title">编辑老师</h3>
-        <button type="button" class="modal-close" data-close="modal-edit-teacher" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="form-edit-teacher">
-          <input type="hidden" id="edit-teacher-id">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="edit-teacher-name">老师姓名 *</label>
-              <input type="text" id="edit-teacher-name" required placeholder="请输入姓名">
-            </div>
-            <div class="form-group">
-              <label for="edit-teacher-phone">联系电话 *</label>
-              <input type="tel" id="edit-teacher-phone" required placeholder="请输入手机号">
-            </div>
-            <div class="form-group">
-              <label for="edit-teacher-wechat">微信号</label>
-              <input type="text" id="edit-teacher-wechat" placeholder="选填">
-            </div>
-            <div class="form-group">
-              <label for="edit-teacher-notes">备注</label>
-              <textarea id="edit-teacher-notes" placeholder="选填"></textarea>
-            </div>
-          </div>
-          <div class="form-actions-edit">
-            <div class="form-actions-row">
-              <button type="submit" class="btn btn-primary">保存</button>
-              <button type="button" class="btn btn-outline" data-close="modal-edit-teacher">取消</button>
-            </div>
-            <div class="form-actions-delete">
-              <button type="button" class="btn btn-danger" id="btn-delete-teacher" style="width:100%">删除老师</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 
   <!-- 消课弹窗 -->
   <div class="modal-overlay" id="modal-consume" role="dialog" aria-modal="true" aria-labelledby="modal-consume-title">
@@ -675,39 +634,6 @@
     </div>
   </div>
 
-  <!-- 编辑学员弹窗 -->
-  <div class="modal-overlay" id="modal-edit" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-edit-title">编辑学员</h3>
-        <button type="button" class="modal-close" data-close="modal-edit" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="form-edit-student">
-          <input type="hidden" id="edit-id">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="edit-name">姓名 *</label>
-              <input type="text" id="edit-name" required placeholder="请输入姓名">
-            </div>
-            <div class="form-group">
-              <label for="edit-phone">联系电话</label>
-              <input type="tel" id="edit-phone" placeholder="选填">
-            </div>
-          </div>
-          <div class="form-actions-edit">
-            <div class="form-actions-row">
-              <button type="submit" class="btn btn-primary">保存</button>
-              <button type="button" class="btn btn-outline" data-close="modal-edit">取消</button>
-            </div>
-            <div class="form-actions-delete">
-              <button type="button" class="btn btn-danger" id="btn-delete-student">删除学员</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 
   <div class="toast" id="toast"></div>
   </div>
