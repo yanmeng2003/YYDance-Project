@@ -835,9 +835,7 @@ async function onAddStudent(e) {
 
     const { error } = await db.from('students').insert({
       name,
-      phone: phone || null,
-      total_lessons: 0,
-      remaining_lessons: 0
+      phone: phone || null
     });
 
     if (error) throw error;

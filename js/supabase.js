@@ -101,7 +101,7 @@ async function fetchStudents() {
 
   const { data, error } = await db
     .from('students')
-    .select('*')
+    .select('id, name, phone, wechat')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
