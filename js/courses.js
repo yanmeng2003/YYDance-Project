@@ -395,7 +395,6 @@ function buildWeekEventHtml(eventLayout, colorMap) {
       style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};color:${colors.text}"
       title="${escapeHtml(title)}">
       <span class="week-event-class">${escapeHtml(courseLabel)}</span>
-      <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
       <span class="week-event-time">${escapeHtml(timeLabel)}</span>
     </div>
   `;
