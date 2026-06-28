@@ -644,7 +644,7 @@
 
     .student-letter-anchor {
       list-style: none;
-      padding: 10px 2px 2px;
+      padding: 8px 2px 0;
     }
 
     .student-letter-label {
@@ -657,6 +657,14 @@
 
     .students-island-wrap {
       margin-top: 4px;
+      --island-list-gap: 8px;
+      --island-item-radius: 16px;
+      --island-link-padding-y: 13px;
+      --island-link-padding-x: 16px;
+      --island-link-min-height: 68px;
+      --island-main-gap: 4px;
+      --island-secondary-size: 0.8125rem;
+      --island-secondary-height: 17px;
     }
 
     .students-island-header {
@@ -664,7 +672,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       padding: 0 2px;
     }
 
@@ -686,12 +694,12 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: var(--island-list-gap, 8px);
     }
 
     .student-island-item {
       background: var(--card-bg);
-      border-radius: 16px;
+      border-radius: var(--island-item-radius, 16px);
       border: 0.5px solid var(--border-subtle);
       box-shadow: var(--shadow-card);
       overflow: hidden;
@@ -707,10 +715,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       width: 100%;
-      min-height: 78px;
-      padding: 16px 18px;
+      min-height: var(--island-link-min-height, 68px);
+      padding: var(--island-link-padding-y, 13px) var(--island-link-padding-x, 16px);
       border: none;
       background: transparent;
       text-align: left;
@@ -723,18 +731,18 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 6px;
+      gap: var(--island-main-gap, 4px);
       flex: 1;
       min-width: 0;
-      min-height: 44px;
+      min-height: 40px;
     }
 
     .student-island-phone {
       display: flex;
       align-items: center;
-      min-height: 18px;
-      line-height: 18px;
-      font-size: 0.8125rem;
+      min-height: var(--island-secondary-height, 17px);
+      line-height: var(--island-secondary-height, 17px);
+      font-size: var(--island-secondary-size, 0.8125rem);
       color: var(--text-muted);
       font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
       font-variant-numeric: tabular-nums;
@@ -748,9 +756,9 @@
 
     .student-island-subline {
       display: block;
-      min-height: 18px;
-      line-height: 18px;
-      font-size: 0.8125rem;
+      min-height: var(--island-secondary-height, 17px);
+      line-height: var(--island-secondary-height, 17px);
+      font-size: var(--island-secondary-size, 0.8125rem);
       color: var(--text-muted);
       letter-spacing: 0;
     }
@@ -1051,17 +1059,18 @@
     .student-name {
       font-weight: 600;
       color: var(--text);
-      font-size: 1.0625rem;
+      font-size: 1rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       letter-spacing: -0.01em;
+      line-height: 1.25;
     }
 
     .student-name-row {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       max-width: 100%;
       min-width: 0;
       flex-wrap: wrap;
