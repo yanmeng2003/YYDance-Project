@@ -206,6 +206,55 @@ function getFilteredStudents() {
 }
 
 
+function renderStudentListItemHtml(student) {
+  const phone = (student.phone || '').trim();
+  return `
+    <li class="student-island-item">
+      <div class="student-island-link student-info-clickable" data-id="${escapeHtml(student.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(student.name)}详情">
+        <div class="student-island-main">
+          <span class="student-name-row">
+            <span class="student-name">${escapeHtml(student.name)}</span>
+            ${seasonBadgesHtml(student.id)}
+            ${renewalBadgeHtml(studentNeedsRenewalById(student.id))}
+          </span>
+          <span class="student-island-phone">${formatPhoneDigitsHtml(phone)}</span>
+        </div>
+        <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
+      </div>
+    </li>
+  `;
+}
+
+
+function renderStudentIndexBar(activeLetters) {
+  const bar = document.getElementById('student-index-bar');
+  if (!bar) return;
+
+  if (!activeLetters.length) {
+    bar.hidden = true;
+    bar.innerHTML = '';
+    return;
+  }
+
+  bar.hidden = false;
+  bar.innerHTML = activeLetters.map(letter => `
+    <button type="button" class="student-index-letter" data-letter="${letter}" aria-label="跳转到${letter}">${letter}</button>
+  `).join('');
+
+  bar.querySelectorAll('.student-index-letter').forEach(btn => {
+    btn.addEventListener('click', () => scrollToStudentIndexLetter(btn.dataset.letter));
+  });
+}
+
+
+function scrollToStudentIndexLetter(letter) {
+  const anchor = document.getElementById('student-index-' + letter);
+  if (!anchor) return;
+
+  anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+
 function renderStudentListUI() {
   const students = getFilteredStudents();
   const countEl = document.getElementById('student-count');
@@ -218,6 +267,7 @@ function renderStudentListUI() {
   if (sortedStudents.length === 0) {
     emptyEl.style.display = 'block';
     listEl.style.display = 'none';
+    renderStudentIndexBar([]);
     const emptyText = emptyEl.querySelector('p');
     if (emptyText) {
       emptyText.textContent = studentSearchQuery.trim()
@@ -230,24 +280,25 @@ function renderStudentListUI() {
   emptyEl.style.display = 'none';
   listEl.style.display = 'flex';
 
-  listEl.innerHTML = sortedStudents.map(s => {
-    const phone = (s.phone || '').trim();
-    return `
-    <li class="student-island-item">
-      <div class="student-island-link student-info-clickable" data-id="${escapeHtml(s.id)}" role="button" tabindex="0" aria-label="查看${escapeHtml(s.name)}详情">
-        <div class="student-island-main">
-          <span class="student-name-row">
-            <span class="student-name">${escapeHtml(s.name)}</span>
-            ${seasonBadgesHtml(s.id)}
-            ${renewalBadgeHtml(studentNeedsRenewalById(s.id))}
-          </span>
-          <span class="student-island-phone">${formatPhoneDigitsHtml(phone)}</span>
-        </div>
-        <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
-      </div>
-    </li>
-  `;
-  }).join('');
+  const groups = groupStudentsByInitial(sortedStudents);
+  const activeLetters = STUDENT_INDEX_ALPHABET.filter(letter => groups.has(letter));
+  let listHtml = '';
+
+  activeLetters.forEach(letter => {
+    listHtml += `
+      <li class="student-letter-anchor" id="student-index-${letter}" data-letter="${letter}">
+        <span class="student-letter-label">${letter}</span>
+      </li>
+    `;
+    listHtml += groups.get(letter).map(renderStudentListItemHtml).join('');
+  });
+
+  if (groups.has('#')) {
+    listHtml += groups.get('#').map(renderStudentListItemHtml).join('');
+  }
+
+  listEl.innerHTML = listHtml;
+  renderStudentIndexBar(activeLetters);
 
   bindClickableRow(listEl, '.student-info-clickable', openStudentDetailModal);
   if (window.lucide && typeof lucide.createIcons === 'function') {

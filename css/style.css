@@ -596,6 +596,65 @@
       padding-top: 4px;
     }
 
+    .students-list-layout {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .students-list-layout .students-island-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .student-index-bar {
+      position: sticky;
+      top: calc(50% - 80px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      padding: 6px 2px;
+      flex-shrink: 0;
+      z-index: 2;
+      user-select: none;
+    }
+
+    .student-index-letter {
+      border: none;
+      background: transparent;
+      color: var(--primary);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      line-height: 1.1;
+      padding: 2px 4px;
+      cursor: pointer;
+      font-family: inherit;
+      opacity: 0.88;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .student-index-letter:hover,
+    .student-index-letter:focus-visible {
+      opacity: 1;
+      transform: scale(1.12);
+      outline: none;
+    }
+
+    .student-letter-anchor {
+      list-style: none;
+      padding: 10px 2px 2px;
+    }
+
+    .student-letter-label {
+      display: inline-block;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.04em;
+    }
+
     .students-island-wrap {
       margin-top: 4px;
     }

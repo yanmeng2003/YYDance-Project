@@ -9,6 +9,47 @@ function formatTimeRange(start, end) {
 }
 
 
+const STUDENT_INDEX_ALPHABET = 'ABCDEFGHJKLMNOPQRSTWXYZ'.split('');
+const PINYIN_INITIAL_BOUNDARIES = '啊八嚓哒妸发旮哈讥喀垃妈拏噢妑七呥撒塌挖昔压匝';
+
+
+function getStudentNameInitial(name) {
+  const trimmed = (name || '').trim();
+  if (!trimmed) return null;
+
+  const firstChar = trimmed.charAt(0);
+  if (/^[A-Za-z]$/.test(firstChar)) {
+    return firstChar.toUpperCase();
+  }
+
+  if (!/[\u4e00-\u9fff]/.test(firstChar)) {
+    return null;
+  }
+
+  for (let i = PINYIN_INITIAL_BOUNDARIES.length - 1; i >= 0; i--) {
+    if (firstChar.localeCompare(PINYIN_INITIAL_BOUNDARIES[i], 'zh-CN') >= 0) {
+      return STUDENT_INDEX_ALPHABET[i];
+    }
+  }
+
+  return 'A';
+}
+
+
+function groupStudentsByInitial(students) {
+  const groups = new Map();
+
+  students.forEach(student => {
+    const initial = getStudentNameInitial(student.name);
+    const letter = initial && STUDENT_INDEX_ALPHABET.includes(initial) ? initial : '#';
+    if (!groups.has(letter)) groups.set(letter, []);
+    groups.get(letter).push(student);
+  });
+
+  return groups;
+}
+
+
 function formatCompactTimeRange(start, end) {
   const startStr = formatTime(start);
   const endStr = formatTime(end);
