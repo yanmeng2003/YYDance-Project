@@ -1689,6 +1689,7 @@
       --week-slot-height: 21px;
       --week-time-col: 52px;
       --week-day-col-min: 80px;
+      --week-focus-col-bg: rgba(155, 89, 182, 0.08);
       width: 100%;
       transform-origin: top left;
     }
@@ -1728,13 +1729,13 @@
     }
 
     .week-day-head--focused {
-      color: var(--primary);
-      background: var(--primary-ring-subtle);
+      color: var(--primary-dark);
+      background: var(--week-focus-col-bg);
     }
 
     .week-day-head--focused:hover {
-      color: var(--primary);
-      background: var(--primary-ring-subtle);
+      color: var(--primary-dark);
+      background: var(--week-focus-col-bg);
     }
 
     .week-day-head:last-child {
@@ -1779,6 +1780,19 @@
 
     .week-day-column:last-child {
       border-right: none;
+    }
+
+    .week-day-column--focused {
+      background: var(--week-focus-col-bg);
+    }
+
+    .week-day-column--focused .week-slot-half {
+      border-bottom-color: rgba(155, 89, 182, 0.12);
+    }
+
+    .week-day-column--focused .week-slot-hour,
+    .week-day-column--focused .week-slot-first {
+      border-color: rgba(155, 89, 182, 0.14);
     }
 
     .week-slot-bg {
