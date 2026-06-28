@@ -325,7 +325,7 @@ function renderWeekViewUI(courses) {
   container.innerHTML = `
     <div class="week-view-scroll">
       <div class="week-view-scaler">
-        <div class="week-schedule">
+        <div class="week-schedule" style="--week-grid-height: ${WEEK_GRID_HEIGHT}px">
           <div class="week-header-row">
             <div class="week-corner"></div>
             ${dayHeadsHtml}

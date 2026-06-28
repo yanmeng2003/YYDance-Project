@@ -7,7 +7,7 @@ const ADMIN_EXTRA_ALLOWED_PHONE = '18015208086';
 
 const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 const WEEK_GRID_START_MIN = 8 * 60;
-const WEEK_GRID_END_MIN = 20 * 60;
+const WEEK_GRID_END_MIN = 23 * 60;
 const WEEK_SLOT_MINUTES = 30;
 const WEEK_SLOT_HEIGHT = 28;
 const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES;

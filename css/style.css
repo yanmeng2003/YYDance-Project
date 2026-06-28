@@ -1614,7 +1614,7 @@
 
     .week-schedule {
       --week-pad-y: 10px;
-      --week-grid-height: 672px;
+      --week-grid-height: 840px;
       --week-time-col: 52px;
       --week-day-col-min: 80px;
       width: 100%;
