@@ -95,8 +95,8 @@ let weekViewResizeObserver = null;
 let weekViewFocusedDay = null;
 let weekViewMidnightTimer = null;
 
-const WEEK_VIEW_FOCUS_COL_WIDTH = '50%';
-const WEEK_VIEW_COMPACT_COL_WIDTH = `${(50 / 6).toFixed(4)}%`;
+const WEEK_VIEW_FOCUS_COL_FR = 'minmax(0, 2.5fr)';
+const WEEK_VIEW_COMPACT_COL_FR = 'minmax(0, 1fr)';
 
 
 function getChinaNowParts(date = new Date()) {
@@ -141,7 +141,7 @@ function getWeekViewFocusedDay() {
 
 function getWeekViewGridTemplateColumns(focusedDay) {
   const dayCols = WEEKDAY_ORDER.map(day =>
-    day === focusedDay ? WEEK_VIEW_FOCUS_COL_WIDTH : WEEK_VIEW_COMPACT_COL_WIDTH
+    day === focusedDay ? WEEK_VIEW_FOCUS_COL_FR : WEEK_VIEW_COMPACT_COL_FR
   );
 
   return `var(--week-time-col) ${dayCols.join(' ')}`;
@@ -380,7 +380,7 @@ function buildWeekEventHtml(eventLayout, colorMap) {
   const top = ((eventLayout.startMin - WEEK_GRID_START_MIN) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT;
   const height = Math.max(
     ((eventLayout.endMin - eventLayout.startMin) / WEEK_SLOT_MINUTES) * WEEK_SLOT_HEIGHT - 2,
-    22
+    18
   );
   const colors = getCourseColor(course, colorMap);
   const timeLabel = formatCompactTimeRange(course.startTime, course.endTime);
@@ -465,7 +465,7 @@ function renderWeekViewUI(courses) {
   container.innerHTML = `
     <div class="week-view-scroll">
       <div class="week-view-scaler">
-        <div class="week-schedule" style="--week-grid-height: ${WEEK_GRID_HEIGHT}px" data-focused-day="${escapeHtml(focusedDay)}">
+        <div class="week-schedule" style="--week-grid-height: ${WEEK_GRID_HEIGHT}px; --week-slot-height: ${WEEK_SLOT_HEIGHT}px" data-focused-day="${escapeHtml(focusedDay)}">
           <div class="week-header-row" style="grid-template-columns: ${gridCols}">
             <div class="week-corner"></div>
             ${dayHeadsHtml}
