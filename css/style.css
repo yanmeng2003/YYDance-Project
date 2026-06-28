@@ -1710,6 +1710,28 @@
       font-weight: 600;
       color: var(--text-muted);
       border-right: 0.5px solid var(--border);
+      border-top: none;
+      border-bottom: none;
+      border-left: none;
+      background: transparent;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+
+    .week-day-head:hover {
+      color: var(--text);
+      background: rgba(61, 26, 110, 0.04);
+    }
+
+    .week-day-head--focused {
+      color: var(--primary);
+      background: var(--primary-ring-subtle);
+    }
+
+    .week-day-head--focused:hover {
+      color: var(--primary);
+      background: var(--primary-ring-subtle);
     }
 
     .week-day-head:last-child {
@@ -1770,6 +1792,27 @@
       border-bottom: 0.5px solid var(--border);
     }
 
+    .week-day-column--compact .week-event {
+      padding: 0;
+      border-radius: 6px;
+    }
+
+    .week-day-column--compact .week-event-class,
+    .week-day-column--compact .week-event-teacher,
+    .week-day-column--compact .week-event-time,
+    .week-day-column--compact .week-event-type {
+      display: none;
+    }
+
+    .week-day-column--focused .week-event {
+      padding: 5px 7px;
+    }
+
+    .week-day-column--focused .week-event-class {
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+
     .week-events-layer {
       position: absolute;
       top: var(--week-pad-y);
@@ -1823,8 +1866,8 @@
 
     .week-event-class {
       display: block;
-      font-size: 0.66rem;
-      opacity: 0.95;
+      font-size: 0.72rem;
+      opacity: 0.98;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;

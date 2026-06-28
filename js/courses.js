@@ -92,6 +92,135 @@ function switchCoursesTab(tab) {
 }
 
 let weekViewResizeObserver = null;
+let weekViewFocusedDay = null;
+let weekViewMidnightTimer = null;
+
+const WEEK_VIEW_FOCUS_COL_WIDTH = '50%';
+const WEEK_VIEW_COMPACT_COL_WIDTH = `${(50 / 6).toFixed(4)}%`;
+
+
+function getChinaNowParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(date);
+  const pick = (type) => parts.find(part => part.type === type)?.value || '0';
+
+  return {
+    year: +pick('year'),
+    month: +pick('month'),
+    day: +pick('day'),
+    hour: +pick('hour'),
+    minute: +pick('minute'),
+    second: +pick('second')
+  };
+}
+
+
+function getTodayWeekdayInChina() {
+  const weekdayShort = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Shanghai',
+    weekday: 'short'
+  }).format(new Date());
+  const indexMap = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+
+  return WEEKDAY_ORDER[indexMap[weekdayShort] ?? 0];
+}
+
+
+function getWeekViewFocusedDay() {
+  return weekViewFocusedDay || getTodayWeekdayInChina();
+}
+
+
+function getWeekViewGridTemplateColumns(focusedDay) {
+  const dayCols = WEEKDAY_ORDER.map(day =>
+    day === focusedDay ? WEEK_VIEW_FOCUS_COL_WIDTH : WEEK_VIEW_COMPACT_COL_WIDTH
+  );
+
+  return `var(--week-time-col) ${dayCols.join(' ')}`;
+}
+
+
+function applyWeekViewFocus() {
+  const container = document.getElementById('week-view-container');
+  const schedule = container?.querySelector('.week-schedule');
+  if (!schedule) return;
+
+  const focusedDay = getWeekViewFocusedDay();
+  const gridCols = getWeekViewGridTemplateColumns(focusedDay);
+
+  schedule.dataset.focusedDay = focusedDay;
+
+  const headerRow = schedule.querySelector('.week-header-row');
+  const bodyRow = schedule.querySelector('.week-body');
+  if (headerRow) headerRow.style.gridTemplateColumns = gridCols;
+  if (bodyRow) bodyRow.style.gridTemplateColumns = gridCols;
+
+  schedule.querySelectorAll('.week-day-head').forEach(head => {
+    const isFocused = head.dataset.day === focusedDay;
+    head.classList.toggle('week-day-head--focused', isFocused);
+    head.setAttribute('aria-pressed', isFocused ? 'true' : 'false');
+  });
+
+  schedule.querySelectorAll('.week-day-column').forEach(column => {
+    const isFocused = column.dataset.day === focusedDay;
+    column.classList.toggle('week-day-column--focused', isFocused);
+    column.classList.toggle('week-day-column--compact', !isFocused);
+  });
+
+  requestAnimationFrame(() => fitWeekViewToWidth());
+}
+
+
+function setWeekViewFocusedDay(day) {
+  if (!WEEKDAY_ORDER.includes(day)) return;
+  weekViewFocusedDay = day;
+  applyWeekViewFocus();
+}
+
+
+function resetWeekViewFocusedDayToToday() {
+  weekViewFocusedDay = null;
+  applyWeekViewFocus();
+}
+
+
+function scheduleWeekViewMidnightRefresh() {
+  if (weekViewMidnightTimer) {
+    clearTimeout(weekViewMidnightTimer);
+    weekViewMidnightTimer = null;
+  }
+
+  const parts = getChinaNowParts();
+  const msUntilMidnight = (
+    (23 - parts.hour) * 3600 +
+    (59 - parts.minute) * 60 +
+    (60 - parts.second)
+  ) * 1000 + 500;
+
+  weekViewMidnightTimer = setTimeout(() => {
+    resetWeekViewFocusedDayToToday();
+    if (coursesViewTab === 'week' && coreDataCache.courses.length) {
+      renderWeekViewUI(coreDataCache.courses);
+    } else {
+      scheduleWeekViewMidnightRefresh();
+    }
+  }, msUntilMidnight);
+}
+
+
+function bindWeekViewDayHeads(container) {
+  container.querySelectorAll('.week-day-head').forEach(head => {
+    head.addEventListener('click', () => setWeekViewFocusedDay(head.dataset.day));
+  });
+}
 
 
 function fitWeekViewToWidth() {
@@ -255,17 +384,18 @@ function buildWeekEventHtml(eventLayout, colorMap) {
   );
   const colors = getCourseColor(course, colorMap);
   const timeLabel = formatCompactTimeRange(course.startTime, course.endTime);
-  const typeLabel = course.courseType || '摩登舞';
-  const classLabel = course.name || '';
+  const courseLabel = formatCourseShortLabel(course);
+  const teacherLabel = course.teacherName || '未分配';
   const smallClass = course.classSize === '小课' ? ' week-event-small' : '';
   const positionStyle = weekEventColumnStyle(eventLayout.column, eventLayout.totalColumns);
+  const title = `${courseLabel} · ${teacherLabel} · ${timeLabel}`;
 
   return `
     <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
       style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};color:${colors.text}"
-      title="${escapeHtml(typeLabel)} · ${escapeHtml(classLabel)} · ${escapeHtml(timeLabel)}">
-      <span class="week-event-type">${escapeHtml(typeLabel)}</span>
-      <span class="week-event-class">${escapeHtml(classLabel)}</span>
+      title="${escapeHtml(title)}">
+      <span class="week-event-class">${escapeHtml(courseLabel)}</span>
+      <span class="week-event-teacher">${escapeHtml(teacherLabel)}</span>
       <span class="week-event-time">${escapeHtml(timeLabel)}</span>
     </div>
   `;
@@ -289,6 +419,8 @@ function renderWeekViewUI(courses) {
   }
 
   const colorMap = buildTeacherColorMap();
+  const focusedDay = getWeekViewFocusedDay();
+  const gridCols = getWeekViewGridTemplateColumns(focusedDay);
 
   const hourLabelsHtml = [];
   for (let h = WEEK_GRID_START_MIN / 60; h <= WEEK_GRID_END_MIN / 60; h++) {
@@ -307,30 +439,38 @@ function renderWeekViewUI(courses) {
   const dayColumnsHtml = WEEKDAY_ORDER.map(day => {
     const dayEvents = layoutWeekDayEvents(collectWeekDayEvents(activeCourses, day));
     const eventsHtml = dayEvents.map(eventLayout => buildWeekEventHtml(eventLayout, colorMap)).join('');
+    const isFocused = day === focusedDay;
 
     return `
-      <div class="week-day-column" data-day="${day}">
+      <div class="week-day-column${isFocused ? ' week-day-column--focused' : ' week-day-column--compact'}" data-day="${day}">
         ${slotBgHtml}
         <div class="week-events-layer">${eventsHtml}</div>
       </div>
     `;
   }).join('');
 
-  const dayHeadsHtml = WEEKDAY_ORDER.map(d =>
-    `<div class="week-day-head">${formatWeekDayHead(d)}</div>`
-  ).join('');
+  const dayHeadsHtml = WEEKDAY_ORDER.map(day => {
+    const isFocused = day === focusedDay;
+    return `
+      <button type="button" class="week-day-head${isFocused ? ' week-day-head--focused' : ''}"
+        data-day="${day}" aria-pressed="${isFocused ? 'true' : 'false'}"
+        aria-label="查看${day}课程">
+        ${formatWeekDayHead(day)}
+      </button>
+    `;
+  }).join('');
 
   const legendHtml = renderWeekViewLegendHtml(activeCourses, colorMap);
 
   container.innerHTML = `
     <div class="week-view-scroll">
       <div class="week-view-scaler">
-        <div class="week-schedule" style="--week-grid-height: ${WEEK_GRID_HEIGHT}px">
-          <div class="week-header-row">
+        <div class="week-schedule" style="--week-grid-height: ${WEEK_GRID_HEIGHT}px" data-focused-day="${escapeHtml(focusedDay)}">
+          <div class="week-header-row" style="grid-template-columns: ${gridCols}">
             <div class="week-corner"></div>
             ${dayHeadsHtml}
           </div>
-          <div class="week-body">
+          <div class="week-body" style="grid-template-columns: ${gridCols}">
             <div class="week-time-labels">${hourLabelsHtml.join('')}</div>
             ${dayColumnsHtml}
           </div>
@@ -351,7 +491,11 @@ function renderWeekViewUI(courses) {
     });
   });
 
+  bindWeekViewDayHeads(container);
+  scheduleWeekViewMidnightRefresh();
+
   requestAnimationFrame(() => {
+    applyWeekViewFocus();
     fitWeekViewToWidth();
     observeWeekViewResize();
   });
