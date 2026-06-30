@@ -130,6 +130,7 @@ async function openOperationLogsPage() {
   }
 
   openDetailPage('detail-operation-logs');
+  updateFabVisibility(getActiveMainPage());
 }
 
 

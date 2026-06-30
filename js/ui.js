@@ -526,15 +526,28 @@ function isDetailPageOpen(pageId) {
 }
 
 
+function isTeacherDetailPageActive() {
+  const page = document.getElementById('detail-teacher');
+  return page && page.classList.contains('is-visible');
+}
+
+
+function isOperationLogsPageActive() {
+  const page = document.getElementById('detail-operation-logs');
+  return page && page.classList.contains('is-visible');
+}
+
+
 function updateFabVisibility(page) {
   const studentDetailOpen = isDetailPageOpen('detail-student');
-  const teacherDetailOpen = isDetailPageOpen('detail-teacher');
+  const teacherDetailOpen = isTeacherDetailPageActive();
   const changelogOpen = isChangelogListPageActive()
     || isChangelogEntryPageActive()
     || isChangelogFormPageActive();
-  document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen && !changelogOpen);
-  document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses' && !changelogOpen);
-  document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers' && !teacherDetailOpen && !changelogOpen);
+  const overlayDetailOpen = changelogOpen || isOperationLogsPageActive();
+  document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen && !overlayDetailOpen);
+  document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses' && !overlayDetailOpen);
+  document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers' && !teacherDetailOpen && !overlayDetailOpen);
 }
 
 
@@ -788,6 +801,13 @@ function bindNavbarMenu() {
   if (logsBtn) {
     logsBtn.addEventListener('click', () => {
       openOperationLogsPage();
+    });
+  }
+
+  const teachersBtn = document.getElementById('btn-teachers');
+  if (teachersBtn) {
+    teachersBtn.addEventListener('click', () => {
+      openTeachersPage();
     });
   }
 

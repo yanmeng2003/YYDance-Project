@@ -11,7 +11,9 @@ async function openTeacherDetailModal(id) {
   document.getElementById('teacher-detail-title').innerHTML =
     `<span class="detail-page-title-name-row"><span class="detail-page-title-name">${escapeHtml(teacher.name)}</span></span>`;
   openDetailPage('detail-teacher');
-  updateFabVisibility('teachers');
+  const fab = document.getElementById('fab-add-teacher');
+  if (fab) fab.classList.remove('visible');
+  updateFabVisibility(getActiveMainPage());
 
   try {
     const teacherCourses = sortTeacherDetailCourses(coreDataCache.courses.filter(c => c.teacherId === id));
@@ -176,6 +178,12 @@ function renderTeacherListUI(teachers) {
   if (window.lucide && typeof lucide.createIcons === 'function') {
     lucide.createIcons();
   }
+}
+
+
+function openTeachersPage() {
+  closeNavbarMenu();
+  navigateTo('teachers');
 }
 
 
