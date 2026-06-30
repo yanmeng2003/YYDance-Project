@@ -56,16 +56,12 @@ function isChangelogListPageActive() {
 
 function isChangelogEntryPageActive() {
   const page = document.getElementById('detail-changelog-entry');
-  return page
-    && page.classList.contains('is-visible')
-    && page.classList.contains('is-open');
+  return page && page.classList.contains('is-visible');
 }
 
 function isChangelogFormPageActive() {
   const page = document.getElementById('detail-changelog-form');
-  return page
-    && page.classList.contains('is-visible')
-    && page.classList.contains('is-open');
+  return page && page.classList.contains('is-visible');
 }
 
 function updateChangelogFabVisibility() {
@@ -116,6 +112,8 @@ async function openChangelogEntryDetail(id) {
   const body = document.getElementById('changelog-entry-body');
   body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
   openDetailPage('detail-changelog-entry');
+  const fab = document.getElementById('fab-changelog-add');
+  if (fab) fab.classList.remove('visible');
   updateChangelogFabVisibility();
 
   try {
@@ -152,6 +150,9 @@ function openChangelogFormPage(entry) {
   document.getElementById('changelog-form-version').value = isEdit ? entry.version : '';
   document.getElementById('changelog-form-released-at').value = isEdit ? entry.released_at : '';
   document.getElementById('changelog-form-content').value = isEdit ? (entry.content || '') : '';
+
+  const fab = document.getElementById('fab-changelog-add');
+  if (fab) fab.classList.remove('visible');
 
   openDetailPage('detail-changelog-form');
   updateChangelogFabVisibility();
