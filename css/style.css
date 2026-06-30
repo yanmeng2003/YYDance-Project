@@ -192,6 +192,23 @@
       border-bottom: 0.5px solid var(--border);
     }
 
+    .navbar-menu-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      color: var(--primary-dark);
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+
+    .navbar-menu-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2.25;
+    }
+
     .navbar-brand {
       font-size: 1.0625rem;
       font-weight: 700;
@@ -652,9 +669,23 @@
     }
 
     .system-settings-subline {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
       font-size: 0.8125rem;
       color: var(--text-muted);
       line-height: 1.35;
+      min-height: var(--island-secondary-height, 17px);
+    }
+
+    .system-settings-subline-sep {
+      margin: 0 2px;
+      flex-shrink: 0;
+    }
+
+    .system-settings-subline > .student-island-phone {
+      display: inline-flex;
+      min-height: 0;
     }
 
     .system-settings-link--danger .student-name {

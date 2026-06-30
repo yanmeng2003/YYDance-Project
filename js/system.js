@@ -2,6 +2,8 @@ function renderSystemSettingsRowHtml(options = {}) {
   const {
     label,
     value = '',
+    sublineHtml = '',
+    monoSubline = false,
     icon = '',
     detailPage = '',
     action = '',
@@ -14,8 +16,15 @@ function renderSystemSettingsRowHtml(options = {}) {
     ? `<span class="system-settings-icon${danger ? ' system-settings-icon--danger' : ''}" aria-hidden="true"><i data-lucide="${icon}"></i></span>`
     : '';
 
-  const valueHtml = value
-    ? `<span class="system-settings-subline">${escapeHtml(value)}</span>`
+  let valueContent = '';
+  if (sublineHtml) {
+    valueContent = sublineHtml;
+  } else if (value) {
+    valueContent = escapeHtml(value);
+  }
+
+  const valueHtml = valueContent
+    ? `<span class="system-settings-subline${monoSubline ? ' student-island-phone' : ''}">${valueContent}</span>`
     : '';
 
   const leadingHtml = `
@@ -76,6 +85,17 @@ function updateSystemThemeUI() {
 }
 
 
+function buildAccountSublineHtml() {
+  const name = getCurrentOperatorDisplayName();
+  const phone = getCurrentOperatorPhone();
+  if (!phone && (!name || name === '—')) return '—';
+  if (!phone) return escapeHtml(name);
+  const phoneHtml = `<span class="student-island-phone">${formatPhoneDigitsHtml(phone)}</span>`;
+  if (!name || name === '—') return phoneHtml;
+  return `${escapeHtml(name)}<span class="system-settings-subline-sep">·</span>${phoneHtml}`;
+}
+
+
 async function fetchLatestAppVersion() {
   try {
     const entries = await fetchChangelogEntries();
@@ -89,7 +109,6 @@ async function fetchLatestAppVersion() {
 
 
 async function renderSystemPage() {
-  const accountName = getCurrentOperatorDisplayName();
   const version = await fetchLatestAppVersion();
   const body = document.getElementById('system-settings-body');
   if (!body) return;
@@ -99,7 +118,7 @@ async function renderSystemPage() {
       <ul class="student-island-list system-settings-list">
         ${renderSystemSettingsRowHtml({
           label: '账号',
-          value: accountName,
+          sublineHtml: buildAccountSublineHtml(),
           icon: 'user',
           staticRow: true,
         })}
@@ -114,6 +133,7 @@ async function renderSystemPage() {
           label: '当前版本',
           value: 'v' + version,
           icon: 'badge-info',
+          monoSubline: true,
           staticRow: true,
           showChevron: false,
         })}
