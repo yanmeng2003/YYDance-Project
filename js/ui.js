@@ -431,7 +431,9 @@ function closeDetailPage(pageId, options = {}) {
   }
 
   if (pageId === 'detail-changelog-entry') {
+    exitChangelogEntryEditMode();
     currentChangelogEntryId = null;
+    currentChangelogEntryData = null;
   }
 
   if (pageId === 'detail-changelog') {
@@ -508,6 +510,8 @@ function closeAllDetailPages() {
   currentTeacherDetailId = null;
   currentCourseDetailId = null;
   currentChangelogEntryId = null;
+  currentChangelogEntryData = null;
+  exitChangelogEntryEditMode();
   studentDetailData = { records: [], courses: [] };
   teacherDetailData = { courses: [] };
   updateDetailPageScrollLock();

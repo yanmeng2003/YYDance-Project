@@ -1,4 +1,6 @@
 let currentChangelogEntryId = null;
+let currentChangelogEntryData = null;
+let changelogEntryEditMode = false;
 
 function canManageChangelog() {
   return normalizePhone(getCurrentOperatorPhone()) === ADMIN_EXTRA_ALLOWED_PHONE;
@@ -6,6 +8,40 @@ function canManageChangelog() {
 
 function canViewChangelog() {
   return !!getCurrentOperatorPhone();
+}
+
+function setChangelogEntryEditButtonLabel(label) {
+  const btn = document.getElementById('btn-changelog-entry-edit');
+  if (!btn) return;
+  btn.textContent = label;
+}
+
+function exitChangelogEntryEditMode() {
+  changelogEntryEditMode = false;
+  setChangelogEntryEditButtonLabel('编辑');
+}
+
+function enterChangelogEntryEditMode() {
+  if (!currentChangelogEntryData || !canManageChangelog()) return;
+
+  changelogEntryEditMode = true;
+  renderChangelogEntryUI(currentChangelogEntryData);
+  setChangelogEntryEditButtonLabel('取消');
+}
+
+function cancelChangelogEntryEdit() {
+  if (!currentChangelogEntryData) return;
+
+  exitChangelogEntryEditMode();
+  renderChangelogEntryUI(currentChangelogEntryData);
+}
+
+function toggleChangelogEntryEditMode() {
+  if (changelogEntryEditMode) {
+    cancelChangelogEntryEdit();
+  } else {
+    enterChangelogEntryEditMode();
+  }
 }
 
 function renderChangelogListItemHtml(entry) {
@@ -94,23 +130,85 @@ async function openChangelogPage() {
   });
 }
 
-function renderChangelogEntryDetailUI(entry) {
-  document.getElementById('changelog-entry-title').textContent = entry.title;
-  document.getElementById('changelog-entry-version').textContent = 'v' + entry.version;
-  document.getElementById('changelog-entry-date').textContent = entry.released_at;
-  document.getElementById('changelog-entry-content').textContent = entry.content || '';
+function renderChangelogEntryViewHtml(entry) {
+  return `
+    <div class="changelog-entry-panel">
+      <div class="changelog-entry-meta">
+        <span class="changelog-entry-version">v${escapeHtml(entry.version)}</span>
+        <span class="changelog-entry-date">${escapeHtml(entry.released_at)}</span>
+      </div>
+      <div class="changelog-entry-content">${escapeHtml(entry.content || '')}</div>
+    </div>
+  `;
+}
 
-  const actions = document.getElementById('changelog-entry-actions');
+function renderChangelogEntryEditHtml(entry) {
+  return `
+    <div class="changelog-entry-panel changelog-entry-panel--edit">
+      <div class="form-grid">
+        <div class="form-group form-group--full">
+          <label for="changelog-entry-edit-title">标题 *</label>
+          <input type="text" id="changelog-entry-edit-title" value="${escapeHtml(entry.title)}" required placeholder="例如：周视图交互优化">
+        </div>
+        <div class="form-group">
+          <label for="changelog-entry-edit-version">版本号 *</label>
+          <input type="text" id="changelog-entry-edit-version" value="${escapeHtml(entry.version)}" required placeholder="例如：1.2.0">
+        </div>
+        <div class="form-group">
+          <label for="changelog-entry-edit-released-at">更新时间 *</label>
+          <input type="text" id="changelog-entry-edit-released-at" value="${escapeHtml(entry.released_at)}" required placeholder="例如：2026-06-18">
+        </div>
+        <div class="form-group form-group--full">
+          <label for="changelog-entry-edit-content">更新内容 *</label>
+          <textarea id="changelog-entry-edit-content" rows="8" required placeholder="详细说明本次更新内容">${escapeHtml(entry.content || '')}</textarea>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderChangelogEntryUI(entry) {
+  if (!entry) return;
+
+  currentChangelogEntryData = entry;
+
+  const titleEl = document.getElementById('changelog-entry-title');
+  if (titleEl) titleEl.textContent = entry.title;
+
+  const body = document.getElementById('changelog-entry-body');
+  if (body) {
+    body.innerHTML = changelogEntryEditMode
+      ? renderChangelogEntryEditHtml(entry)
+      : renderChangelogEntryViewHtml(entry);
+  }
+
   const canManage = canManageChangelog();
-  actions.hidden = !canManage;
+  const editBtn = document.getElementById('btn-changelog-entry-edit');
+  const footer = document.getElementById('changelog-entry-footer');
+  const saveBtn = document.getElementById('btn-changelog-entry-save');
+
+  if (editBtn) {
+    editBtn.hidden = !canManage;
+    editBtn.textContent = changelogEntryEditMode ? '取消' : '编辑';
+  }
+  if (footer) footer.hidden = !canManage;
+  if (saveBtn) saveBtn.hidden = !changelogEntryEditMode;
 }
 
 async function openChangelogEntryDetail(id) {
   if (!id) return;
 
   currentChangelogEntryId = id;
+  exitChangelogEntryEditMode();
+
   const body = document.getElementById('changelog-entry-body');
   body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
+
+  const editBtn = document.getElementById('btn-changelog-entry-edit');
+  const footer = document.getElementById('changelog-entry-footer');
+  if (editBtn) editBtn.hidden = true;
+  if (footer) footer.hidden = true;
+
   openDetailPage('detail-changelog-entry');
   const fab = document.getElementById('fab-changelog-add');
   if (fab) fab.classList.remove('visible');
@@ -123,16 +221,7 @@ async function openChangelogEntryDetail(id) {
       closeDetailPage('detail-changelog-entry');
       return;
     }
-    body.innerHTML = `
-      <div class="changelog-entry-panel">
-        <div class="changelog-entry-meta">
-          <span class="changelog-entry-version" id="changelog-entry-version"></span>
-          <span class="changelog-entry-date" id="changelog-entry-date"></span>
-        </div>
-        <div class="changelog-entry-content" id="changelog-entry-content"></div>
-      </div>
-    `;
-    renderChangelogEntryDetailUI(entry);
+    renderChangelogEntryUI(entry);
   } catch (err) {
     console.error(err);
     body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载失败</p>';
@@ -140,16 +229,15 @@ async function openChangelogEntryDetail(id) {
   }
 }
 
-function openChangelogFormPage(entry) {
+function openChangelogFormPage() {
   if (!canManageChangelog()) return;
 
-  const isEdit = !!entry;
-  document.getElementById('changelog-form-id').value = isEdit ? entry.id : '';
-  document.getElementById('changelog-form-page-title').textContent = isEdit ? '编辑版本更新' : '版本更新';
-  document.getElementById('changelog-form-title').value = isEdit ? entry.title : '';
-  document.getElementById('changelog-form-version').value = isEdit ? entry.version : '';
-  document.getElementById('changelog-form-released-at').value = isEdit ? entry.released_at : '';
-  document.getElementById('changelog-form-content').value = isEdit ? (entry.content || '') : '';
+  document.getElementById('changelog-form-id').value = '';
+  document.getElementById('changelog-form-page-title').textContent = '版本更新';
+  document.getElementById('changelog-form-title').value = '';
+  document.getElementById('changelog-form-version').value = '';
+  document.getElementById('changelog-form-released-at').value = '';
+  document.getElementById('changelog-form-content').value = '';
 
   const fab = document.getElementById('fab-changelog-add');
   if (fab) fab.classList.remove('visible');
@@ -159,40 +247,13 @@ function openChangelogFormPage(entry) {
 }
 
 function openAddChangelogPage() {
-  openChangelogFormPage(null);
-}
-
-async function openEditChangelogPage() {
-  if (!currentChangelogEntryId || !canManageChangelog()) return;
-
-  try {
-    const entry = await fetchChangelogEntryById(currentChangelogEntryId);
-    if (!entry) {
-      showToast('更新日志不存在');
-      return;
-    }
-    openChangelogFormPage(entry);
-  } catch (err) {
-    console.error(err);
-    showToast(err.message || '加载失败');
-  }
-}
-
-async function refreshChangelogEntryDetailIfOpen(id) {
-  if (!isDetailPageOpen('detail-changelog-entry') || currentChangelogEntryId !== id) return;
-
-  const entry = await fetchChangelogEntryById(id);
-  if (!entry) return;
-
-  renderChangelogEntryDetailUI(entry);
-  document.getElementById('changelog-entry-title').textContent = entry.title;
+  openChangelogFormPage();
 }
 
 async function onChangelogFormSubmit(e) {
   e.preventDefault();
   if (!canManageChangelog()) return;
 
-  const id = document.getElementById('changelog-form-id').value.trim();
   const title = document.getElementById('changelog-form-title').value.trim();
   const version = document.getElementById('changelog-form-version').value.trim();
   const releasedAt = document.getElementById('changelog-form-released-at').value.trim();
@@ -216,18 +277,7 @@ async function onChangelogFormSubmit(e) {
   }
 
   try {
-    const payload = { title, version, released_at: releasedAt, content };
-
-    if (id) {
-      await updateChangelogEntry(id, payload);
-      closeDetailPage('detail-changelog-form');
-      await renderChangelogListPage();
-      await refreshChangelogEntryDetailIfOpen(id);
-      showToast('保存成功');
-      return;
-    }
-
-    await createChangelogEntry(payload);
+    await createChangelogEntry({ title, version, released_at: releasedAt, content });
     closeDetailPage('detail-changelog-form');
     await renderChangelogListPage();
     showToast('版本更新已发布');
@@ -237,15 +287,70 @@ async function onChangelogFormSubmit(e) {
   }
 }
 
+async function saveChangelogEntryInline() {
+  if (!currentChangelogEntryId || !changelogEntryEditMode || !canManageChangelog()) return;
+
+  const title = document.getElementById('changelog-entry-edit-title').value.trim();
+  const version = document.getElementById('changelog-entry-edit-version').value.trim();
+  const releasedAt = document.getElementById('changelog-entry-edit-released-at').value.trim();
+  const content = document.getElementById('changelog-entry-edit-content').value.trim();
+
+  if (!title) {
+    showToast('请填写标题');
+    return;
+  }
+  if (!version) {
+    showToast('请填写版本号');
+    return;
+  }
+  if (!releasedAt) {
+    showToast('请填写更新时间');
+    return;
+  }
+  if (!content) {
+    showToast('请填写更新内容');
+    return;
+  }
+
+  try {
+    await updateChangelogEntry(currentChangelogEntryId, {
+      title,
+      version,
+      released_at: releasedAt,
+      content,
+    });
+
+    const entry = await fetchChangelogEntryById(currentChangelogEntryId);
+    if (!entry) {
+      showToast('更新日志不存在');
+      return;
+    }
+
+    exitChangelogEntryEditMode();
+    renderChangelogEntryUI(entry);
+    await renderChangelogListPage();
+    showToast('保存成功');
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || '保存失败');
+  }
+}
+
 async function deleteCurrentChangelogEntry() {
   if (!currentChangelogEntryId || !canManageChangelog()) return;
 
-  const title = document.getElementById('changelog-entry-title')?.textContent || '该条目';
+  const title = currentChangelogEntryData?.title
+    || document.getElementById('changelog-entry-edit-title')?.value.trim()
+    || document.getElementById('changelog-entry-title')?.textContent
+    || '该条目';
+
   if (!confirm('确定删除「' + title + '」吗？此操作不可恢复。')) return;
 
   try {
     await deleteChangelogEntry(currentChangelogEntryId);
     currentChangelogEntryId = null;
+    currentChangelogEntryData = null;
+    exitChangelogEntryEditMode();
     closeDetailPage('detail-changelog-entry');
     await renderChangelogListPage();
     showToast('已删除');

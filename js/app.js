@@ -59,7 +59,12 @@ function bindEvents() {
 
   const btnChangelogEdit = document.getElementById('btn-changelog-entry-edit');
   if (btnChangelogEdit) {
-    btnChangelogEdit.addEventListener('click', openEditChangelogPage);
+    btnChangelogEdit.addEventListener('click', toggleChangelogEntryEditMode);
+  }
+
+  const btnChangelogSave = document.getElementById('btn-changelog-entry-save');
+  if (btnChangelogSave) {
+    btnChangelogSave.addEventListener('click', saveChangelogEntryInline);
   }
 
   const btnChangelogDelete = document.getElementById('btn-changelog-entry-delete');
