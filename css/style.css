@@ -2230,6 +2230,10 @@
       flex-shrink: 0;
     }
 
+    #btn-changelog-entry-edit[hidden] {
+      display: none !important;
+    }
+
     .operation-log-list {
       list-style: none;
       display: flex;

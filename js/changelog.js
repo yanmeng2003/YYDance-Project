@@ -10,6 +10,26 @@ function canViewChangelog() {
   return !!getCurrentOperatorPhone();
 }
 
+function updateChangelogManageVisibility() {
+  const canManage = canManageChangelog();
+  const editBtn = document.getElementById('btn-changelog-entry-edit');
+
+  if (editBtn) {
+    editBtn.hidden = !canManage;
+    editBtn.style.display = canManage ? '' : 'none';
+  }
+
+  if (!canManage && changelogEntryEditMode) {
+    exitChangelogEntryEditMode();
+    if (currentChangelogEntryData) {
+      renderChangelogEntryUI(currentChangelogEntryData);
+      return;
+    }
+  }
+
+  updateChangelogFabVisibility();
+}
+
 function setChangelogEntryEditButtonLabel(label) {
   const btn = document.getElementById('btn-changelog-entry-edit');
   if (!btn) return;
@@ -125,6 +145,7 @@ async function openChangelogPage() {
 
   openDetailPage('detail-changelog');
   updateFabVisibility(getActiveMainPage());
+  updateChangelogManageVisibility();
   requestAnimationFrame(() => {
     updateChangelogFabVisibility();
   });
@@ -193,7 +214,10 @@ function renderChangelogEntryUI(entry) {
 
   if (editBtn) {
     editBtn.hidden = !canManage;
-    editBtn.textContent = changelogEntryEditMode ? '取消' : '编辑';
+    editBtn.style.display = canManage ? '' : 'none';
+    if (canManage) {
+      editBtn.textContent = changelogEntryEditMode ? '取消' : '编辑';
+    }
   }
 }
 
@@ -207,7 +231,10 @@ async function openChangelogEntryDetail(id) {
   body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
 
   const editBtn = document.getElementById('btn-changelog-entry-edit');
-  if (editBtn) editBtn.hidden = true;
+  if (editBtn) {
+    editBtn.hidden = true;
+    editBtn.style.display = 'none';
+  }
 
   openDetailPage('detail-changelog-entry');
   const fab = document.getElementById('fab-changelog-add');

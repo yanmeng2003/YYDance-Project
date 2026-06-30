@@ -46,7 +46,10 @@ function bindEvents() {
     if (target.id === 'btn-changelog-entry-delete') deleteCurrentChangelogEntry();
   });
 
-  document.getElementById('btn-changelog-entry-edit').addEventListener('click', toggleChangelogEntryEditMode);
+  document.getElementById('btn-changelog-entry-edit').addEventListener('click', () => {
+    if (!canManageChangelog()) return;
+    toggleChangelogEntryEditMode();
+  });
 
   document.getElementById('btn-course-detail-consume').addEventListener('click', () => {
     if (currentCourseDetailId) openBulkConsumeModal(currentCourseDetailId);

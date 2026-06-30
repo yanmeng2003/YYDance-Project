@@ -850,6 +850,9 @@ function updateNavbarMenuVisibility() {
   const changelogBtn = document.getElementById('btn-changelog');
   if (logsBtn) logsBtn.hidden = !canViewOperationLogs();
   if (changelogBtn) changelogBtn.hidden = !canViewChangelog();
+  if (typeof updateChangelogManageVisibility === 'function') {
+    updateChangelogManageVisibility();
+  }
 }
 
 
