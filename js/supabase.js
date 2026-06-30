@@ -33,8 +33,6 @@ const COURSE_TYPES = ['摩登舞', '拉丁舞'];
 const COURSE_STATUSES = ['待开课', '开课中', '已结课'];
 const LESSON_RECORD_STATUSES = ['上课', '请假', '补课'];
 
-let coursesViewTab = 'week';
-
 let supabaseClient = null;
 const coreDataCache = {
   students: [],
@@ -413,9 +411,11 @@ async function refreshStudentsCacheData() {
 
 async function refreshCoursesCacheData() {
   coreDataCache.courses = await fetchCourses();
+  if (document.getElementById('page-week').classList.contains('active')) {
+    renderWeekViewUI(coreDataCache.courses);
+  }
   if (document.getElementById('page-courses').classList.contains('active')) {
     renderCourseListUI(coreDataCache.courses);
-    renderWeekViewUI(coreDataCache.courses);
   }
 }
 
@@ -436,6 +436,8 @@ async function refreshCourseStudentsCacheData() {
   }
   if (document.getElementById('page-courses').classList.contains('active')) {
     renderCourseListUI(coreDataCache.courses);
+  }
+  if (document.getElementById('page-week').classList.contains('active')) {
     renderWeekViewUI(coreDataCache.courses);
   }
 }
@@ -446,9 +448,13 @@ function renderStudentsPage() {
 }
 
 
+function renderWeekPage() {
+  renderWeekViewUI(coreDataCache.courses);
+}
+
+
 function renderCoursesPage() {
   renderCourseListUI(coreDataCache.courses);
-  renderWeekViewUI(coreDataCache.courses);
 }
 
 

@@ -599,7 +599,7 @@ function toggleTeacherDetailEditMode() {
 
 
 function navigateTo(page) {
-  if (!['students', 'courses', 'teachers'].includes(page)) return;
+  if (!['students', 'week', 'courses', 'teachers'].includes(page)) return;
 
   closeAllDetailPages();
 
@@ -614,8 +614,10 @@ function navigateTo(page) {
   if (page === 'students') {
     renderStudentsPage();
   }
+  if (page === 'week') {
+    renderWeekPage();
+  }
   if (page === 'courses') {
-    switchCoursesTab(coursesViewTab);
     renderCoursesPage();
   }
   if (page === 'teachers') {

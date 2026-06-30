@@ -4,10 +4,6 @@ function bindEvents() {
   bindNavbarMenu();
   bindDetailPageEdgeSwipe();
 
-  document.querySelectorAll('.courses-tab').forEach(btn => {
-    btn.addEventListener('click', () => switchCoursesTab(btn.dataset.coursesTab));
-  });
-
   document.querySelectorAll('.tab-bar-item').forEach(tab => {
     tab.addEventListener('click', () => navigateTo(tab.dataset.page));
   });
@@ -180,7 +176,7 @@ async function enterAdminApp(phone, preloadPromise) {
     showToast(err.message || '数据加载失败，请刷新页面重试');
   }
 
-  navigateTo('courses');
+  navigateTo('week');
 }
 
 

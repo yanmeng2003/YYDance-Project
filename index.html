@@ -89,33 +89,30 @@
       </div>
     </section>
 
+    <!-- 周视图页 -->
+    <section id="page-week" class="page active">
+      <div class="page-header">
+        <h2 class="main-page-title">周视图</h2>
+      </div>
+      <div id="week-view-container"></div>
+    </section>
+
     <!-- 课程管理页 -->
-    <section id="page-courses" class="page active">
+    <section id="page-courses" class="page">
       <div class="page-header">
         <h2 class="main-page-title">课程管理</h2>
       </div>
 
-      <div class="courses-tabs">
-        <button type="button" class="courses-tab active" data-courses-tab="week">周视图</button>
-        <button type="button" class="courses-tab" data-courses-tab="list">课程列表</button>
-      </div>
-
-      <div id="courses-panel-week" class="courses-panel active">
-        <div id="week-view-container"></div>
-      </div>
-
-      <div id="courses-panel-list" class="courses-panel">
-        <div class="students-island-wrap">
-          <div class="students-island-header">
-            <h3 class="students-island-title">课程列表</h3>
-            <span class="students-island-count" id="course-count">共 0 门</span>
-          </div>
-          <div id="course-empty-state" class="empty-state">
-            <div class="icon">📋</div>
-            <p>暂无课程，点击右下角添加</p>
-          </div>
-          <ul class="student-island-list" id="course-list"></ul>
+      <div class="students-island-wrap">
+        <div class="students-island-header">
+          <h3 class="students-island-title">课程列表</h3>
+          <span class="students-island-count" id="course-count">共 0 门</span>
         </div>
+        <div id="course-empty-state" class="empty-state">
+          <div class="icon">📋</div>
+          <p>暂无课程，点击右下角添加</p>
+        </div>
+        <ul class="student-island-list" id="course-list"></ul>
       </div>
     </section>
 
@@ -144,8 +141,12 @@
       <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="users"></i></span>
       <span class="tab-bar-label">学员管理</span>
     </button>
-    <button type="button" class="tab-bar-item active" data-page="courses" role="tab" aria-selected="true">
+    <button type="button" class="tab-bar-item active" data-page="week" role="tab" aria-selected="true">
       <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="calendar"></i></span>
+      <span class="tab-bar-label">周视图</span>
+    </button>
+    <button type="button" class="tab-bar-item" data-page="courses" role="tab" aria-selected="false">
+      <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="list"></i></span>
       <span class="tab-bar-label">课程管理</span>
     </button>
     <button type="button" class="tab-bar-item" data-page="teachers" role="tab" aria-selected="false">

@@ -79,18 +79,6 @@ function renderWeekViewLegendHtml(activeCourses, colorMap) {
 }
 
 
-function switchCoursesTab(tab) {
-  coursesViewTab = tab;
-  document.querySelectorAll('.courses-tab').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.coursesTab === tab);
-  });
-  document.getElementById('courses-panel-week').classList.toggle('active', tab === 'week');
-  document.getElementById('courses-panel-list').classList.toggle('active', tab === 'list');
-  if (tab === 'week') {
-    requestAnimationFrame(() => fitWeekViewToWidth());
-  }
-}
-
 let weekViewResizeObserver = null;
 let weekViewFocusedDay = null;
 let weekViewMidnightTimer = null;
@@ -207,7 +195,7 @@ function scheduleWeekViewMidnightRefresh() {
 
   weekViewMidnightTimer = setTimeout(() => {
     resetWeekViewFocusedDayToToday();
-    if (coursesViewTab === 'week' && coreDataCache.courses.length) {
+    if (document.getElementById('page-week').classList.contains('active') && coreDataCache.courses.length) {
       renderWeekViewUI(coreDataCache.courses);
     } else {
       scheduleWeekViewMidnightRefresh();
@@ -846,7 +834,7 @@ async function loadAndRenderCourses() {
 
 function finishCourseFormSave(pageId) {
   closeAllDetailPages();
-  switchCoursesTab('list');
+  navigateTo('courses');
 }
 
 
@@ -1062,7 +1050,7 @@ async function onDeleteCourseFromEdit() {
     await logOperation('删除课程', label);
 
     closeDetailPage('detail-course-edit');
-    switchCoursesTab('list');
+    navigateTo('courses');
     await refreshAfterCourseChanged();
     showToast('课程已删除');
   } catch (err) {
