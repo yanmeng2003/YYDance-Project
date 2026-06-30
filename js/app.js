@@ -54,12 +54,12 @@ function bindEvents() {
 
   const fabChangelogAdd = document.getElementById('fab-changelog-add');
   if (fabChangelogAdd) {
-    fabChangelogAdd.addEventListener('click', openAddChangelogModal);
+    fabChangelogAdd.addEventListener('click', openAddChangelogPage);
   }
 
   const btnChangelogEdit = document.getElementById('btn-changelog-entry-edit');
   if (btnChangelogEdit) {
-    btnChangelogEdit.addEventListener('click', openEditChangelogModal);
+    btnChangelogEdit.addEventListener('click', openEditChangelogPage);
   }
 
   const btnChangelogDelete = document.getElementById('btn-changelog-entry-delete');

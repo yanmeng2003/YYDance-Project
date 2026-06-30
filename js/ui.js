@@ -438,6 +438,10 @@ function closeDetailPage(pageId, options = {}) {
     updateChangelogFabVisibility();
   }
 
+  if (pageId === 'detail-changelog-form') {
+    updateChangelogFabVisibility();
+  }
+
   page.classList.remove('is-open', 'is-swipe-dragging');
   page.setAttribute('aria-hidden', 'true');
 
@@ -447,6 +451,8 @@ function closeDetailPage(pageId, options = {}) {
     page.style.transitionDuration = '';
     page.style.zIndex = '';
     updateDetailPageScrollLock();
+    updateFabVisibility(getActiveMainPage());
+    updateChangelogFabVisibility();
   };
 
   const onTransitionEnd = (e) => {
@@ -489,7 +495,7 @@ function getActiveMainPage() {
 
 
 function closeAllDetailPages() {
-  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-operation-logs'].forEach(id => {
+  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-changelog-form', 'detail-operation-logs'].forEach(id => {
     const page = document.getElementById(id);
     if (!page) return;
     page.classList.remove('is-open', 'is-visible');
@@ -501,9 +507,12 @@ function closeAllDetailPages() {
   currentStudentDetailId = null;
   currentTeacherDetailId = null;
   currentCourseDetailId = null;
+  currentChangelogEntryId = null;
   studentDetailData = { records: [], courses: [] };
   teacherDetailData = { courses: [] };
   updateDetailPageScrollLock();
+  updateFabVisibility(getActiveMainPage());
+  updateChangelogFabVisibility();
 }
 
 
@@ -516,9 +525,12 @@ function isDetailPageOpen(pageId) {
 function updateFabVisibility(page) {
   const studentDetailOpen = isDetailPageOpen('detail-student');
   const teacherDetailOpen = isDetailPageOpen('detail-teacher');
-  document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen);
-  document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses');
-  document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers' && !teacherDetailOpen);
+  const changelogOpen = isChangelogListPageActive()
+    || isChangelogEntryPageActive()
+    || isChangelogFormPageActive();
+  document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen && !changelogOpen);
+  document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses' && !changelogOpen);
+  document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers' && !teacherDetailOpen && !changelogOpen);
 }
 
 

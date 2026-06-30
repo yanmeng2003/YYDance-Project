@@ -47,17 +47,33 @@ async function renderChangelogListPage() {
   }
 }
 
-function isDetailPageVisible(pageId) {
-  const page = document.getElementById(pageId);
-  return page && page.classList.contains('is-visible');
+function isChangelogListPageActive() {
+  const page = document.getElementById('detail-changelog');
+  return page
+    && page.classList.contains('is-visible')
+    && page.classList.contains('is-open');
 }
 
+function isChangelogEntryPageActive() {
+  const page = document.getElementById('detail-changelog-entry');
+  return page
+    && page.classList.contains('is-visible')
+    && page.classList.contains('is-open');
+}
+
+function isChangelogFormPageActive() {
+  const page = document.getElementById('detail-changelog-form');
+  return page
+    && page.classList.contains('is-visible')
+    && page.classList.contains('is-open');
+}
 
 function updateChangelogFabVisibility() {
   const fab = document.getElementById('fab-changelog-add');
   if (!fab) return;
-  const visible = isDetailPageVisible('detail-changelog')
-    && !isDetailPageVisible('detail-changelog-entry')
+  const visible = isChangelogListPageActive()
+    && !isChangelogEntryPageActive()
+    && !isChangelogFormPageActive()
     && canManageChangelog();
   fab.classList.toggle('visible', visible);
 }
@@ -76,6 +92,7 @@ async function openChangelogPage() {
   }
 
   openDetailPage('detail-changelog');
+  updateFabVisibility(getActiveMainPage());
   requestAnimationFrame(() => {
     updateChangelogFabVisibility();
   });
@@ -125,24 +142,26 @@ async function openChangelogEntryDetail(id) {
   }
 }
 
-function openChangelogFormModal(entry) {
+function openChangelogFormPage(entry) {
   if (!canManageChangelog()) return;
 
   const isEdit = !!entry;
   document.getElementById('changelog-form-id').value = isEdit ? entry.id : '';
-  document.getElementById('modal-changelog-title-text').textContent = isEdit ? '编辑版本更新' : '版本更新';
+  document.getElementById('changelog-form-page-title').textContent = isEdit ? '编辑版本更新' : '版本更新';
   document.getElementById('changelog-form-title').value = isEdit ? entry.title : '';
   document.getElementById('changelog-form-version').value = isEdit ? entry.version : '';
   document.getElementById('changelog-form-released-at').value = isEdit ? entry.released_at : '';
   document.getElementById('changelog-form-content').value = isEdit ? (entry.content || '') : '';
-  openModal('modal-changelog');
+
+  openDetailPage('detail-changelog-form');
+  updateChangelogFabVisibility();
 }
 
-function openAddChangelogModal() {
-  openChangelogFormModal(null);
+function openAddChangelogPage() {
+  openChangelogFormPage(null);
 }
 
-async function openEditChangelogModal() {
+async function openEditChangelogPage() {
   if (!currentChangelogEntryId || !canManageChangelog()) return;
 
   try {
@@ -151,11 +170,21 @@ async function openEditChangelogModal() {
       showToast('更新日志不存在');
       return;
     }
-    openChangelogFormModal(entry);
+    openChangelogFormPage(entry);
   } catch (err) {
     console.error(err);
     showToast(err.message || '加载失败');
   }
+}
+
+async function refreshChangelogEntryDetailIfOpen(id) {
+  if (!isDetailPageOpen('detail-changelog-entry') || currentChangelogEntryId !== id) return;
+
+  const entry = await fetchChangelogEntryById(id);
+  if (!entry) return;
+
+  renderChangelogEntryDetailUI(entry);
+  document.getElementById('changelog-entry-title').textContent = entry.title;
 }
 
 async function onChangelogFormSubmit(e) {
@@ -190,19 +219,15 @@ async function onChangelogFormSubmit(e) {
 
     if (id) {
       await updateChangelogEntry(id, payload);
-      closeModal('modal-changelog');
+      closeDetailPage('detail-changelog-form');
       await renderChangelogListPage();
-      if (isDetailPageOpen('detail-changelog-entry') && currentChangelogEntryId === id) {
-        const entry = await fetchChangelogEntryById(id);
-        renderChangelogEntryDetailUI(entry);
-        document.getElementById('changelog-entry-title').textContent = entry.title;
-      }
+      await refreshChangelogEntryDetailIfOpen(id);
       showToast('保存成功');
       return;
     }
 
     await createChangelogEntry(payload);
-    closeModal('modal-changelog');
+    closeDetailPage('detail-changelog-form');
     await renderChangelogListPage();
     showToast('版本更新已发布');
   } catch (err) {

@@ -570,6 +570,47 @@
     </div>
   </section>
 
+  <!-- 更新日志编辑页 -->
+  <section class="detail-page" id="detail-changelog-form" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-changelog-form" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title" id="changelog-form-page-title">版本更新</h2>
+      <div class="list-card detail-page-card">
+        <form id="form-changelog">
+          <input type="hidden" id="changelog-form-id">
+          <div class="form-grid">
+            <div class="form-group form-group--full">
+              <label for="changelog-form-title">标题 *</label>
+              <input type="text" id="changelog-form-title" required placeholder="例如：周视图交互优化">
+            </div>
+            <div class="form-group">
+              <label for="changelog-form-version">版本号 *</label>
+              <input type="text" id="changelog-form-version" required placeholder="例如：1.2.0">
+            </div>
+            <div class="form-group">
+              <label for="changelog-form-released-at">更新时间 *</label>
+              <input type="text" id="changelog-form-released-at" required placeholder="例如：2026-06-18">
+            </div>
+            <div class="form-group form-group--full">
+              <label for="changelog-form-content">更新内容 *</label>
+              <textarea id="changelog-form-content" class="student-detail-textarea" rows="8" required placeholder="详细说明本次更新内容"></textarea>
+            </div>
+          </div>
+          <div class="form-actions form-actions-add">
+            <button type="button" class="btn btn-outline" data-detail-back="detail-changelog-form">取消</button>
+            <button type="submit" class="btn btn-primary">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <!-- 操作日志页（推入） -->
   <section class="detail-page" id="detail-operation-logs" aria-hidden="true">
     <header class="detail-page-navbar">
@@ -673,43 +714,6 @@
     </div>
   </div>
 
-
-  <!-- 版本更新弹窗 -->
-  <div class="modal-overlay" id="modal-changelog" role="dialog" aria-modal="true" aria-labelledby="modal-changelog-title-text">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="modal-changelog-title-text">版本更新</h3>
-        <button type="button" class="modal-close" data-close="modal-changelog" aria-label="关闭">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="form-changelog">
-          <input type="hidden" id="changelog-form-id">
-          <div class="form-grid">
-            <div class="form-group form-group--full">
-              <label for="changelog-form-title">标题 *</label>
-              <input type="text" id="changelog-form-title" required placeholder="例如：周视图交互优化">
-            </div>
-            <div class="form-group">
-              <label for="changelog-form-version">版本号 *</label>
-              <input type="text" id="changelog-form-version" required placeholder="例如：1.2.0">
-            </div>
-            <div class="form-group">
-              <label for="changelog-form-released-at">更新时间 *</label>
-              <input type="text" id="changelog-form-released-at" required placeholder="例如：2026-06-18">
-            </div>
-            <div class="form-group form-group--full">
-              <label for="changelog-form-content">更新内容 *</label>
-              <textarea id="changelog-form-content" class="student-detail-textarea" rows="8" required placeholder="详细说明本次更新内容"></textarea>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">保存</button>
-            <button type="button" class="btn btn-outline" data-close="modal-changelog">取消</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
 
   <div class="toast" id="toast"></div>
   </div>
