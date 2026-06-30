@@ -917,6 +917,62 @@ async function fetchOperationLogs() {
 }
 
 
+async function fetchChangelogEntries() {
+  const db = getSupabase();
+  if (!db) throw new Error('Supabase 库未加载');
+
+  const { data, error } = await db
+    .from('release_notes')
+    .select('id, title, version, released_at, content, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+
+async function fetchChangelogEntryById(id) {
+  const db = getSupabase();
+  if (!db) throw new Error('Supabase 库未加载');
+
+  const { data, error } = await db
+    .from('release_notes')
+    .select('id, title, version, released_at, content, created_at')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data;
+}
+
+
+async function createChangelogEntry(payload) {
+  const db = getSupabase();
+  if (!db) throw new Error('Supabase 库未加载');
+
+  const { error } = await db.from('release_notes').insert(payload);
+  if (error) throw error;
+}
+
+
+async function updateChangelogEntry(id, payload) {
+  const db = getSupabase();
+  if (!db) throw new Error('Supabase 库未加载');
+
+  const { error } = await db.from('release_notes').update(payload).eq('id', id);
+  if (error) throw error;
+}
+
+
+async function deleteChangelogEntry(id) {
+  const db = getSupabase();
+  if (!db) throw new Error('Supabase 库未加载');
+
+  const { error } = await db.from('release_notes').delete().eq('id', id);
+  if (error) throw error;
+}
+
+
 async function fetchAllowedTeacherPhones() {
   if (coreDataCache.loaded) {
     return coreDataCache.teachers

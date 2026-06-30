@@ -425,6 +425,14 @@ function closeDetailPage(pageId, options = {}) {
     teacherDetailData = { courses: [] };
   }
 
+  if (pageId === 'detail-changelog-entry') {
+    currentChangelogEntryId = null;
+  }
+
+  if (pageId === 'detail-changelog') {
+    updateChangelogFabVisibility();
+  }
+
   page.classList.remove('is-open', 'is-swipe-dragging');
   page.setAttribute('aria-hidden', 'true');
 
@@ -464,6 +472,7 @@ function closeDetailPage(pageId, options = {}) {
   }, getSwipeDismissDuration(startOffset, width) + 80);
 
   updateFabVisibility(getActiveMainPage());
+  updateChangelogFabVisibility();
 }
 
 
@@ -475,7 +484,7 @@ function getActiveMainPage() {
 
 
 function closeAllDetailPages() {
-  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-operation-logs'].forEach(id => {
+  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-operation-logs'].forEach(id => {
     const page = document.getElementById(id);
     if (!page) return;
     page.classList.remove('is-open', 'is-visible');
@@ -740,6 +749,13 @@ function bindNavbarMenu() {
     });
   }
 
+  const changelogBtn = document.getElementById('btn-changelog');
+  if (changelogBtn) {
+    changelogBtn.addEventListener('click', () => {
+      openChangelogPage();
+    });
+  }
+
   const logsBtn = document.getElementById('btn-operation-logs');
   if (logsBtn) {
     logsBtn.addEventListener('click', () => {
@@ -804,14 +820,15 @@ function getCurrentOperatorPhone() {
 
 
 function canViewOperationLogs() {
-  return getCurrentOperatorPhone() === ADMIN_EXTRA_ALLOWED_PHONE;
+  return !!getCurrentOperatorPhone();
 }
 
 
 function updateNavbarMenuVisibility() {
   const logsBtn = document.getElementById('btn-operation-logs');
-  if (!logsBtn) return;
-  logsBtn.hidden = !canViewOperationLogs();
+  const changelogBtn = document.getElementById('btn-changelog');
+  if (logsBtn) logsBtn.hidden = !canViewOperationLogs();
+  if (changelogBtn) changelogBtn.hidden = !canViewChangelog();
 }
 
 

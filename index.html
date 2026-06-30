@@ -48,7 +48,11 @@
           <span id="theme-toggle-label">深色模式</span>
           <span class="navbar-menu-icon" id="theme-toggle-indicator" aria-hidden="true"><i data-lucide="moon"></i></span>
         </button>
-        <button type="button" class="navbar-menu-item" id="btn-operation-logs" role="menuitem" hidden>
+        <button type="button" class="navbar-menu-item" id="btn-changelog" role="menuitem">
+          <span>更新日志</span>
+          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="file-text"></i></span>
+        </button>
+        <button type="button" class="navbar-menu-item" id="btn-operation-logs" role="menuitem">
           <span>操作日志</span>
           <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="scroll-text"></i></span>
         </button>
@@ -158,6 +162,8 @@
   <button type="button" class="fab" id="fab-add-student" aria-label="添加学员">+ 添加学员</button>
   <button type="button" class="fab" id="fab-add-course" aria-label="添加课程">+ 添加课程</button>
   <button type="button" class="fab" id="fab-add-teacher" aria-label="添加老师">+ 添加老师</button>
+
+  <button type="button" class="fab" id="fab-changelog-add" aria-label="版本更新">+ 版本更新</button>
 
   <!-- 添加学员弹窗 -->
   <div class="modal-overlay" id="modal-add" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
@@ -535,6 +541,44 @@
     </div>
   </section>
 
+  <!-- 更新日志列表页 -->
+  <section class="detail-page" id="detail-changelog" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-changelog" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <div class="detail-page-title-row">
+        <h2 class="detail-page-title">更新日志</h2>
+      </div>
+      <div class="detail-page-body detail-page-body--logs" id="changelog-list-body"></div>
+    </div>
+  </section>
+
+  <!-- 更新日志详情页 -->
+  <section class="detail-page" id="detail-changelog-entry" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-changelog-entry" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <div class="detail-page-title-row">
+        <h2 class="detail-page-title" id="changelog-entry-title">更新详情</h2>
+        <div class="changelog-entry-actions" id="changelog-entry-actions" hidden>
+          <button type="button" class="btn btn-outline" id="btn-changelog-entry-edit">编辑</button>
+          <button type="button" class="btn btn-outline btn-danger" id="btn-changelog-entry-delete">删除</button>
+        </div>
+      </div>
+      <div class="detail-page-body detail-page-body--logs" id="changelog-entry-body"></div>
+    </div>
+  </section>
+
   <!-- 操作日志页（推入） -->
   <section class="detail-page" id="detail-operation-logs" aria-hidden="true">
     <header class="detail-page-navbar">
@@ -639,6 +683,43 @@
   </div>
 
 
+  <!-- 版本更新弹窗 -->
+  <div class="modal-overlay" id="modal-changelog" role="dialog" aria-modal="true" aria-labelledby="modal-changelog-title-text">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-changelog-title-text">版本更新</h3>
+        <button type="button" class="modal-close" data-close="modal-changelog" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-changelog">
+          <input type="hidden" id="changelog-form-id">
+          <div class="form-grid">
+            <div class="form-group form-group--full">
+              <label for="changelog-form-title">标题 *</label>
+              <input type="text" id="changelog-form-title" required placeholder="例如：周视图交互优化">
+            </div>
+            <div class="form-group">
+              <label for="changelog-form-version">版本号 *</label>
+              <input type="text" id="changelog-form-version" required placeholder="例如：1.2.0">
+            </div>
+            <div class="form-group">
+              <label for="changelog-form-released-at">更新时间 *</label>
+              <input type="text" id="changelog-form-released-at" required placeholder="例如：2026-06-18">
+            </div>
+            <div class="form-group form-group--full">
+              <label for="changelog-form-content">更新内容 *</label>
+              <textarea id="changelog-form-content" class="student-detail-textarea" rows="8" required placeholder="详细说明本次更新内容"></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="button" class="btn btn-outline" data-close="modal-changelog">取消</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
   </div>
 
@@ -649,6 +730,7 @@
   <script src="js/teachers.js"></script>
   <script src="js/courses.js"></script>
   <script src="js/students.js"></script>
+  <script src="js/changelog.js"></script>
   <script src="js/app.js"></script>
   <script>
     if (document.readyState === 'loading') {

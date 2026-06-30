@@ -52,6 +52,26 @@ function bindEvents() {
     openModal('modal-add-teacher');
   });
 
+  const fabChangelogAdd = document.getElementById('fab-changelog-add');
+  if (fabChangelogAdd) {
+    fabChangelogAdd.addEventListener('click', openAddChangelogModal);
+  }
+
+  const btnChangelogEdit = document.getElementById('btn-changelog-entry-edit');
+  if (btnChangelogEdit) {
+    btnChangelogEdit.addEventListener('click', openEditChangelogModal);
+  }
+
+  const btnChangelogDelete = document.getElementById('btn-changelog-entry-delete');
+  if (btnChangelogDelete) {
+    btnChangelogDelete.addEventListener('click', deleteCurrentChangelogEntry);
+  }
+
+  const formChangelog = document.getElementById('form-changelog');
+  if (formChangelog) {
+    formChangelog.addEventListener('submit', onChangelogFormSubmit);
+  }
+
   document.querySelectorAll('[data-close]').forEach(el => {
     el.addEventListener('click', () => closeModal(el.dataset.close));
   });
