@@ -39,6 +39,15 @@ function bindEvents() {
 
   document.getElementById('btn-teacher-detail-edit').addEventListener('click', toggleTeacherDetailEditMode);
 
+  document.getElementById('detail-changelog-entry').addEventListener('click', (e) => {
+    const target = e.target.closest('#btn-changelog-entry-save, #btn-changelog-entry-delete');
+    if (!target) return;
+    if (target.id === 'btn-changelog-entry-save') saveChangelogEntryInline();
+    if (target.id === 'btn-changelog-entry-delete') deleteCurrentChangelogEntry();
+  });
+
+  document.getElementById('btn-changelog-entry-edit').addEventListener('click', toggleChangelogEntryEditMode);
+
   document.getElementById('btn-course-detail-consume').addEventListener('click', () => {
     if (currentCourseDetailId) openBulkConsumeModal(currentCourseDetailId);
   });
@@ -55,21 +64,6 @@ function bindEvents() {
   const fabChangelogAdd = document.getElementById('fab-changelog-add');
   if (fabChangelogAdd) {
     fabChangelogAdd.addEventListener('click', openAddChangelogPage);
-  }
-
-  const btnChangelogEdit = document.getElementById('btn-changelog-entry-edit');
-  if (btnChangelogEdit) {
-    btnChangelogEdit.addEventListener('click', toggleChangelogEntryEditMode);
-  }
-
-  const btnChangelogSave = document.getElementById('btn-changelog-entry-save');
-  if (btnChangelogSave) {
-    btnChangelogSave.addEventListener('click', saveChangelogEntryInline);
-  }
-
-  const btnChangelogDelete = document.getElementById('btn-changelog-entry-delete');
-  if (btnChangelogDelete) {
-    btnChangelogDelete.addEventListener('click', deleteCurrentChangelogEntry);
   }
 
   const formChangelog = document.getElementById('form-changelog');

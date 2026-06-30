@@ -2354,30 +2354,6 @@
       padding: 20px 18px;
     }
 
-    .detail-page-inner--changelog-entry {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .detail-page-inner--changelog-entry .detail-page-body--logs {
-      flex: 1;
-      min-height: 0;
-    }
-
-    .changelog-entry-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      width: 100%;
-      margin-top: auto;
-      padding-top: 14px;
-    }
-
-    .changelog-entry-footer #btn-changelog-entry-save {
-      margin-left: auto;
-    }
-
     .form-group--full {
       grid-column: 1 / -1;
     }
@@ -2455,7 +2431,8 @@
     }
 
     .detail-page-body--course,
-    .detail-page-body--student {
+    .detail-page-body--student,
+    .detail-page-body--logs {
       display: flex;
       flex-direction: column;
       gap: 14px;

@@ -144,24 +144,30 @@ function renderChangelogEntryViewHtml(entry) {
 
 function renderChangelogEntryEditHtml(entry) {
   return `
-    <div class="changelog-entry-panel changelog-entry-panel--edit">
-      <div class="form-grid">
-        <div class="form-group form-group--full">
-          <label for="changelog-entry-edit-title">标题 *</label>
-          <input type="text" id="changelog-entry-edit-title" value="${escapeHtml(entry.title)}" required placeholder="例如：周视图交互优化">
+    <div class="student-detail-records-block">
+      <div class="changelog-entry-panel changelog-entry-panel--edit">
+        <div class="form-grid">
+          <div class="form-group form-group--full">
+            <label for="changelog-entry-edit-title">标题 *</label>
+            <input type="text" id="changelog-entry-edit-title" value="${escapeHtml(entry.title)}" required placeholder="例如：周视图交互优化">
+          </div>
+          <div class="form-group">
+            <label for="changelog-entry-edit-version">版本号 *</label>
+            <input type="text" id="changelog-entry-edit-version" value="${escapeHtml(entry.version)}" required placeholder="例如：1.2.0">
+          </div>
+          <div class="form-group">
+            <label for="changelog-entry-edit-released-at">更新时间 *</label>
+            <input type="text" id="changelog-entry-edit-released-at" value="${escapeHtml(entry.released_at)}" required placeholder="例如：2026-06-18">
+          </div>
+          <div class="form-group form-group--full">
+            <label for="changelog-entry-edit-content">更新内容 *</label>
+            <textarea id="changelog-entry-edit-content" rows="8" required placeholder="详细说明本次更新内容">${escapeHtml(entry.content || '')}</textarea>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="changelog-entry-edit-version">版本号 *</label>
-          <input type="text" id="changelog-entry-edit-version" value="${escapeHtml(entry.version)}" required placeholder="例如：1.2.0">
-        </div>
-        <div class="form-group">
-          <label for="changelog-entry-edit-released-at">更新时间 *</label>
-          <input type="text" id="changelog-entry-edit-released-at" value="${escapeHtml(entry.released_at)}" required placeholder="例如：2026-06-18">
-        </div>
-        <div class="form-group form-group--full">
-          <label for="changelog-entry-edit-content">更新内容 *</label>
-          <textarea id="changelog-entry-edit-content" rows="8" required placeholder="详细说明本次更新内容">${escapeHtml(entry.content || '')}</textarea>
-        </div>
+      </div>
+      <div class="student-detail-edit-actions is-visible">
+        <button type="button" class="student-detail-action-btn student-detail-action-btn--danger" id="btn-changelog-entry-delete">删除</button>
+        <button type="button" class="student-detail-action-btn student-detail-action-btn--primary" id="btn-changelog-entry-save">保存</button>
       </div>
     </div>
   `;
@@ -184,15 +190,11 @@ function renderChangelogEntryUI(entry) {
 
   const canManage = canManageChangelog();
   const editBtn = document.getElementById('btn-changelog-entry-edit');
-  const footer = document.getElementById('changelog-entry-footer');
-  const saveBtn = document.getElementById('btn-changelog-entry-save');
 
   if (editBtn) {
     editBtn.hidden = !canManage;
     editBtn.textContent = changelogEntryEditMode ? '取消' : '编辑';
   }
-  if (footer) footer.hidden = !canManage;
-  if (saveBtn) saveBtn.hidden = !changelogEntryEditMode;
 }
 
 async function openChangelogEntryDetail(id) {
@@ -205,9 +207,7 @@ async function openChangelogEntryDetail(id) {
   body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px;">加载中...</p>';
 
   const editBtn = document.getElementById('btn-changelog-entry-edit');
-  const footer = document.getElementById('changelog-entry-footer');
   if (editBtn) editBtn.hidden = true;
-  if (footer) footer.hidden = true;
 
   openDetailPage('detail-changelog-entry');
   const fab = document.getElementById('fab-changelog-add');
