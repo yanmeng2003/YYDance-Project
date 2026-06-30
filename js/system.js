@@ -2,6 +2,7 @@ function renderSystemSettingsRowHtml(options = {}) {
   const {
     label,
     value = '',
+    icon = '',
     detailPage = '',
     action = '',
     danger = false,
@@ -9,23 +10,33 @@ function renderSystemSettingsRowHtml(options = {}) {
     showChevron = true,
   } = options;
 
-  const valueHtml = value
-    ? `<span class="system-settings-value">${escapeHtml(value)}</span>`
+  const iconHtml = icon
+    ? `<span class="system-settings-icon${danger ? ' system-settings-icon--danger' : ''}" aria-hidden="true"><i data-lucide="${icon}"></i></span>`
     : '';
-  const chevronHtml = showChevron && !staticRow && !value
+
+  const valueHtml = value
+    ? `<span class="system-settings-subline">${escapeHtml(value)}</span>`
+    : '';
+
+  const leadingHtml = `
+    <div class="system-settings-leading">
+      ${iconHtml}
+      <div class="student-island-main system-settings-main">
+        <span class="student-name">${escapeHtml(label)}</span>
+        ${valueHtml}
+      </div>
+    </div>
+  `;
+
+  const chevronHtml = showChevron && !staticRow
     ? '<span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>'
-    : (showChevron && value
-      ? '<span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>'
-      : '');
+    : '';
 
   if (staticRow) {
     return `
       <li class="student-island-item system-settings-item--static">
-        <div class="student-island-link">
-          <div class="student-island-main system-settings-main">
-            <span class="student-name">${escapeHtml(label)}</span>
-            ${value ? `<span class="system-settings-value-inline">${escapeHtml(value)}</span>` : ''}
-          </div>
+        <div class="student-island-link system-settings-row">
+          ${leadingHtml}
         </div>
       </li>
     `;
@@ -33,7 +44,7 @@ function renderSystemSettingsRowHtml(options = {}) {
 
   const attrs = [
     'type="button"',
-    'class="student-island-link system-settings-link' + (danger ? ' system-settings-link--danger' : '') + '"',
+    'class="student-island-link system-settings-link system-settings-row' + (danger ? ' system-settings-link--danger' : '') + '"',
   ];
   if (detailPage) attrs.push(`data-detail-open="${detailPage}"`);
   if (action) attrs.push(`data-system-action="${action}"`);
@@ -41,10 +52,7 @@ function renderSystemSettingsRowHtml(options = {}) {
   return `
     <li class="student-island-item">
       <button ${attrs.join(' ')}>
-        <div class="student-island-main system-settings-main">
-          <span class="student-name">${escapeHtml(label)}</span>
-          ${valueHtml}
-        </div>
+        ${leadingHtml}
         ${chevronHtml}
       </button>
     </li>
@@ -92,10 +100,11 @@ async function renderSystemPage() {
         ${renderSystemSettingsRowHtml({
           label: '账号',
           value: accountName,
+          icon: 'user',
           staticRow: true,
         })}
-        ${renderSystemSettingsRowHtml({ label: '通用', detailPage: 'detail-system-general' })}
-        ${renderSystemSettingsRowHtml({ label: '隐私设置', detailPage: 'detail-system-privacy' })}
+        ${renderSystemSettingsRowHtml({ label: '通用', icon: 'sliders-horizontal', detailPage: 'detail-system-general' })}
+        ${renderSystemSettingsRowHtml({ label: '隐私设置', icon: 'shield', detailPage: 'detail-system-privacy' })}
       </ul>
     </div>
     <div class="system-settings-group">
@@ -104,11 +113,12 @@ async function renderSystemPage() {
         ${renderSystemSettingsRowHtml({
           label: '当前版本',
           value: 'v' + version,
+          icon: 'badge-info',
           staticRow: true,
           showChevron: false,
         })}
         ${canViewChangelog()
-          ? renderSystemSettingsRowHtml({ label: '更新日志', action: 'changelog' })
+          ? renderSystemSettingsRowHtml({ label: '更新日志', icon: 'scroll-text', action: 'changelog' })
           : ''}
       </ul>
     </div>
@@ -116,6 +126,7 @@ async function renderSystemPage() {
       <ul class="student-island-list system-settings-list">
         ${renderSystemSettingsRowHtml({
           label: '退出当前账号',
+          icon: 'log-out',
           action: 'logout',
           danger: true,
           showChevron: false,
@@ -162,11 +173,13 @@ function bindSystemSettingsEvents(root) {
 function openSystemGeneralPage() {
   openDetailPage('detail-system-general');
   updateSystemThemeUI();
+  initLucideIcons();
 }
 
 
 function openSystemPrivacyPage() {
   openDetailPage('detail-system-privacy');
+  initLucideIcons();
 }
 
 

@@ -605,19 +605,56 @@
       cursor: pointer;
     }
 
+    .system-settings-row {
+      justify-content: space-between;
+    }
+
+    .system-settings-leading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .system-settings-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .system-settings-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+
+    .system-settings-icon--danger {
+      background: rgba(231, 76, 60, 0.12);
+      color: var(--danger);
+    }
+
     .system-settings-main {
       flex: 1;
       min-width: 0;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 2px;
+      min-height: 40px;
     }
 
-    .system-settings-value-inline {
+    .system-settings-subline {
       font-size: 0.8125rem;
       color: var(--text-muted);
-      flex-shrink: 0;
+      line-height: 1.35;
     }
 
     .system-settings-link--danger .student-name {
