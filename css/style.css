@@ -1487,20 +1487,21 @@
 
     .course-students-list {
       list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
     .course-student-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 14px 0;
-      border-bottom: 0.5px solid var(--border);
+      gap: 12px;
+      padding: 10px 12px;
+      border: 0.5px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      background: var(--secondary-bg);
       font-size: 0.9375rem;
-    }
-
-    .course-student-row:last-child {
-      border-bottom: none;
     }
 
     .course-student-name {
@@ -2591,10 +2592,6 @@
 
     .course-detail-students .detail-section-header.student-detail-section-head {
       padding: 8px 0 12px;
-    }
-
-    .course-detail-students .course-student-row {
-      padding: 11px 0;
     }
 
     /* Splash screen */

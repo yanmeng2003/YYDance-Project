@@ -526,7 +526,7 @@ function bindCourseStudentsEvents(courseId, enrollments) {
   const root = document.getElementById('course-detail-body');
 
   root.querySelectorAll('.course-student-remove').forEach(btn => {
-    btn.addEventListener('click', () => removeStudentFromCourseDetail(btn.dataset.enrollmentId, courseId));
+    btn.addEventListener('click', () => openRemoveCourseStudentConfirm(btn.dataset.enrollmentId, courseId));
   });
 
   const addBtn = root.querySelector('#btn-add-course-student');
@@ -630,11 +630,23 @@ async function onAddCourseStudentToCourse(e) {
 }
 
 
-async function removeStudentFromCourseDetail(enrollmentId, courseId) {
-  if (!confirm('确定将该学员移出此课程吗？')) return;
+let pendingRemoveCourseStudent = { enrollmentId: null, courseId: null };
+
+
+function openRemoveCourseStudentConfirm(enrollmentId, courseId) {
+  pendingRemoveCourseStudent = { enrollmentId, courseId };
+  openModal('modal-remove-course-student');
+}
+
+
+async function confirmRemoveCourseStudent() {
+  const { enrollmentId, courseId } = pendingRemoveCourseStudent;
+  if (!enrollmentId || !courseId) return;
 
   try {
     await removeCourseStudent(enrollmentId);
+    closeModal('modal-remove-course-student');
+    pendingRemoveCourseStudent = { enrollmentId: null, courseId: null };
     await refreshCourseStudentsCacheData();
     await openCourseDetailModal(courseId);
     showToast('已移出课程');

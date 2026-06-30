@@ -93,6 +93,7 @@ function bindEvents() {
   document.getElementById('form-bulk-consume').addEventListener('submit', onBulkConsumeCourse);
   document.getElementById('form-makeup-lesson').addEventListener('submit', onMakeupLesson);
   document.getElementById('form-add-course-student').addEventListener('submit', onAddCourseStudentToCourse);
+  document.getElementById('btn-confirm-remove-course-student').addEventListener('click', confirmRemoveCourseStudent);
   document.getElementById('form-edit-student-course').addEventListener('submit', onEditStudentCourse);
   document.getElementById('btn-remove-student-course').addEventListener('click', onRemoveStudentCourseFromEdit);
   document.getElementById('form-add-student-course').addEventListener('submit', onAddStudentCourse);

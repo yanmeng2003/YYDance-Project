@@ -711,6 +711,23 @@
     </div>
   </div>
 
+  <!-- 移出课程学员确认弹窗 -->
+  <div class="modal-overlay" id="modal-remove-course-student" role="dialog" aria-modal="true" aria-labelledby="modal-remove-course-student-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-remove-course-student-title">移出学员</h3>
+        <button type="button" class="modal-close" data-close="modal-remove-course-student" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.9375rem;color:var(--text);line-height:1.5;">确认将该学员移出此课程吗？</p>
+        <div class="form-actions form-actions-add">
+          <button type="button" class="btn btn-outline" data-close="modal-remove-course-student">取消</button>
+          <button type="button" class="btn btn-primary" id="btn-confirm-remove-course-student">确认</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
   <div class="toast" id="toast"></div>
   </div>
