@@ -799,13 +799,6 @@
       stroke-width: 2;
     }
 
-    .students-island-wrap .empty-state {
-      background: var(--card-bg);
-      border-radius: 16px;
-      border: 0.5px solid var(--border-subtle);
-      box-shadow: var(--shadow-card);
-    }
-
     .btn {
       display: inline-flex;
       align-items: center;
@@ -1010,16 +1003,20 @@
       font-weight: 400;
     }
 
-    .empty-state {
+    .list-empty,
+    .student-detail-empty {
       text-align: center;
-      padding: 56px 24px;
+      padding: 28px 16px 32px;
       color: var(--text-muted);
+      font-size: 0.9375rem;
+      line-height: 1.5;
     }
 
-    .empty-state .icon {
-      font-size: 2.5rem;
-      margin-bottom: 16px;
-      opacity: 0.4;
+    .list-empty {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 0.5px solid var(--border-subtle);
+      box-shadow: var(--shadow-card);
     }
 
     .student-list {
@@ -1556,6 +1553,10 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+    }
+
+    #fab-changelog-add.visible {
+      z-index: 250;
     }
 
     .fab:hover {
@@ -2516,14 +2517,6 @@
     .student-detail-panel .detail-section-list li:first-child,
     .student-detail-panel .lesson-record-item:first-child {
       padding-top: 0;
-    }
-
-    .student-detail-empty {
-      text-align: center;
-      padding: 28px 16px 32px;
-      color: var(--text-muted);
-      font-size: 0.9375rem;
-      line-height: 1.5;
     }
 
     .course-detail-panel {

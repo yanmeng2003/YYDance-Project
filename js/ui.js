@@ -125,6 +125,11 @@ function timeToMinutes(timeStr) {
 }
 
 
+function renderListEmptyHtml(message) {
+  return `<div class="list-empty">${escapeHtml(message)}</div>`;
+}
+
+
 function showToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;

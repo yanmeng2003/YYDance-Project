@@ -1,7 +1,7 @@
 let currentChangelogEntryId = null;
 
 function canManageChangelog() {
-  return getCurrentOperatorPhone() === ADMIN_EXTRA_ALLOWED_PHONE;
+  return normalizePhone(getCurrentOperatorPhone()) === ADMIN_EXTRA_ALLOWED_PHONE;
 }
 
 function canViewChangelog() {
@@ -31,7 +31,7 @@ async function renderChangelogListPage() {
   try {
     const entries = await fetchChangelogEntries();
     if (!entries.length) {
-      body.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>暂无更新日志</p></div>';
+      body.innerHTML = renderListEmptyHtml('暂无更新日志');
       return;
     }
 
@@ -47,11 +47,17 @@ async function renderChangelogListPage() {
   }
 }
 
+function isDetailPageVisible(pageId) {
+  const page = document.getElementById(pageId);
+  return page && page.classList.contains('is-visible');
+}
+
+
 function updateChangelogFabVisibility() {
   const fab = document.getElementById('fab-changelog-add');
   if (!fab) return;
-  const visible = isDetailPageOpen('detail-changelog')
-    && !isDetailPageOpen('detail-changelog-entry')
+  const visible = isDetailPageVisible('detail-changelog')
+    && !isDetailPageVisible('detail-changelog-entry')
     && canManageChangelog();
   fab.classList.toggle('visible', visible);
 }
@@ -70,7 +76,9 @@ async function openChangelogPage() {
   }
 
   openDetailPage('detail-changelog');
-  updateChangelogFabVisibility();
+  requestAnimationFrame(() => {
+    updateChangelogFabVisibility();
+  });
 }
 
 function renderChangelogEntryDetailUI(entry) {

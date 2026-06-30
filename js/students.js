@@ -108,7 +108,7 @@ async function renderOperationLogsPage() {
 
   const logs = await fetchOperationLogs();
   if (!logs.length) {
-    body.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>暂无操作记录</p></div>';
+    body.innerHTML = renderListEmptyHtml('暂无操作记录');
     return;
   }
 
@@ -268,12 +268,9 @@ function renderStudentListUI() {
     emptyEl.style.display = 'block';
     listEl.style.display = 'none';
     renderStudentIndexBar([]);
-    const emptyText = emptyEl.querySelector('p');
-    if (emptyText) {
-      emptyText.textContent = studentSearchQuery.trim()
-        ? '没有匹配的学员'
-        : '暂无学员，点击右下角添加';
-    }
+    emptyEl.textContent = studentSearchQuery.trim()
+      ? '没有匹配的学员'
+      : '暂无学员，点击右下角添加';
     return;
   }
 
