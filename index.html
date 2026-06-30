@@ -433,13 +433,13 @@
               <input type="number" id="edit-student-course-hours" required min="0" step="1" placeholder="例如：10">
             </div>
           </div>
-          <div class="form-actions-edit">
-            <div class="form-actions-row">
-              <button type="submit" class="btn btn-primary">保存</button>
-              <button type="button" class="btn btn-outline" data-close="modal-edit-student-course">取消</button>
-            </div>
+          <div class="form-actions-edit form-actions-edit--inline">
             <div class="form-actions-delete">
-              <button type="button" class="btn btn-danger" id="btn-remove-student-course" style="width:100%">移出该课程</button>
+              <button type="button" class="btn btn-danger" id="btn-remove-student-course">移出该课程</button>
+            </div>
+            <div class="form-actions-row">
+              <button type="button" class="btn btn-outline" data-close="modal-edit-student-course">取消</button>
+              <button type="submit" class="btn btn-primary">保存</button>
             </div>
           </div>
         </form>
