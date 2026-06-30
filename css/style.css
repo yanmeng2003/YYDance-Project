@@ -171,6 +171,43 @@
       overflow: hidden;
     }
 
+    html.week-page-active,
+    body.week-page-active {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    html.week-page-active .container {
+      height: calc(100vh - var(--nav-height) - env(safe-area-inset-top, 0px));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    html.week-page-active #page-week.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    html.week-page-active #week-view-container {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    html.week-page-active .week-view-scroll {
+      flex: 1;
+      min-height: 0;
+      touch-action: pan-x;
+      overscroll-behavior: none;
+    }
+
     /* Navigation */
     .navbar {
       position: sticky;
@@ -1624,7 +1661,7 @@
     /* 周视图 */
     .week-view-scroll {
       overflow-x: hidden;
-      overflow-y: auto;
+      overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
       border-radius: var(--radius);
       border: 1px solid var(--surface-border);

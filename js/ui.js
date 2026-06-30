@@ -628,10 +628,17 @@ function toggleTeacherDetailEditMode() {
 }
 
 
+function updateWeekPageScrollLock(active) {
+  document.documentElement.classList.toggle('week-page-active', active);
+  document.body.classList.toggle('week-page-active', active);
+}
+
+
 function navigateTo(page) {
   if (!['students', 'week', 'courses', 'teachers'].includes(page)) return;
 
   closeAllDetailPages();
+  updateWeekPageScrollLock(page === 'week');
 
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
