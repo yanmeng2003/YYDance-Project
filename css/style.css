@@ -972,8 +972,7 @@
     }
 
     #modal-add .form-actions-add,
-    #modal-add-teacher .form-actions-add,
-    #modal-remove-course-student .form-actions-add {
+    #modal-add-teacher .form-actions-add {
       position: sticky;
       bottom: 0;
       margin-top: 28px;
@@ -981,13 +980,37 @@
       background: linear-gradient(to top, var(--card-bg) 65%, var(--gradient-fade));
     }
 
+    #modal-remove-course-student .modal-body {
+      display: flex;
+      flex-direction: column;
+      min-height: 220px;
+    }
+
+    #modal-remove-course-student .modal-remove-course-student-form {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
     #modal-remove-course-student .modal-remove-course-student-message {
-      display: block;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-bottom: 16px;
+      margin: 0;
+      padding: 0 8px;
+      font-size: 1.0625rem;
+      color: var(--text);
       text-align: center;
+      line-height: 1.5;
+    }
+
+    #modal-remove-course-student .form-actions {
+      justify-content: flex-end;
+      margin-top: 0;
+      flex-shrink: 0;
     }
 
     /* Student list */
