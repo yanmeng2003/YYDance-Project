@@ -5,6 +5,10 @@ const ADMIN_AUTH_STORAGE_KEY = 'yydance_admin_auth_phone';
 const THEME_STORAGE_KEY = 'yydance_admin_theme';
 const ADMIN_EXTRA_ALLOWED_PHONE = '18015208086';
 
+const OPERATOR_DISPLAY_NAMES = {
+  [ADMIN_EXTRA_ALLOWED_PHONE]: '颜萌',
+};
+
 const WEEKDAY_ORDER = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 const WEEK_GRID_START_MIN = 8 * 60;
 const WEEK_GRID_END_MIN = 23 * 60;
@@ -1000,4 +1004,14 @@ function getTeacherIdFromSelect(selectId) {
 
 function normalizePhone(phone) {
   return String(phone || '').trim();
+}
+
+
+function formatOperatorDisplayName(operator) {
+  const phone = normalizePhone(operator);
+  if (!phone) return operator || '—';
+  if (OPERATOR_DISPLAY_NAMES[phone]) return OPERATOR_DISPLAY_NAMES[phone];
+  const teacher = coreDataCache.teachers.find(t => normalizePhone(t.phone) === phone);
+  if (teacher && teacher.name) return teacher.name;
+  return operator;
 }

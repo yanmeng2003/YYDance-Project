@@ -92,7 +92,7 @@ function renderOperationLogItem(log) {
     <li class="operation-log-item">
       <div class="operation-log-content">${content}</div>
       <div class="operation-log-meta">
-        <span>${escapeHtml(log.operator || '—')}</span>
+        <span>${escapeHtml(formatOperatorDisplayName(log.operator))}</span>
         <span>${formatOperationLogTime(log.created_at)}</span>
       </div>
     </li>

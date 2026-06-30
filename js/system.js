@@ -81,7 +81,7 @@ async function fetchLatestAppVersion() {
 
 
 async function renderSystemPage() {
-  const phone = getCurrentOperatorPhone();
+  const accountName = getCurrentOperatorDisplayName();
   const version = await fetchLatestAppVersion();
   const body = document.getElementById('system-settings-body');
   if (!body) return;
@@ -91,7 +91,7 @@ async function renderSystemPage() {
       <ul class="student-island-list system-settings-list">
         ${renderSystemSettingsRowHtml({
           label: '账号',
-          value: phone || '—',
+          value: accountName,
           staticRow: true,
         })}
         ${renderSystemSettingsRowHtml({ label: '通用', detailPage: 'detail-system-general' })}

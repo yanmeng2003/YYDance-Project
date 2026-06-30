@@ -774,6 +774,13 @@ function getCurrentOperatorPhone() {
 }
 
 
+function getCurrentOperatorDisplayName() {
+  const phone = getCurrentOperatorPhone();
+  if (!phone) return '—';
+  return formatOperatorDisplayName(phone);
+}
+
+
 function canViewOperationLogs() {
   return !!getCurrentOperatorPhone();
 }
