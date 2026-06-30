@@ -963,7 +963,8 @@
       min-width: 96px;
     }
 
-    #modal-consume .form-actions {
+    #modal-consume .form-actions,
+    #modal-bulk-consume .form-actions {
       justify-content: flex-end;
     }
 
