@@ -963,6 +963,10 @@
       min-width: 96px;
     }
 
+    #modal-consume .form-actions {
+      justify-content: flex-end;
+    }
+
     #detail-course-add .form-actions-add {
       position: sticky;
       bottom: 0;

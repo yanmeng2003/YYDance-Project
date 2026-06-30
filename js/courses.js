@@ -780,11 +780,13 @@ function sortCoursesForList(courses) {
 }
 
 
-const COURSE_LIST_SECTIONS = ['拉丁舞', '摩登舞', '待开课'];
+const COURSE_LIST_SECTIONS = ['拉丁舞', '摩登舞', '待开课', '已结课'];
 
 
 function getCourseListSection(course) {
-  if (normalizeCourseStatus(course.status) === '待开课') return '待开课';
+  const status = normalizeCourseStatus(course.status);
+  if (status === '待开课') return '待开课';
+  if (status === '已结课') return '已结课';
   const type = course.courseType || '摩登舞';
   if (type === '拉丁舞') return '拉丁舞';
   return '摩登舞';
@@ -802,7 +804,7 @@ function groupCoursesForList(courses) {
 
 
 function sortCoursesInListSection(courses, section) {
-  if (section === '待开课') {
+  if (section === '待开课' || section === '已结课') {
     return [...courses].sort((a, b) => compareCourseScheduleTime(a, b));
   }
 
