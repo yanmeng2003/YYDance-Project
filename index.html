@@ -39,33 +39,6 @@
 
   <div id="app-shell" class="app-shell">
   <nav class="navbar">
-    <div class="navbar-menu-wrap">
-      <button type="button" class="navbar-menu-btn" id="btn-navbar-menu" aria-label="菜单" aria-expanded="false" aria-haspopup="true">
-        <i data-lucide="menu"></i>
-      </button>
-      <div class="navbar-menu-panel" id="navbar-menu-panel" role="menu" aria-label="导航菜单">
-        <button type="button" class="navbar-menu-item" id="btn-theme-toggle" role="menuitem">
-          <span id="theme-toggle-label">深色模式</span>
-          <span class="navbar-menu-icon" id="theme-toggle-indicator" aria-hidden="true"><i data-lucide="moon"></i></span>
-        </button>
-        <button type="button" class="navbar-menu-item" id="btn-changelog" role="menuitem">
-          <span>更新日志</span>
-          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="file-text"></i></span>
-        </button>
-        <button type="button" class="navbar-menu-item" id="btn-operation-logs" role="menuitem">
-          <span>操作日志</span>
-          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="scroll-text"></i></span>
-        </button>
-        <button type="button" class="navbar-menu-item" id="btn-teachers" role="menuitem">
-          <span>老师管理</span>
-          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="graduation-cap"></i></span>
-        </button>
-        <button type="button" class="navbar-menu-item navbar-menu-item--danger" id="btn-logout" role="menuitem">
-          <span>退出登录</span>
-          <span class="navbar-menu-icon" aria-hidden="true"><i data-lucide="log-out"></i></span>
-        </button>
-      </div>
-    </div>
     <span class="navbar-brand">耀毅国标舞工作室</span>
   </nav>
 
@@ -118,7 +91,7 @@
       </div>
     </section>
 
-    <!-- 老师管理页 -->
+    <!-- 老师管理页（从系统管理进入） -->
     <section id="page-teachers" class="page">
       <div class="page-header">
         <h2 class="main-page-title">老师管理</h2>
@@ -132,6 +105,14 @@
         <div id="teacher-empty-state" class="list-empty">暂无老师，点击右下角添加</div>
         <ul class="student-island-list" id="teacher-list"></ul>
       </div>
+    </section>
+
+    <!-- 系统管理页 -->
+    <section id="page-system" class="page">
+      <div class="page-header">
+        <h2 class="main-page-title">系统管理</h2>
+      </div>
+      <div class="system-settings-wrap" id="system-settings-body"></div>
     </section>
   </main>
 
@@ -147,6 +128,10 @@
     <button type="button" class="tab-bar-item" data-page="courses" role="tab" aria-selected="false">
       <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="list"></i></span>
       <span class="tab-bar-label">课程管理</span>
+    </button>
+    <button type="button" class="tab-bar-item" data-page="system" role="tab" aria-selected="false">
+      <span class="tab-bar-icon" aria-hidden="true"><i data-lucide="settings"></i></span>
+      <span class="tab-bar-label">系统管理</span>
     </button>
   </nav>
 
@@ -532,6 +517,74 @@
     </div>
   </section>
 
+  <!-- 系统管理 - 通用 -->
+  <section class="detail-page" id="detail-system-general" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-system-general" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title">通用</h2>
+      <div class="system-settings-wrap">
+        <ul class="student-island-list system-settings-list">
+          <li class="student-island-item">
+            <button type="button" class="student-island-link system-settings-link system-theme-option" data-theme-choice="light">
+              <div class="student-island-main">
+                <span class="student-name">日间模式</span>
+              </div>
+              <span class="system-settings-check" id="system-theme-check-light" aria-hidden="true"></span>
+            </button>
+          </li>
+          <li class="student-island-item">
+            <button type="button" class="student-island-link system-settings-link system-theme-option" data-theme-choice="dark">
+              <div class="student-island-main">
+                <span class="student-name">夜间模式</span>
+              </div>
+              <span class="system-settings-check" id="system-theme-check-dark" aria-hidden="true"></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 系统管理 - 隐私设置 -->
+  <section class="detail-page" id="detail-system-privacy" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-system-privacy" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <h2 class="detail-page-title">隐私设置</h2>
+      <div class="system-settings-wrap">
+        <ul class="student-island-list system-settings-list">
+          <li class="student-island-item">
+            <button type="button" class="student-island-link system-settings-link" id="btn-system-privacy-teachers">
+              <div class="student-island-main">
+                <span class="student-name">老师管理</span>
+              </div>
+              <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
+            </button>
+          </li>
+          <li class="student-island-item">
+            <button type="button" class="student-island-link system-settings-link" id="btn-system-privacy-logs">
+              <div class="student-island-main">
+                <span class="student-name">操作日志</span>
+              </div>
+              <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
   <!-- 更新日志列表页 -->
   <section class="detail-page" id="detail-changelog" aria-hidden="true">
     <header class="detail-page-navbar">
@@ -722,6 +775,7 @@
   <script src="js/courses.js"></script>
   <script src="js/students.js"></script>
   <script src="js/changelog.js"></script>
+  <script src="js/system.js"></script>
   <script src="js/app.js"></script>
   <script>
     if (document.readyState === 'loading') {

@@ -133,8 +133,6 @@ function updateChangelogFabVisibility() {
 async function openChangelogPage() {
   if (!canViewChangelog()) return;
 
-  closeNavbarMenu();
-
   try {
     await renderChangelogListPage();
   } catch (err) {
@@ -307,6 +305,7 @@ async function onChangelogFormSubmit(e) {
     await createChangelogEntry({ title, version, released_at: releasedAt, content });
     closeDetailPage('detail-changelog-form');
     await renderChangelogListPage();
+    renderSystemPageIfActive();
     showToast('版本更新已发布');
   } catch (err) {
     console.error(err);
@@ -356,6 +355,7 @@ async function saveChangelogEntryInline() {
     exitChangelogEntryEditMode();
     renderChangelogEntryUI(entry);
     await renderChangelogListPage();
+    renderSystemPageIfActive();
     showToast('保存成功');
   } catch (err) {
     console.error(err);
@@ -380,6 +380,7 @@ async function deleteCurrentChangelogEntry() {
     exitChangelogEntryEditMode();
     closeDetailPage('detail-changelog-entry');
     await renderChangelogListPage();
+    renderSystemPageIfActive();
     showToast('已删除');
   } catch (err) {
     console.error(err);

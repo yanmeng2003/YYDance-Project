@@ -181,12 +181,6 @@ function renderTeacherListUI(teachers) {
 }
 
 
-function openTeachersPage() {
-  closeNavbarMenu();
-  navigateTo('teachers');
-}
-
-
 async function loadAndRenderTeachers() {
   try {
     await refreshTeachersCacheData();

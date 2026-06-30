@@ -119,8 +119,6 @@ async function renderOperationLogsPage() {
 async function openOperationLogsPage() {
   if (!canViewOperationLogs()) return;
 
-  closeNavbarMenu();
-
   try {
     await renderOperationLogsPage();
   } catch (err) {

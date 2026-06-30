@@ -497,7 +497,7 @@ function getActiveMainPage() {
 
 
 function closeAllDetailPages() {
-  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-changelog-form', 'detail-operation-logs'].forEach(id => {
+  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-changelog-form', 'detail-operation-logs', 'detail-system-general', 'detail-system-privacy'].forEach(id => {
     const page = document.getElementById(id);
     if (!page) return;
     page.classList.remove('is-open', 'is-visible');
@@ -545,9 +545,10 @@ function updateFabVisibility(page) {
     || isChangelogEntryPageActive()
     || isChangelogFormPageActive();
   const overlayDetailOpen = changelogOpen || isOperationLogsPageActive();
+  const teachersPageOpen = page === 'teachers';
   document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen && !overlayDetailOpen);
   document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses' && !overlayDetailOpen);
-  document.getElementById('fab-add-teacher').classList.toggle('visible', page === 'teachers' && !teacherDetailOpen && !overlayDetailOpen);
+  document.getElementById('fab-add-teacher').classList.toggle('visible', teachersPageOpen && !teacherDetailOpen && !overlayDetailOpen);
 }
 
 
@@ -647,16 +648,25 @@ function updateWeekPageScrollLock(active) {
 }
 
 
-function navigateTo(page) {
-  if (!['students', 'week', 'courses', 'teachers'].includes(page)) return;
+let currentTabHighlight = 'week';
+
+
+function navigateTo(page, options = {}) {
+  if (!['students', 'week', 'courses', 'teachers', 'system'].includes(page)) return;
 
   closeAllDetailPages();
   updateWeekPageScrollLock(page === 'week');
 
+  if (['students', 'week', 'courses', 'system'].includes(page)) {
+    currentTabHighlight = page;
+  }
+
+  const tabHighlight = options.tabHighlight || currentTabHighlight;
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll('.tab-bar-item').forEach(tab => {
-    const isActive = tab.dataset.page === page;
+    const isActive = tab.dataset.page === tabHighlight;
     tab.classList.toggle('active', isActive);
     tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
@@ -672,6 +682,9 @@ function navigateTo(page) {
   }
   if (page === 'teachers') {
     renderTeachersPage();
+  }
+  if (page === 'system') {
+    renderSystemPage();
   }
 }
 
@@ -720,116 +733,12 @@ function isDarkModeActive() {
 }
 
 
-function updateThemeMenuUI() {
-  const label = document.getElementById('theme-toggle-label');
-  const indicator = document.getElementById('theme-toggle-indicator');
-  const dark = isDarkModeActive();
-
-  if (label) {
-    label.textContent = dark ? '浅色模式' : '深色模式';
-  }
-
-  if (indicator) {
-    indicator.innerHTML = dark
-      ? '<i data-lucide="sun"></i>'
-      : '<i data-lucide="moon"></i>';
-    initLucideIcons();
-  }
-}
-
-
 function setThemePreference(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem(THEME_STORAGE_KEY, theme);
-  updateThemeMenuUI();
-}
-
-
-function toggleThemePreference() {
-  setThemePreference(isDarkModeActive() ? 'light' : 'dark');
-}
-
-
-function closeNavbarMenu() {
-  const panel = document.getElementById('navbar-menu-panel');
-  const btn = document.getElementById('btn-navbar-menu');
-  if (!panel || !btn) return;
-  panel.classList.remove('is-open');
-  btn.setAttribute('aria-expanded', 'false');
-}
-
-
-function toggleNavbarMenu() {
-  const panel = document.getElementById('navbar-menu-panel');
-  const btn = document.getElementById('btn-navbar-menu');
-  if (!panel || !btn) return;
-  const willOpen = !panel.classList.contains('is-open');
-  panel.classList.toggle('is-open', willOpen);
-  btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-}
-
-
-function bindNavbarMenu() {
-  const menuBtn = document.getElementById('btn-navbar-menu');
-  const menuPanel = document.getElementById('navbar-menu-panel');
-  const themeBtn = document.getElementById('btn-theme-toggle');
-  const logoutBtn = document.getElementById('btn-logout');
-
-  if (menuBtn) {
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleNavbarMenu();
-    });
+  if (typeof updateSystemThemeUI === 'function') {
+    updateSystemThemeUI();
   }
-
-  if (themeBtn) {
-    themeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleThemePreference();
-      closeNavbarMenu();
-    });
-  }
-
-  const changelogBtn = document.getElementById('btn-changelog');
-  if (changelogBtn) {
-    changelogBtn.addEventListener('click', () => {
-      openChangelogPage();
-    });
-  }
-
-  const logsBtn = document.getElementById('btn-operation-logs');
-  if (logsBtn) {
-    logsBtn.addEventListener('click', () => {
-      openOperationLogsPage();
-    });
-  }
-
-  const teachersBtn = document.getElementById('btn-teachers');
-  if (teachersBtn) {
-    teachersBtn.addEventListener('click', () => {
-      openTeachersPage();
-    });
-  }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      closeNavbarMenu();
-      logoutAdmin();
-    });
-  }
-
-  document.addEventListener('click', (e) => {
-    if (!menuPanel || !menuBtn) return;
-    if (menuPanel.contains(e.target) || menuBtn.contains(e.target)) return;
-    closeNavbarMenu();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeNavbarMenu();
-  });
-
-  updateThemeMenuUI();
-  updateNavbarMenuVisibility();
 }
 
 
@@ -869,17 +778,6 @@ function getCurrentOperatorPhone() {
 
 function canViewOperationLogs() {
   return !!getCurrentOperatorPhone();
-}
-
-
-function updateNavbarMenuVisibility() {
-  const logsBtn = document.getElementById('btn-operation-logs');
-  const changelogBtn = document.getElementById('btn-changelog');
-  if (logsBtn) logsBtn.hidden = !canViewOperationLogs();
-  if (changelogBtn) changelogBtn.hidden = !canViewChangelog();
-  if (typeof updateChangelogManageVisibility === 'function') {
-    updateChangelogManageVisibility();
-  }
 }
 
 

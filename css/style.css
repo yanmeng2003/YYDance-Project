@@ -192,137 +192,6 @@
       border-bottom: 0.5px solid var(--border);
     }
 
-    .navbar-menu-wrap {
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    .navbar-menu-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      padding: 0;
-      border: none;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--primary-dark);
-      flex-shrink: 0;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s, opacity 0.2s;
-    }
-
-    .navbar-menu-btn:hover {
-      background: var(--primary-hover-bg);
-    }
-
-    .navbar-menu-btn:active {
-      opacity: 0.7;
-    }
-
-    .navbar-menu-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke-width: 2.25;
-    }
-
-    .navbar-menu-panel {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      min-width: 168px;
-      padding: 6px;
-      background: var(--card-bg);
-      border: 0.5px solid var(--border);
-      border-radius: 14px;
-      box-shadow: var(--shadow-modal);
-      z-index: 200;
-      display: none;
-    }
-
-    .navbar-menu-panel.is-open {
-      display: block;
-    }
-
-    .navbar-menu-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      width: 100%;
-      padding: 12px 14px;
-      border: none;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      font-family: inherit;
-      text-align: left;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .navbar-menu-item:hover {
-      background: var(--secondary-bg);
-    }
-
-    .navbar-menu-item + .navbar-menu-item {
-      margin-top: 2px;
-    }
-
-    .navbar-menu-item--danger {
-      color: var(--danger);
-    }
-
-    .navbar-menu-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      width: 18px;
-      height: 18px;
-    }
-
-    .navbar-menu-item--danger .navbar-menu-icon {
-      color: var(--danger);
-    }
-
-    .navbar-menu-icon svg {
-      width: 18px;
-      height: 18px;
-      stroke-width: 2;
-    }
-
-    .navbar-menu-check {
-      width: 18px;
-      height: 18px;
-      border-radius: 5px;
-      border: 1.5px solid var(--border);
-      flex-shrink: 0;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    .navbar-menu-check.is-on {
-      border-color: var(--primary);
-      background: var(--primary);
-    }
-
-    .navbar-menu-check.is-on::after {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 2px;
-      width: 4px;
-      height: 8px;
-      border: solid var(--text-on-primary);
-      border-width: 0 2px 2px 0;
-      transform: rotate(45deg);
-    }
-
     .navbar-brand {
       font-size: 1.0625rem;
       font-weight: 700;
@@ -697,6 +566,89 @@
       color: var(--text-muted);
       font-weight: 400;
       flex-shrink: 0;
+    }
+
+    .system-settings-wrap {
+      margin-top: 4px;
+      --island-list-gap: 8px;
+      --island-item-radius: 16px;
+      --island-link-padding-y: 13px;
+      --island-link-padding-x: 16px;
+      --island-link-min-height: 68px;
+    }
+
+    .system-settings-group + .system-settings-group {
+      margin-top: 18px;
+    }
+
+    .system-settings-group-title {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 0 2px 8px;
+    }
+
+    .system-settings-list {
+      list-style: none;
+    }
+
+    .system-settings-item--static .student-island-link {
+      cursor: default;
+    }
+
+    .system-settings-link {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .system-settings-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .system-settings-value-inline {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .system-settings-link--danger .student-name {
+      color: var(--danger);
+    }
+
+    .system-settings-check {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .system-settings-check.is-on {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+
+    .system-settings-check.is-on::after {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 2px;
+      width: 4px;
+      height: 8px;
+      border: solid var(--text-on-primary);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
     }
 
     .student-island-list {

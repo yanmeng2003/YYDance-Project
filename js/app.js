@@ -1,8 +1,9 @@
 function bindEvents() {
   document.getElementById('form-admin-login').addEventListener('submit', onAdminLoginSubmit);
   document.getElementById('admin-login-phone').addEventListener('input', hideAdminLoginError);
-  bindNavbarMenu();
   bindDetailPageEdgeSwipe();
+  bindSystemGeneralEvents();
+  bindSystemPrivacyEvents();
 
   document.querySelectorAll('.tab-bar-item').forEach(tab => {
     tab.addEventListener('click', () => navigateTo(tab.dataset.page));
@@ -186,7 +187,7 @@ async function enterAdminApp(phone, preloadPromise) {
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app-shell').classList.add('visible');
   initLucideIcons();
-  updateNavbarMenuVisibility();
+  updateSystemThemeUI();
 
   try {
     if (preloadPromise) {
