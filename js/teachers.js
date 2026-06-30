@@ -12,6 +12,9 @@ async function openTeachersPage() {
 
   openDetailPage('detail-teachers');
   updateFabVisibility(getActiveMainPage());
+  requestAnimationFrame(() => {
+    updateFabVisibility(getActiveMainPage());
+  });
 }
 
 
