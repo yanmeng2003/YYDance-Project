@@ -780,11 +780,84 @@ function sortCoursesForList(courses) {
 }
 
 
+const COURSE_LIST_SECTIONS = ['拉丁舞', '摩登舞', '待开课'];
+
+
+function getCourseListSection(course) {
+  if (normalizeCourseStatus(course.status) === '待开课') return '待开课';
+  const type = course.courseType || '摩登舞';
+  if (type === '拉丁舞') return '拉丁舞';
+  return '摩登舞';
+}
+
+
+function groupCoursesForList(courses) {
+  const groups = new Map(COURSE_LIST_SECTIONS.map(section => [section, []]));
+  courses.forEach(course => {
+    const section = getCourseListSection(course);
+    groups.get(section).push(course);
+  });
+  return groups;
+}
+
+
+function sortCoursesInListSection(courses, section) {
+  if (section === '待开课') {
+    return [...courses].sort((a, b) => compareCourseScheduleTime(a, b));
+  }
+
+  return [...courses].sort((a, b) => {
+    const statusDiff = getCourseStatusListOrder(a.status) - getCourseStatusListOrder(b.status);
+    if (statusDiff !== 0) return statusDiff;
+
+    const aLarge = isLargeClassCourse(a.classSize);
+    const bLarge = isLargeClassCourse(b.classSize);
+    if (aLarge !== bLarge) return aLarge ? -1 : 1;
+
+    if (aLarge && bLarge) {
+      const seasonDiff = getCourseSeasonSortKey(a.season) - getCourseSeasonSortKey(b.season);
+      if (seasonDiff !== 0) return seasonDiff;
+    }
+
+    return compareCourseScheduleTime(a, b);
+  });
+}
+
+
+function renderCourseSectionAnchorHtml(label) {
+  return `
+    <li class="student-letter-anchor" data-course-section="${escapeHtml(label)}">
+      <span class="student-letter-label">${escapeHtml(label)}</span>
+    </li>
+  `;
+}
+
+
+function renderCourseListItemHtml(course) {
+  const subline = formatCourseListSubline(course);
+  return `
+    <li class="student-island-item${isActiveCourse(course) ? '' : ' course-list-item-inactive'}">
+      <div class="student-island-link student-info-clickable" data-id="${escapeHtml(course.id)}" role="button" tabindex="0" aria-label="查看课程详情">
+        <div class="student-island-main">
+          <span class="student-name-row">
+            <span class="student-name">${escapeHtml(formatCourseShortLabel(course))}</span>
+            ${courseSeasonBadgeHtml(course.classSize, course.season)}
+          </span>
+          <span class="student-island-subline">${escapeHtml(subline)}</span>
+        </div>
+        <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
+      </div>
+    </li>
+  `;
+}
+
+
 function renderCourseListUI(courses) {
   const countEl = document.getElementById('course-count');
   const emptyEl = document.getElementById('course-empty-state');
   const listEl = document.getElementById('course-list');
   const sortedCourses = sortCoursesForList(courses);
+  const groups = groupCoursesForList(sortedCourses);
 
   countEl.textContent = '共 ' + sortedCourses.length + ' 门';
 
@@ -797,23 +870,16 @@ function renderCourseListUI(courses) {
   emptyEl.style.display = 'none';
   listEl.style.display = 'flex';
 
-  listEl.innerHTML = sortedCourses.map(c => {
-    const subline = formatCourseListSubline(c);
-    return `
-    <li class="student-island-item${isActiveCourse(c) ? '' : ' course-list-item-inactive'}">
-      <div class="student-island-link student-info-clickable" data-id="${escapeHtml(c.id)}" role="button" tabindex="0" aria-label="查看课程详情">
-        <div class="student-island-main">
-          <span class="student-name-row">
-            <span class="student-name">${escapeHtml(formatCourseShortLabel(c))}</span>
-            ${courseSeasonBadgeHtml(c.classSize, c.season)}
-          </span>
-          <span class="student-island-subline">${escapeHtml(subline)}</span>
-        </div>
-        <span class="student-island-chevron" aria-hidden="true"><i data-lucide="chevron-right"></i></span>
-      </div>
-    </li>
-  `;
-  }).join('');
+  let listHtml = '';
+  COURSE_LIST_SECTIONS.forEach(section => {
+    const sectionCourses = sortCoursesInListSection(groups.get(section), section);
+    if (!sectionCourses.length) return;
+
+    listHtml += renderCourseSectionAnchorHtml(section);
+    listHtml += sectionCourses.map(renderCourseListItemHtml).join('');
+  });
+
+  listEl.innerHTML = listHtml;
 
   bindClickableRow(listEl, '.student-info-clickable', openCourseDetailModal);
   if (window.lucide && typeof lucide.createIcons === 'function') {
