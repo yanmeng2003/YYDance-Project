@@ -122,6 +122,11 @@ async function renderSystemPage() {
           icon: 'user',
           staticRow: true,
         })}
+      </ul>
+    </div>
+    <div class="system-settings-group">
+      <h3 class="system-settings-group-title">通用与隐私</h3>
+      <ul class="student-island-list system-settings-list">
         ${renderSystemSettingsRowHtml({ label: '通用', icon: 'sliders-horizontal', detailPage: 'detail-system-general' })}
         ${renderSystemSettingsRowHtml({ label: '隐私设置', icon: 'shield', detailPage: 'detail-system-privacy' })}
       </ul>
