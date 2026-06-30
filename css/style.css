@@ -980,39 +980,6 @@
       background: linear-gradient(to top, var(--card-bg) 65%, var(--gradient-fade));
     }
 
-    #modal-remove-course-student .modal-body {
-      display: flex;
-      flex-direction: column;
-      min-height: 220px;
-    }
-
-    #modal-remove-course-student .modal-remove-course-student-form {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-height: 0;
-    }
-
-    #modal-remove-course-student .modal-remove-course-student-message {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin: 0;
-      padding: 0 8px;
-      font-size: 1.0625rem;
-      color: var(--text);
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    #modal-remove-course-student .form-actions {
-      justify-content: flex-end;
-      margin-top: 0;
-      flex-shrink: 0;
-    }
-
     /* Student list */
     .list-card {
       background: var(--card-bg);
@@ -2000,7 +1967,6 @@
     #modal-add-student-course,
     #modal-add-course-student,
     #modal-edit-student-course,
-    #modal-remove-course-student,
     #modal-consume,
     #modal-bulk-consume,
     #modal-makeup-lesson {
