@@ -444,6 +444,10 @@ function closeDetailPage(pageId, options = {}) {
     updateChangelogFabVisibility();
   }
 
+  if (pageId === 'detail-teachers') {
+    updateFabVisibility(getActiveMainPage());
+  }
+
   page.classList.remove('is-open', 'is-swipe-dragging');
   page.setAttribute('aria-hidden', 'true');
 
@@ -497,7 +501,7 @@ function getActiveMainPage() {
 
 
 function closeAllDetailPages() {
-  ['detail-student', 'detail-course', 'detail-teacher', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-changelog-form', 'detail-operation-logs', 'detail-system-general', 'detail-system-privacy'].forEach(id => {
+  ['detail-student', 'detail-course', 'detail-teacher', 'detail-teachers', 'detail-course-add', 'detail-course-edit', 'detail-changelog', 'detail-changelog-entry', 'detail-changelog-form', 'detail-operation-logs', 'detail-system-general', 'detail-system-privacy'].forEach(id => {
     const page = document.getElementById(id);
     if (!page) return;
     page.classList.remove('is-open', 'is-visible');
@@ -538,6 +542,12 @@ function isOperationLogsPageActive() {
 }
 
 
+function isTeachersListPageActive() {
+  const page = document.getElementById('detail-teachers');
+  return page && page.classList.contains('is-visible');
+}
+
+
 function updateFabVisibility(page) {
   const studentDetailOpen = isDetailPageOpen('detail-student');
   const teacherDetailOpen = isTeacherDetailPageActive();
@@ -545,10 +555,10 @@ function updateFabVisibility(page) {
     || isChangelogEntryPageActive()
     || isChangelogFormPageActive();
   const overlayDetailOpen = changelogOpen || isOperationLogsPageActive();
-  const teachersPageOpen = page === 'teachers';
+  const teachersListOpen = isTeachersListPageActive();
   document.getElementById('fab-add-student').classList.toggle('visible', page === 'students' && !studentDetailOpen && !overlayDetailOpen);
   document.getElementById('fab-add-course').classList.toggle('visible', page === 'courses' && !overlayDetailOpen);
-  document.getElementById('fab-add-teacher').classList.toggle('visible', teachersPageOpen && !teacherDetailOpen && !overlayDetailOpen);
+  document.getElementById('fab-add-teacher').classList.toggle('visible', teachersListOpen && !teacherDetailOpen && !overlayDetailOpen);
 }
 
 
@@ -648,25 +658,16 @@ function updateWeekPageScrollLock(active) {
 }
 
 
-let currentTabHighlight = 'week';
-
-
-function navigateTo(page, options = {}) {
-  if (!['students', 'week', 'courses', 'teachers', 'system'].includes(page)) return;
+function navigateTo(page) {
+  if (!['students', 'week', 'courses', 'system'].includes(page)) return;
 
   closeAllDetailPages();
   updateWeekPageScrollLock(page === 'week');
 
-  if (['students', 'week', 'courses', 'system'].includes(page)) {
-    currentTabHighlight = page;
-  }
-
-  const tabHighlight = options.tabHighlight || currentTabHighlight;
-
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll('.tab-bar-item').forEach(tab => {
-    const isActive = tab.dataset.page === tabHighlight;
+    const isActive = tab.dataset.page === page;
     tab.classList.toggle('active', isActive);
     tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
@@ -679,9 +680,6 @@ function navigateTo(page, options = {}) {
   }
   if (page === 'courses') {
     renderCoursesPage();
-  }
-  if (page === 'teachers') {
-    renderTeachersPage();
   }
   if (page === 'system') {
     renderSystemPage();

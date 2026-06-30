@@ -186,8 +186,7 @@ function bindSystemPrivacyEvents() {
   const teachersBtn = document.getElementById('btn-system-privacy-teachers');
   if (teachersBtn) {
     teachersBtn.addEventListener('click', () => {
-      closeDetailPage('detail-system-privacy');
-      navigateTo('teachers', { tabHighlight: 'system' });
+      openTeachersPage();
     });
   }
 

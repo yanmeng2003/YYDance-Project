@@ -1,3 +1,20 @@
+async function openTeachersPage() {
+  try {
+    if (!coreDataCache.loaded && getSupabase()) {
+      await preloadCoreData();
+    }
+    renderTeacherListUI(coreDataCache.teachers);
+  } catch (err) {
+    console.error(err);
+    showToast(err.message || '加载老师失败');
+    return;
+  }
+
+  openDetailPage('detail-teachers');
+  updateFabVisibility(getActiveMainPage());
+}
+
+
 async function openTeacherDetailModal(id) {
   const teacher = coreDataCache.teachers.find(t => t.id === id);
   if (!teacher) return;

@@ -422,7 +422,7 @@ async function refreshCoursesCacheData() {
 
 async function refreshTeachersCacheData() {
   coreDataCache.teachers = await fetchTeachers();
-  if (document.getElementById('page-teachers').classList.contains('active')) {
+  if (isTeachersListPageActive()) {
     renderTeacherListUI(coreDataCache.teachers);
   }
 }
@@ -455,11 +455,6 @@ function renderWeekPage() {
 
 function renderCoursesPage() {
   renderCourseListUI(coreDataCache.courses);
-}
-
-
-function renderTeachersPage() {
-  renderTeacherListUI(coreDataCache.teachers);
 }
 
 

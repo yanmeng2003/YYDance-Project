@@ -91,22 +91,6 @@
       </div>
     </section>
 
-    <!-- 老师管理页（从系统管理进入） -->
-    <section id="page-teachers" class="page">
-      <div class="page-header">
-        <h2 class="main-page-title">老师管理</h2>
-      </div>
-
-      <div class="students-island-wrap">
-        <div class="students-island-header">
-          <h3 class="students-island-title">老师列表</h3>
-          <span class="students-island-count" id="teacher-count">共 0 人</span>
-        </div>
-        <div id="teacher-empty-state" class="list-empty">暂无老师，点击右下角添加</div>
-        <ul class="student-island-list" id="teacher-list"></ul>
-      </div>
-    </section>
-
     <!-- 系统管理页 -->
     <section id="page-system" class="page">
       <div class="page-header">
@@ -496,6 +480,27 @@
         <button type="button" class="course-detail-consume-btn" id="btn-course-detail-consume">消课</button>
       </div>
       <div class="detail-page-body detail-page-body--course" id="course-detail-body"></div>
+    </div>
+  </section>
+
+  <!-- 老师管理列表页（从隐私设置进入） -->
+  <section class="detail-page" id="detail-teachers" aria-hidden="true">
+    <header class="detail-page-navbar">
+      <span class="detail-page-navbar-menu" aria-hidden="true"><i data-lucide="menu"></i></span>
+      <span class="detail-page-navbar-brand">耀毅国标舞工作室</span>
+    </header>
+    <div class="detail-page-nav">
+      <button type="button" class="detail-back-btn" data-detail-back="detail-teachers" aria-label="返回">← 返回</button>
+    </div>
+    <div class="detail-page-inner">
+      <div class="detail-page-title-row">
+        <h2 class="detail-page-title">老师管理</h2>
+        <span class="students-island-count" id="teacher-count">共 0 人</span>
+      </div>
+      <div class="detail-page-body detail-page-body--logs">
+        <div id="teacher-empty-state" class="list-empty">暂无老师，点击右下角添加</div>
+        <ul class="student-island-list" id="teacher-list"></ul>
+      </div>
     </div>
   </section>
 
