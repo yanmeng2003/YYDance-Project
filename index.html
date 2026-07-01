@@ -14,7 +14,9 @@
         document.documentElement.setAttribute('data-theme', theme);
       }
       var accent = localStorage.getItem('yydance_admin_accent');
-      document.documentElement.setAttribute('data-accent', accent === 'blue' ? 'blue' : 'purple');
+      if (accent === 'blue') accent = 'gray';
+      if (accent !== 'gray' && accent !== 'sky' && accent !== 'purple') accent = 'purple';
+      document.documentElement.setAttribute('data-accent', accent);
     })();
   </script>
   <link rel="stylesheet" href="css/style.css">
@@ -576,14 +578,25 @@
               </button>
             </li>
             <li class="student-island-item">
-              <button type="button" class="student-island-link system-settings-link system-settings-row system-accent-option" data-accent-choice="blue">
+              <button type="button" class="student-island-link system-settings-link system-settings-row system-accent-option" data-accent-choice="gray">
                 <div class="system-settings-leading">
-                  <span class="system-settings-icon system-settings-color-swatch system-settings-color-swatch--blue" aria-hidden="true"></span>
+                  <span class="system-settings-icon system-settings-color-swatch system-settings-color-swatch--gray" aria-hidden="true"></span>
                   <div class="student-island-main system-settings-main">
-                    <span class="student-name">经典蓝</span>
+                    <span class="student-name">雾霾灰</span>
                   </div>
                 </div>
-                <span class="system-settings-check" id="system-accent-check-blue" aria-hidden="true"></span>
+                <span class="system-settings-check" id="system-accent-check-gray" aria-hidden="true"></span>
+              </button>
+            </li>
+            <li class="student-island-item">
+              <button type="button" class="student-island-link system-settings-link system-settings-row system-accent-option" data-accent-choice="sky">
+                <div class="system-settings-leading">
+                  <span class="system-settings-icon system-settings-color-swatch system-settings-color-swatch--sky" aria-hidden="true"></span>
+                  <div class="student-island-main system-settings-main">
+                    <span class="student-name">天空蓝</span>
+                  </div>
+                </div>
+                <span class="system-settings-check" id="system-accent-check-sky" aria-hidden="true"></span>
               </button>
             </li>
           </ul>

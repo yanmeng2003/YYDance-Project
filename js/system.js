@@ -86,8 +86,9 @@ function updateSystemThemeUI() {
 
 
 function getSelectedAccentPreference() {
-  const accent = localStorage.getItem(ACCENT_STORAGE_KEY);
-  if (accent === 'blue' || accent === 'purple') return accent;
+  const stored = localStorage.getItem(ACCENT_STORAGE_KEY);
+  if (stored === 'blue') return 'gray';
+  if (stored === 'gray' || stored === 'sky' || stored === 'purple') return stored;
   return 'purple';
 }
 
@@ -95,9 +96,11 @@ function getSelectedAccentPreference() {
 function updateSystemAccentUI() {
   const accent = getSelectedAccentPreference();
   const purpleCheck = document.getElementById('system-accent-check-purple');
-  const blueCheck = document.getElementById('system-accent-check-blue');
+  const grayCheck = document.getElementById('system-accent-check-gray');
+  const skyCheck = document.getElementById('system-accent-check-sky');
   if (purpleCheck) purpleCheck.classList.toggle('is-on', accent === 'purple');
-  if (blueCheck) blueCheck.classList.toggle('is-on', accent === 'blue');
+  if (grayCheck) grayCheck.classList.toggle('is-on', accent === 'gray');
+  if (skyCheck) skyCheck.classList.toggle('is-on', accent === 'sky');
 }
 
 
@@ -238,7 +241,7 @@ function bindSystemGeneralEvents() {
   document.querySelectorAll('.system-accent-option').forEach(btn => {
     btn.addEventListener('click', () => {
       const accent = btn.dataset.accentChoice;
-      if (accent === 'purple' || accent === 'blue') {
+      if (accent === 'purple' || accent === 'gray' || accent === 'sky') {
         setAccentPreference(accent);
       }
     });
