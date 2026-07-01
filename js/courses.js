@@ -381,7 +381,7 @@ function buildWeekEventHtml(eventLayout, colorMap) {
 
   return `
     <div class="week-event${smallClass}" role="button" tabindex="0" data-course-id="${escapeHtml(course.id)}"
-      style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};color:${colors.text};box-shadow:inset 4px 0 0 ${colors.border}"
+      style="top:${top}px;height:${height}px;${positionStyle}background:${colors.bg};color:${colors.text};box-shadow:inset 2px 0 0 ${colors.border}"
       title="${escapeHtml(title)}">
       <span class="week-event-class">${escapeHtml(courseLabel)}</span>
       <span class="week-event-time">${escapeHtml(timeLabel)}</span>
