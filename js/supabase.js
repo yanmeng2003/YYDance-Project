@@ -19,80 +19,20 @@ const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MI
 const WEEK_VIEW_PAD_Y = 8;
 const WEEK_GRID_HEIGHT = WEEK_SLOT_COUNT * WEEK_SLOT_HEIGHT;
 
-const TEACHER_COLOR_PALETTES_BY_ACCENT = {
-  purple: [
-    { bg: '#e8daef', border: '#9b59b6', text: '#5b2c6f' },
-    { bg: '#fce4ec', border: '#e91e8c', text: '#880e4f' },
-    { bg: '#d5f5e3', border: '#27ae60', text: '#1e5631' },
-    { bg: '#fdebd0', border: '#e67e22', text: '#7e5109' },
-    { bg: '#d6eaf8', border: '#3498db', text: '#1a5276' },
-    { bg: '#fcf3cf', border: '#f1c40f', text: '#7d6608' },
-    { bg: '#e8f8f5', border: '#1abc9c', text: '#0e6251' },
-    { bg: '#f5eef8', border: '#8e44ad', text: '#4a235a' },
-    { bg: '#fdedec', border: '#e74c3c', text: '#78281f' },
-    { bg: '#ebf5fb', border: '#5dade2', text: '#1b4f72' }
-  ],
-  gray: [
-    { bg: '#e2e6ea', border: '#6f7b88', text: '#4a5560' },
-    { bg: '#dce3eb', border: '#5b6b7d', text: '#3d4a57' },
-    { bg: '#e8e4e0', border: '#8b7d70', text: '#5c5248' },
-    { bg: '#dde5e0', border: '#5f7a6e', text: '#3f5249' },
-    { bg: '#e5dde3', border: '#7a6270', text: '#524148' },
-    { bg: '#e0e2e8', border: '#626a7d', text: '#424859' },
-    { bg: '#ebe6dc', border: '#8a7d5e', text: '#5c5340' },
-    { bg: '#dce8e5', border: '#5a7a72', text: '#3d524c' },
-    { bg: '#e8dce0', border: '#8a6270', text: '#5c424c' },
-    { bg: '#e4e0eb', border: '#6a627d', text: '#48425c' }
-  ],
-  sky: [
-    { bg: '#dce9fc', border: '#007aff', text: '#004999' },
-    { bg: '#d6eef5', border: '#32ade6', text: '#1a6a8a' },
-    { bg: '#e0e8fc', border: '#5856d6', text: '#3634a0' },
-    { bg: '#d4edf0', border: '#00a8b5', text: '#006d75' },
-    { bg: '#e8e4fc', border: '#7b6cf0', text: '#4f45a8' },
-    { bg: '#d9f0f8', border: '#0096c7', text: '#005f82' },
-    { bg: '#e2eaf8', border: '#4a7fd4', text: '#2a5299' },
-    { bg: '#d4f0f4', border: '#00b4d8', text: '#007892' },
-    { bg: '#e6e2f5', border: '#6b5bce', text: '#453a96' },
-    { bg: '#daf0fc', border: '#0284c7', text: '#015a88' }
-  ],
-  green: [
-    { bg: '#d5f5e3', border: '#07c160', text: '#047a3d' },
-    { bg: '#dcf5e8', border: '#2ecc71', text: '#1a7a45' },
-    { bg: '#d4f0e0', border: '#1abc9c', text: '#0e7a66' },
-    { bg: '#e0f5d6', border: '#52c41a', text: '#347a10' },
-    { bg: '#d6f0e5', border: '#27ae60', text: '#176b3d' },
-    { bg: '#dcf0d6', border: '#6ab04c', text: '#426d30' },
-    { bg: '#d5f0e8', border: '#16a085', text: '#0e6655' },
-    { bg: '#e5f5d6', border: '#7cb342', text: '#4e7029' },
-    { bg: '#d6f5e0', border: '#00b894', text: '#007560' },
-    { bg: '#e0f5dc', border: '#43a047', text: '#2a662e' }
-  ],
-  orange: [
-    { bg: '#fde8dc', border: '#d97757', text: '#8f4a35' },
-    { bg: '#fce8d4', border: '#e67e22', text: '#8f5015' },
-    { bg: '#fdf0d4', border: '#f39c12', text: '#9a620c' },
-    { bg: '#fce4dc', border: '#e74c3c', text: '#8f2e22' },
-    { bg: '#fdecd4', border: '#d35400', text: '#863504' },
-    { bg: '#fdf2dc', border: '#f1c40f', text: '#8f7508' },
-    { bg: '#fce0d4', border: '#c0392b', text: '#7a251a' },
-    { bg: '#fde8d0', border: '#e8a838', text: '#8f6518' },
-    { bg: '#fcecd8', border: '#cd6133', text: '#7f3d1f' },
-    { bg: '#fdf4d4', border: '#d4a017', text: '#7a6010' }
-  ],
-  peach: [
-    { bg: '#fce4e8', border: '#fa2d48', text: '#9e1a2f' },
-    { bg: '#fce0ec', border: '#e91e8c', text: '#8f1255' },
-    { bg: '#fae0e4', border: '#ff3b30', text: '#9e2018' },
-    { bg: '#fce4f0', border: '#ff2d55', text: '#9e1a38' },
-    { bg: '#f8e0e8', border: '#c44569', text: '#7a2a42' },
-    { bg: '#fce0e4', border: '#f50057', text: '#960035' },
-    { bg: '#fae4ec', border: '#e84393', text: '#8f295a' },
-    { bg: '#fce8e0', border: '#ff6b6b', text: '#9e3f3f' },
-    { bg: '#f8e4f0', border: '#d63384', text: '#862051' },
-    { bg: '#fce0e8', border: '#ff1744', text: '#960e2a' }
-  ]
-};
+// 老师周视图色块：按色相均匀拉开，优先保证不同老师一眼可辨
+const TEACHER_DISTINCT_PALETTE = [
+  { bg: '#ffd6e3', border: '#db2777', text: '#9d174d' },
+  { bg: '#ffdcc8', border: '#ea580c', text: '#7c2d12' },
+  { bg: '#fff0b3', border: '#d97706', text: '#78350f' },
+  { bg: '#d9f99d', border: '#65a30d', text: '#365314' },
+  { bg: '#bbf7d0', border: '#16a34a', text: '#14532d' },
+  { bg: '#a5f3fc', border: '#0891b2', text: '#164e63' },
+  { bg: '#bae6fd', border: '#0284c7', text: '#0c4a6e' },
+  { bg: '#c7d2fe', border: '#4f46e5', text: '#312e81' },
+  { bg: '#ddd6fe', border: '#7c3aed', text: '#4c1d95' },
+  { bg: '#f5d0fe', border: '#a21caf', text: '#701a75' },
+  { bg: '#fecaca', border: '#dc2626', text: '#991b1b' }
+];
 
 const DEFAULT_COURSE_COLORS_BY_ACCENT = {
   purple: { bg: '#f4f2f6', border: '#a89bb0', text: '#4a3f52' },
@@ -114,7 +54,7 @@ function getCurrentAccentKey() {
 
 
 function getTeacherColorPalette() {
-  return TEACHER_COLOR_PALETTES_BY_ACCENT[getCurrentAccentKey()];
+  return TEACHER_DISTINCT_PALETTE;
 }
 
 
