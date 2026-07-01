@@ -15,7 +15,8 @@
       }
       var accent = localStorage.getItem('yydance_admin_accent');
       if (accent === 'blue') accent = 'gray';
-      if (accent !== 'gray' && accent !== 'sky' && accent !== 'purple') accent = 'purple';
+      var validAccents = ['purple', 'gray', 'sky', 'green', 'orange', 'peach'];
+      if (validAccents.indexOf(accent) === -1) accent = 'purple';
       document.documentElement.setAttribute('data-accent', accent);
     })();
   </script>
@@ -565,41 +566,38 @@
         </ul>
         <div class="system-settings-group">
           <h3 class="system-settings-group-title">主题色</h3>
-          <ul class="student-island-list system-settings-list">
-            <li class="student-island-item">
-              <button type="button" class="student-island-link system-settings-link system-settings-row system-accent-option" data-accent-choice="purple">
-                <div class="system-settings-leading">
-                  <span class="system-settings-icon system-settings-color-swatch system-settings-color-swatch--purple" aria-hidden="true"></span>
-                  <div class="student-island-main system-settings-main">
-                    <span class="student-name">淡雅紫</span>
-                  </div>
-                </div>
-                <span class="system-settings-check" id="system-accent-check-purple" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li class="student-island-item">
-              <button type="button" class="student-island-link system-settings-link system-settings-row system-accent-option" data-accent-choice="gray">
-                <div class="system-settings-leading">
-                  <span class="system-settings-icon system-settings-color-swatch system-settings-color-swatch--gray" aria-hidden="true"></span>
-                  <div class="student-island-main system-settings-main">
-                    <span class="student-name">雾霾灰</span>
-                  </div>
-                </div>
-                <span class="system-settings-check" id="system-accent-check-gray" aria-hidden="true"></span>
-              </button>
-            </li>
-            <li class="student-island-item">
-              <button type="button" class="student-island-link system-settings-link system-settings-row system-accent-option" data-accent-choice="sky">
-                <div class="system-settings-leading">
-                  <span class="system-settings-icon system-settings-color-swatch system-settings-color-swatch--sky" aria-hidden="true"></span>
-                  <div class="student-island-main system-settings-main">
-                    <span class="student-name">天空蓝</span>
-                  </div>
-                </div>
-                <span class="system-settings-check" id="system-accent-check-sky" aria-hidden="true"></span>
-              </button>
-            </li>
-          </ul>
+          <div class="system-accent-grid" role="radiogroup" aria-label="主题色">
+            <button type="button" class="system-accent-tile system-accent-option" data-accent-choice="purple" role="radio" aria-checked="false">
+              <span class="system-accent-swatch system-accent-swatch--purple" aria-hidden="true"></span>
+              <span class="system-accent-label">淡雅紫</span>
+              <span class="system-accent-check" id="system-accent-check-purple" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="system-accent-tile system-accent-option" data-accent-choice="gray" role="radio" aria-checked="false">
+              <span class="system-accent-swatch system-accent-swatch--gray" aria-hidden="true"></span>
+              <span class="system-accent-label">雾霾灰</span>
+              <span class="system-accent-check" id="system-accent-check-gray" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="system-accent-tile system-accent-option" data-accent-choice="sky" role="radio" aria-checked="false">
+              <span class="system-accent-swatch system-accent-swatch--sky" aria-hidden="true"></span>
+              <span class="system-accent-label">天空蓝</span>
+              <span class="system-accent-check" id="system-accent-check-sky" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="system-accent-tile system-accent-option" data-accent-choice="green" role="radio" aria-checked="false">
+              <span class="system-accent-swatch system-accent-swatch--green" aria-hidden="true"></span>
+              <span class="system-accent-label">青草绿</span>
+              <span class="system-accent-check" id="system-accent-check-green" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="system-accent-tile system-accent-option" data-accent-choice="orange" role="radio" aria-checked="false">
+              <span class="system-accent-swatch system-accent-swatch--orange" aria-hidden="true"></span>
+              <span class="system-accent-label">元气橙</span>
+              <span class="system-accent-check" id="system-accent-check-orange" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="system-accent-tile system-accent-option" data-accent-choice="peach" role="radio" aria-checked="false">
+              <span class="system-accent-swatch system-accent-swatch--peach" aria-hidden="true"></span>
+              <span class="system-accent-label">桃桃红</span>
+              <span class="system-accent-check" id="system-accent-check-peach" aria-hidden="true"></span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

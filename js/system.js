@@ -85,22 +85,29 @@ function updateSystemThemeUI() {
 }
 
 
+const ACCENT_CHOICES = ['purple', 'gray', 'sky', 'green', 'orange', 'peach'];
+
+
 function getSelectedAccentPreference() {
   const stored = localStorage.getItem(ACCENT_STORAGE_KEY);
   if (stored === 'blue') return 'gray';
-  if (stored === 'gray' || stored === 'sky' || stored === 'purple') return stored;
+  if (ACCENT_CHOICES.includes(stored)) return stored;
   return 'purple';
 }
 
 
 function updateSystemAccentUI() {
   const accent = getSelectedAccentPreference();
-  const purpleCheck = document.getElementById('system-accent-check-purple');
-  const grayCheck = document.getElementById('system-accent-check-gray');
-  const skyCheck = document.getElementById('system-accent-check-sky');
-  if (purpleCheck) purpleCheck.classList.toggle('is-on', accent === 'purple');
-  if (grayCheck) grayCheck.classList.toggle('is-on', accent === 'gray');
-  if (skyCheck) skyCheck.classList.toggle('is-on', accent === 'sky');
+  ACCENT_CHOICES.forEach((choice) => {
+    const tile = document.querySelector(`.system-accent-option[data-accent-choice="${choice}"]`);
+    const check = document.getElementById(`system-accent-check-${choice}`);
+    const selected = accent === choice;
+    if (tile) {
+      tile.classList.toggle('is-selected', selected);
+      tile.setAttribute('aria-checked', selected ? 'true' : 'false');
+    }
+    if (check) check.classList.toggle('is-on', selected);
+  });
 }
 
 
@@ -241,7 +248,7 @@ function bindSystemGeneralEvents() {
   document.querySelectorAll('.system-accent-option').forEach(btn => {
     btn.addEventListener('click', () => {
       const accent = btn.dataset.accentChoice;
-      if (accent === 'purple' || accent === 'gray' || accent === 'sky') {
+      if (ACCENT_CHOICES.includes(accent)) {
         setAccentPreference(accent);
       }
     });
