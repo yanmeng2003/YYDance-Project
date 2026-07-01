@@ -19,42 +19,49 @@ const WEEK_SLOT_COUNT = (WEEK_GRID_END_MIN - WEEK_GRID_START_MIN) / WEEK_SLOT_MI
 const WEEK_VIEW_PAD_Y = 8;
 const WEEK_GRID_HEIGHT = WEEK_SLOT_COUNT * WEEK_SLOT_HEIGHT;
 
-// 老师周视图色块：按色相均匀拉开，优先保证不同老师一眼可辨
-const TEACHER_DISTINCT_PALETTE = [
-  { bg: '#ffd6e3', border: '#db2777', text: '#9d174d' },
-  { bg: '#ffdcc8', border: '#ea580c', text: '#7c2d12' },
-  { bg: '#fff0b3', border: '#d97706', text: '#78350f' },
-  { bg: '#d9f99d', border: '#65a30d', text: '#365314' },
-  { bg: '#bbf7d0', border: '#16a34a', text: '#14532d' },
-  { bg: '#a5f3fc', border: '#0891b2', text: '#164e63' },
-  { bg: '#bae6fd', border: '#0284c7', text: '#0c4a6e' },
-  { bg: '#c7d2fe', border: '#4f46e5', text: '#312e81' },
+// 周视图老师色块：冷色系（淡雅紫 / 天空蓝）与暖色系（元气橙 / 桃桃红）各 5 色
+const TEACHER_COOL_PALETTE = [
+  { bg: '#e8daef', border: '#9b59b6', text: '#5b2c6f' },
   { bg: '#ddd6fe', border: '#7c3aed', text: '#4c1d95' },
-  { bg: '#f5d0fe', border: '#a21caf', text: '#701a75' },
-  { bg: '#fecaca', border: '#dc2626', text: '#991b1b' }
+  { bg: '#dbeafe', border: '#2563eb', text: '#1e3a8a' },
+  { bg: '#bae6fd', border: '#0284c7', text: '#0c4a6e' },
+  { bg: '#a5f3fc', border: '#0891b2', text: '#164e63' }
+];
+
+const TEACHER_WARM_PALETTE = [
+  { bg: '#ffdcc8', border: '#ea580c', text: '#7c2d12' },
+  { bg: '#fde68a', border: '#ca8a04', text: '#713f12' },
+  { bg: '#ffd6e3', border: '#db2777', text: '#9d174d' },
+  { bg: '#fecaca', border: '#dc2626', text: '#991b1b' },
+  { bg: '#fed7aa', border: '#f97316', text: '#7c2d12' }
 ];
 
 const DEFAULT_COURSE_COLORS_BY_ACCENT = {
   purple: { bg: '#f4f2f6', border: '#a89bb0', text: '#4a3f52' },
-  gray: { bg: '#eceef0', border: '#8e98a4', text: '#5a6570' },
   sky: { bg: '#e8f2fc', border: '#6ba3d4', text: '#3d6a99' },
-  green: { bg: '#e8f5ee', border: '#6db88a', text: '#3d6b52' },
   orange: { bg: '#faf0eb', border: '#c9a090', text: '#6b5248' },
   peach: { bg: '#fceef0', border: '#d49aa4', text: '#6b424a' }
 };
 
-const ACCENT_THEME_KEYS = ['purple', 'gray', 'sky', 'green', 'orange', 'peach'];
+const ACCENT_THEME_KEYS = ['purple', 'sky', 'orange', 'peach'];
 
-function getCurrentAccentKey() {
-  const accent = document.documentElement.getAttribute('data-accent');
-  if (accent === 'blue') return 'gray';
+function normalizeAccentKey(accent) {
+  if (accent === 'blue' || accent === 'gray' || accent === 'green') return 'purple';
   if (ACCENT_THEME_KEYS.includes(accent)) return accent;
   return 'purple';
 }
 
+function getCurrentAccentKey() {
+  return normalizeAccentKey(document.documentElement.getAttribute('data-accent'));
+}
+
 
 function getTeacherColorPalette() {
-  return TEACHER_DISTINCT_PALETTE;
+  const accent = getCurrentAccentKey();
+  if (accent === 'orange' || accent === 'peach') {
+    return TEACHER_WARM_PALETTE;
+  }
+  return TEACHER_COOL_PALETTE;
 }
 
 

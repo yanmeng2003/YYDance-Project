@@ -90,9 +90,7 @@ const ACCENT_CHOICES = ACCENT_THEME_KEYS;
 
 function getSelectedAccentPreference() {
   const stored = localStorage.getItem(ACCENT_STORAGE_KEY);
-  if (stored === 'blue') return 'gray';
-  if (ACCENT_CHOICES.includes(stored)) return stored;
-  return 'purple';
+  return normalizeAccentKey(stored);
 }
 
 
