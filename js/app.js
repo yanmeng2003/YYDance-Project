@@ -188,6 +188,7 @@ async function enterAdminApp(phone, preloadPromise) {
   document.getElementById('app-shell').classList.add('visible');
   initLucideIcons();
   updateSystemThemeUI();
+  updateSystemAccentUI();
 
   try {
     if (preloadPromise) {

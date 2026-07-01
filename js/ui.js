@@ -740,6 +740,15 @@ function setThemePreference(theme) {
 }
 
 
+function setAccentPreference(accent) {
+  document.documentElement.setAttribute('data-accent', accent);
+  localStorage.setItem(ACCENT_STORAGE_KEY, accent);
+  if (typeof updateSystemAccentUI === 'function') {
+    updateSystemAccentUI();
+  }
+}
+
+
 function getTodayDateString() {
   const d = new Date();
   const y = d.getFullYear();

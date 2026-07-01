@@ -3,6 +3,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const ADMIN_AUTH_STORAGE_KEY = 'yydance_admin_auth_phone';
 const THEME_STORAGE_KEY = 'yydance_admin_theme';
+const ACCENT_STORAGE_KEY = 'yydance_admin_accent';
 const ADMIN_EXTRA_ALLOWED_PHONE = '18015208086';
 
 const OPERATOR_DISPLAY_NAMES = {

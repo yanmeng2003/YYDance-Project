@@ -85,6 +85,22 @@ function updateSystemThemeUI() {
 }
 
 
+function getSelectedAccentPreference() {
+  const accent = localStorage.getItem(ACCENT_STORAGE_KEY);
+  if (accent === 'blue' || accent === 'purple') return accent;
+  return 'purple';
+}
+
+
+function updateSystemAccentUI() {
+  const accent = getSelectedAccentPreference();
+  const purpleCheck = document.getElementById('system-accent-check-purple');
+  const blueCheck = document.getElementById('system-accent-check-blue');
+  if (purpleCheck) purpleCheck.classList.toggle('is-on', accent === 'purple');
+  if (blueCheck) blueCheck.classList.toggle('is-on', accent === 'blue');
+}
+
+
 function buildAccountSublineHtml() {
   const name = getCurrentOperatorDisplayName();
   const phone = getCurrentOperatorPhone();
@@ -198,6 +214,7 @@ function bindSystemSettingsEvents(root) {
 function openSystemGeneralPage() {
   openDetailPage('detail-system-general');
   updateSystemThemeUI();
+  updateSystemAccentUI();
   initLucideIcons();
 }
 
@@ -214,6 +231,15 @@ function bindSystemGeneralEvents() {
       const theme = btn.dataset.themeChoice;
       if (theme === 'light' || theme === 'dark') {
         setThemePreference(theme);
+      }
+    });
+  });
+
+  document.querySelectorAll('.system-accent-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const accent = btn.dataset.accentChoice;
+      if (accent === 'purple' || accent === 'blue') {
+        setAccentPreference(accent);
       }
     });
   });
