@@ -85,7 +85,7 @@ function updateSystemThemeUI() {
 }
 
 
-const ACCENT_CHOICES = ['purple', 'gray', 'sky', 'green', 'orange', 'peach'];
+const ACCENT_CHOICES = ACCENT_THEME_KEYS;
 
 
 function getSelectedAccentPreference() {
@@ -100,13 +100,11 @@ function updateSystemAccentUI() {
   const accent = getSelectedAccentPreference();
   ACCENT_CHOICES.forEach((choice) => {
     const tile = document.querySelector(`.system-accent-option[data-accent-choice="${choice}"]`);
-    const check = document.getElementById(`system-accent-check-${choice}`);
     const selected = accent === choice;
     if (tile) {
       tile.classList.toggle('is-selected', selected);
       tile.setAttribute('aria-checked', selected ? 'true' : 'false');
     }
-    if (check) check.classList.toggle('is-on', selected);
   });
 }
 

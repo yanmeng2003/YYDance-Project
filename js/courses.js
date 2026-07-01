@@ -1,4 +1,5 @@
 function buildTeacherColorMap() {
+  const palette = getTeacherColorPalette();
   const sorted = [...coreDataCache.teachers].sort((a, b) => {
     const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
@@ -6,7 +7,7 @@ function buildTeacherColorMap() {
   });
   const map = {};
   sorted.forEach((t, i) => {
-    map[t.id] = TEACHER_COLOR_PALETTE[i % TEACHER_COLOR_PALETTE.length];
+    map[t.id] = palette[i % palette.length];
   });
   return map;
 }
@@ -16,7 +17,7 @@ function getCourseColor(course, colorMap) {
   if (course.teacherId && colorMap[course.teacherId]) {
     return colorMap[course.teacherId];
   }
-  return DEFAULT_COURSE_COLOR;
+  return getDefaultCourseColor();
 }
 
 

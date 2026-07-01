@@ -746,6 +746,29 @@ function setAccentPreference(accent) {
   if (typeof updateSystemAccentUI === 'function') {
     updateSystemAccentUI();
   }
+  refreshViewsAfterAccentChange();
+}
+
+
+function refreshViewsAfterAccentChange() {
+  const weekPage = document.getElementById('page-week');
+  if (weekPage && weekPage.classList.contains('active')) {
+    renderWeekPage();
+  }
+  const coursesPage = document.getElementById('page-courses');
+  if (coursesPage && coursesPage.classList.contains('active')) {
+    renderCoursesPage();
+  }
+  const studentsPage = document.getElementById('page-students');
+  if (studentsPage && studentsPage.classList.contains('active')) {
+    renderStudentListUI();
+  }
+  if (isDetailPageOpen('detail-student') && currentStudentDetailId) {
+    const student = coreDataCache.students.find(s => s.id === currentStudentDetailId);
+    if (student) {
+      renderStudentDetailUI(student, studentDetailData.records, studentDetailData.courses);
+    }
+  }
 }
 
 
