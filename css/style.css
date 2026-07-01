@@ -343,12 +343,6 @@
       overflow: hidden;
     }
 
-    html.week-page-active,
-    body.week-page-active {
-      overflow: hidden;
-      overscroll-behavior: none;
-    }
-
     /* Navigation */
     .navbar {
       position: sticky;

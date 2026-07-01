@@ -154,7 +154,6 @@ function logoutAdmin() {
   clearAdminSession();
   closeAllModals();
   closeAllDetailPages();
-  updateWeekPageScrollLock(false);
   document.body.style.overflow = '';
   document.getElementById('admin-login-phone').value = '';
   hideAdminLoginError();
